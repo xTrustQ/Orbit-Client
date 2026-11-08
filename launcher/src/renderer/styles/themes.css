@@ -1,0 +1,59 @@
+@font-face { font-family: 'Orbitron'; src: url('../fonts/orbitron.woff2') format('woff2'); font-weight: 400 900; font-display: swap; }
+@font-face { font-family: 'Silkscreen'; src: url('../fonts/silkscreen.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+@font-face { font-family: 'Inter Variable'; src: url('../fonts/inter.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
+
+/* Space themes: every component reads these tokens. --n1..n3 colour the nebula clouds, --planet the planet. */
+:root,
+[data-theme="nebula"] {
+  --bg: #05030d; --bg-2: #0a0618; --glass: rgba(255, 255, 255, .045); --glass-2: rgba(255, 255, 255, .075); --glass-solid: #120c26;
+  --line: rgba(196, 170, 255, .12); --line-strong: rgba(196, 170, 255, .26); --text: #f1ecff; --muted: #a49cc4; --faint: #6c6390;
+  --accent: #b18cff; --accent-2: #ff6fd8; --accent-ink: #12051f; --accent-soft: rgba(177, 140, 255, .14); --glow: rgba(177, 140, 255, .45);
+  --n1: #6d28d9; --n2: #db2777; --n3: #1d4ed8; --planet: radial-gradient(circle at 30% 30%, #f0abfc, #7e22ce 45%, #1e0b3d 75%);
+  --danger: #ff5d7a; --warn: #ffc65c; --ok: #4ade80;
+}
+[data-theme="deepspace"] {
+  --bg: #02060d; --bg-2: #061020; --glass-solid: #0a1728; --line: rgba(140, 200, 255, .12); --line-strong: rgba(140, 200, 255, .26);
+  --text: #eaf6ff; --muted: #8fa8c4; --faint: #587089;
+  --accent: #4cc9ff; --accent-2: #6d7dff; --accent-ink: #001424; --accent-soft: rgba(76, 201, 255, .14); --glow: rgba(76, 201, 255, .45);
+  --n1: #0e7490; --n2: #1d4ed8; --n3: #312e81; --planet: radial-gradient(circle at 30% 30%, #a5f3fc, #0284c7 45%, #082040 75%);
+}
+[data-theme="supernova"] {
+  --bg: #0b0503; --bg-2: #160a05; --glass-solid: #24130a; --line: rgba(255, 190, 120, .13); --line-strong: rgba(255, 190, 120, .28);
+  --text: #fff3e6; --muted: #c4a68a; --faint: #8a6c52;
+  --accent: #ffb347; --accent-2: #ff5e3a; --accent-ink: #261000; --accent-soft: rgba(255, 179, 71, .14); --glow: rgba(255, 140, 60, .5);
+  --n1: #c2410c; --n2: #b91c1c; --n3: #a16207; --planet: radial-gradient(circle at 30% 30%, #fff7cc, #f59e0b 40%, #7c2d12 75%);
+}
+[data-theme="aurora"] {
+  --bg: #020b09; --bg-2: #051612; --glass-solid: #0a211b; --line: rgba(120, 255, 200, .12); --line-strong: rgba(120, 255, 200, .26);
+  --text: #e9fff6; --muted: #8fb8a8; --faint: #57806f;
+  --accent: #34f5a5; --accent-2: #22d3ee; --accent-ink: #00170e; --accent-soft: rgba(52, 245, 165, .13); --glow: rgba(52, 245, 165, .45);
+  --n1: #047857; --n2: #0e7490; --n3: #6d28d9; --planet: radial-gradient(circle at 30% 30%, #bbf7d0, #059669 45%, #022c22 75%);
+}
+[data-theme="mars"] {
+  --bg: #0c0403; --bg-2: #180806; --glass-solid: #26100c; --line: rgba(255, 150, 120, .13); --line-strong: rgba(255, 150, 120, .28);
+  --text: #ffeee9; --muted: #c49a8f; --faint: #8a5f55;
+  --accent: #ff6b4a; --accent-2: #ffa94d; --accent-ink: #250600; --accent-soft: rgba(255, 107, 74, .14); --glow: rgba(255, 107, 74, .5);
+  --n1: #9a3412; --n2: #7f1d1d; --n3: #4c1d95; --planet: radial-gradient(circle at 30% 30%, #fecaca, #dc2626 40%, #450a0a 75%);
+}
+[data-theme="eclipse"] {
+  --bg: #030303; --bg-2: #0a0a0a; --glass-solid: #141414; --line: rgba(255, 255, 255, .1); --line-strong: rgba(255, 255, 255, .22);
+  --text: #f5f5f5; --muted: #9b9b9b; --faint: #5f5f5f;
+  --accent: #f2f2f2; --accent-2: #9ca3af; --accent-ink: #0a0a0a; --accent-soft: rgba(255, 255, 255, .09); --glow: rgba(255, 255, 255, .3);
+  --n1: #3f3f46; --n2: #27272a; --n3: #52525b; --planet: radial-gradient(circle at 30% 30%, #fafafa, #71717a 45%, #09090b 75%);
+}
+[data-theme="lunar"] {
+  --bg: #dfe4ef; --bg-2: #eef1f7; --glass: rgba(255, 255, 255, .55); --glass-2: rgba(255, 255, 255, .8); --glass-solid: #ffffff;
+  --line: rgba(40, 50, 90, .12); --line-strong: rgba(40, 50, 90, .24); --text: #121733; --muted: #59618a; --faint: #8d93b3;
+  --accent: #5b5bf0; --accent-2: #b14be0; --accent-ink: #ffffff; --accent-soft: rgba(91, 91, 240, .12); --glow: rgba(91, 91, 240, .3);
+  --n1: #a5b4fc; --n2: #f0abfc; --n3: #93c5fd; --planet: radial-gradient(circle at 30% 30%, #ffffff, #c7d2fe 45%, #6366f1 80%);
+  --danger: #e0364a; --warn: #b07a00;
+}
+
+/* Theme swatches for the settings picker */
+.sw-nebula { --s1: #b18cff; --s2: #ff6fd8; --s3: #05030d; }
+.sw-deepspace { --s1: #4cc9ff; --s2: #6d7dff; --s3: #02060d; }
+.sw-supernova { --s1: #ffb347; --s2: #ff5e3a; --s3: #0b0503; }
+.sw-aurora { --s1: #34f5a5; --s2: #22d3ee; --s3: #020b09; }
+.sw-mars { --s1: #ff6b4a; --s2: #ffa94d; --s3: #0c0403; }
+.sw-eclipse { --s1: #f2f2f2; --s2: #9ca3af; --s3: #030303; }
+.sw-lunar { --s1: #5b5bf0; --s2: #b14be0; --s3: #dfe4ef; }

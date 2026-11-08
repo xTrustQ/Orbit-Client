@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "orbit-test",
+  "version": "1.0.0",
+  "name": "Orbit Client visual test",
+  "environment": "client",
+  "entrypoints": { "fabric-client-gametest": ["dev.orbit.client.test.OrbitVisualTest"] },
+  "depends": { "orbit": "*" }
+}

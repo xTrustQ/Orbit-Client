@@ -1,0 +1,28 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "dev.orbit.client.mixin",
+  "compatibilityLevel": "JAVA_${java}",
+  "client": [
+    "StatusBarsMixin",
+    "AbstractClientPlayerEntityMixin",
+    "CameraMixin",
+    "ClientWorldPropertiesMixin",
+    "EntityMixin",
+    "HungerManagerAccessor",
+    "HurtCamMixin",
+    "LabelMixin",
+    "MotionBlurHudMixin",
+    "NoFogMixin",
+    "PlayerModelMixin",
+    "ScoreboardMixin",
+    "BackgroundRendererMixin",
+    "GameRendererMixin",
+    "InGameHudMixin",
+    "MinecraftClientMixin",
+    "MouseMixin",
+    "SimpleOptionAccessor",
+    "SkyRenderingMixin"
+  ],
+  "injectors": { "defaultRequire": 1 }
+}

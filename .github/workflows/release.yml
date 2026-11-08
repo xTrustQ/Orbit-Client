@@ -1,0 +1,72 @@
+# Publishes an Orbit update. Push a tag like v1.3.0 and this builds the mod + launcher on Windows and
+# attaches Orbit.exe to a GitHub release. Every Orbit launcher whose "Update repository" points at this repo
+# then offers the update on its next start (and installs it with one click).
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build the Orbit mod
+        working-directory: client-mod/versions/1.21.11
+        run: ./gradlew.bat build -x test --console=plain
+
+      - name: Put the mod into the launcher
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force launcher/resources | Out-Null
+          $jar = Get-ChildItem client-mod/versions/1.21.11/build/libs/*.jar | Where-Object { $_.Name -notmatch 'sources|dev' } | Select-Object -First 1
+          Copy-Item $jar.FullName launcher/resources/orbit-1.21.11.jar -Force
+
+      - name: Use the tag as the launcher version
+        if: startsWith(github.ref, 'refs/tags/v')
+        working-directory: launcher
+        shell: pwsh
+        run: |
+          $v = '${{ github.ref_name }}'.TrimStart('v')
+          $p = Get-Content package.json -Raw | ConvertFrom-Json
+          $p.version = $v
+          # builds from this repo update themselves from this repo
+          if (-not $p.orbit.updateRepo) { $p.orbit.updateRepo = '${{ github.repository }}' }
+          $p | ConvertTo-Json -Depth 20 | Set-Content package.json -Encoding utf8
+
+      - name: Build Orbit.exe
+        working-directory: launcher
+        run: |
+          npm ci
+          npm run dist
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+
+      - name: Publish the release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: launcher/dist/Orbit.exe
+          generate_release_notes: true
+
+      - name: Keep the build (manual runs)
+        if: "!startsWith(github.ref, 'refs/tags/v')"
+        uses: actions/upload-artifact@v4
+        with:
+          name: Orbit
+          path: launcher/dist/Orbit.exe

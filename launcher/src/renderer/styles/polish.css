@@ -1,0 +1,70 @@
+/* ================================================================ launcher polish layer
+   Spotlight cards, 3D tilt, ripples, the launch sequence and lots of small details. Loaded after app.css. */
+
+/* soft light that follows the mouse across every card */
+.card::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0;
+  background: radial-gradient(380px circle at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, .07), transparent 45%);
+  transition: opacity 300ms;
+}
+.card:hover::after { opacity: 1; }
+.liftoff::after { opacity: 1; } /* keep the launch button's own shine */
+
+/* gentle 3D tilt on interactive cards */
+.card.hover { transform-style: preserve-3d; will-change: transform; }
+.card.hover:hover { transform: var(--tilt, none) translateY(-3px); }
+[data-anim='off'] .card.hover:hover { transform: translateY(-2px); }
+
+/* click ripples */
+.btn, .tab, .chip, .liftoff { position: relative; overflow: hidden; }
+.ripple { position: absolute; border-radius: 50%; pointer-events: none; background: currentColor; opacity: .22; transform: scale(0); animation: ripple 650ms var(--ease) forwards; }
+@keyframes ripple { to { transform: scale(1); opacity: 0; } }
+
+/* buttons feel pressable */
+.btn, .chip, .icon-btn, .tab { transition: transform 160ms var(--ease), background 200ms, border-color 200ms, color 200ms, box-shadow 200ms; }
+.btn:active, .chip:active, .icon-btn:active { transform: scale(.96); }
+.btn.primary { box-shadow: 0 8px 24px -12px var(--glow); }
+.btn.primary:hover { box-shadow: 0 12px 30px -10px var(--glow); }
+
+/* clean focus rings for keyboard users */
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 10px; }
+.input:focus { box-shadow: 0 0 0 3px var(--accent-soft); border-color: var(--accent); }
+
+/* slim themed scrollbars */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, .12); border-radius: 10px; border: 3px solid transparent; background-clip: content-box; }
+::-webkit-scrollbar-thumb:hover { background-color: rgba(255, 255, 255, .22); }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* the skin's current move, shown next to your name */
+.callsign .action { font: 600 11px var(--body, inherit); letter-spacing: .06em; color: var(--muted); padding-left: 10px; border-left: 1px solid var(--line-strong); min-width: 60px; }
+.callsign .action.pop { animation: actionPop 420ms var(--spring); }
+@keyframes actionPop { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.skin-canvas { cursor: pointer; filter: drop-shadow(0 30px 40px rgba(0, 0, 0, .45)); }
+
+/* launch sequence: the button glows and the rocket lifts off */
+.liftoff.busy { animation: launchGlow 1.6s ease-in-out infinite; }
+.liftoff.busy svg { animation: rocket 0.9s ease-in-out infinite; }
+@keyframes launchGlow { 50% { box-shadow: 0 0 60px -6px var(--glow), inset 0 1px 0 rgba(255, 255, 255, .45); } }
+@keyframes rocket { 0%, 100% { transform: translate(0, 0) rotate(-8deg); } 50% { transform: translate(4px, -5px) rotate(-14deg); } }
+
+/* nicer page entrance */
+[data-anim='on'] .page { animation: pageIn 420ms var(--ease) both; }
+@keyframes pageIn { from { opacity: 0; transform: translateY(10px) scale(.995); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
+[data-anim='on'] .stagger > * { animation: rise 520ms var(--ease) both; }
+[data-anim='on'] .stagger > *:nth-child(2) { animation-delay: 40ms; } [data-anim='on'] .stagger > *:nth-child(3) { animation-delay: 80ms; }
+[data-anim='on'] .stagger > *:nth-child(4) { animation-delay: 120ms; } [data-anim='on'] .stagger > *:nth-child(5) { animation-delay: 160ms; }
+[data-anim='on'] .stagger > *:nth-child(6) { animation-delay: 200ms; } [data-anim='on'] .stagger > *:nth-child(n+7) { animation-delay: 240ms; }
+@keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+/* toasts slide and glow */
+.toast { box-shadow: 0 18px 40px -18px #000, 0 0 30px -18px var(--glow); }
+
+/* tab bar glider gets a glow trail */
+#glider { box-shadow: 0 6px 24px -6px var(--glow); }
+
+/* image placeholders shimmer while loading */
+.cape-card canvas:not([width]), .item-cape canvas:not([width]) { background: linear-gradient(90deg, rgba(255,255,255,.04), rgba(255,255,255,.1), rgba(255,255,255,.04)); background-size: 200% 100%; animation: shimmer 1.2s linear infinite; }
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+@media (prefers-reduced-motion: reduce) { * { animation-duration: .01ms !important; transition-duration: .01ms !important; } }

@@ -1,0 +1,58 @@
+// Shared build logic for every Minecraft version.
+// Code lives in ../../shared; a version folder only contains files that differ.
+// A file at versions/<mc>/src/main/java/x/Y.java replaces shared/src/main/java/x/Y.java.
+
+def sharedRoot = rootProject.file('../../shared/src')
+def javaRelease = (project.findProperty('java_release') ?: '21') as int
+
+def overlay = { String set, String kind ->
+    def local = file("src/$set/$kind")
+    def shared = new File(sharedRoot, "$set/$kind")
+    def overridden = local.exists()
+            ? fileTree(local).files.collect { local.toPath().relativize(it.toPath()).toString().replace('\\', '/') } as Set
+            : [] as Set
+    def removed = file("src/$set/removed.txt").exists() ? file("src/$set/removed.txt").readLines()*.trim().findAll { it } as Set : [] as Set
+    [local: local, shared: shared, skip: { el -> el.file.path.startsWith(shared.path) && (overridden.contains(el.relativePath.pathString) || removed.contains(el.relativePath.pathString)) }]
+}
+
+['main', 'gametest'].each { set ->
+    def ss = sourceSets.findByName(set)
+    if (ss == null) return
+    def j = overlay(set, 'java')
+    def r = overlay(set, 'resources')
+    ss.java.srcDir j.shared
+    ss.java.exclude j.skip
+    ss.resources.srcDir r.shared
+    ss.resources.exclude r.skip
+}
+
+// ORBIT_AUTOTEST=<dir> gradlew runClient → dev self-test that saves screenshots to <dir> (versions without client game tests).
+if (System.getenv('ORBIT_AUTOTEST')) {
+    loom.runs.client.vmArg("-Dorbit.autotest=${System.getenv('ORBIT_AUTOTEST')}")
+}
+
+version = "${project.mod_version}+${project.minecraft_version}"
+group = 'dev.orbit'
+base { archivesName = 'orbit' }
+
+processResources {
+    def props = [version: project.mod_version, mc: project.mod_mc_range, java: javaRelease]
+    inputs.properties props
+    filesMatching('fabric.mod.json') { expand props }
+    filesMatching('*.mixins.json') { expand props }
+}
+
+java {
+    sourceCompatibility = JavaVersion.toVersion(javaRelease)
+    targetCompatibility = JavaVersion.toVersion(javaRelease)
+}
+tasks.withType(JavaCompile).configureEach { it.options.release = javaRelease; it.options.encoding = 'UTF-8' }
+
+// The launcher picks orbit-<minecraft_version>.jar for matching profiles.
+tasks.register('copyToLauncher', Copy) {
+    dependsOn remapJar
+    from(remapJar.archiveFile) { rename { "orbit-${project.minecraft_version}.jar" } }
+    into file(System.getenv('ORBIT_LAUNCHER_RES') ?: '../../../launcher/resources')
+    doNotTrackState('only copies the jar')
+}
+build.finalizedBy copyToLauncher

@@ -1,0 +1,7 @@
+node_modules/
+launcher/dist/
+client-mod/versions/*/.gradle/
+client-mod/versions/*/build/
+client-mod/versions/*/run/
+orbit-server/data/
+/Orbit*.exe
