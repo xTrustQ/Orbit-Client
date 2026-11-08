@@ -212,12 +212,26 @@ handle('capes:pickImage', async () => {
 
 nativeTheme.themeSource = 'dark';
 app.whenReady().then(() => {
+  // an update was downloaded but not installed yet (e.g. the PC was shut down): install it now and restart
+  const pending = settings.get('autoUpdate') !== false && updater.staged();
+  if (pending && app.isPackaged && (pending.attempts || 0) < 2 && updater.applyStaged(true)) { updateApplied = true; return app.quit(); }
   createWindow();
   // in-game Accounts / Locker tabs talk to the launcher through this; tell the window when they change things
   require('./bridge').start((kind) => emit('bridge:changed', kind), () => win).catch(() => {});
-  // look for a new Orbit release a few seconds after start; the window shows a banner if there is one
-  if (settings.get('autoUpdate') !== false && settings.get('updateRepo')) {
-    setTimeout(() => updater.check(settings.get('updateRepo')).then((u) => u.available && emit('update:available', u)).catch(() => {}), 4000);
-  }
+  // silent updates: look for a new release a few seconds after start and every 30 minutes, download it in the
+  // background, and install it when the launcher is closed
+  const autoCheck = () => {
+    if (settings.get('autoUpdate') === false || !settings.get('updateRepo')) return;
+    updater.check(settings.get('updateRepo'))
+      .then((u) => u.available && updater.download().then(() => emit('update:ready', updater.last())))
+      .catch((e) => console.warn('update check:', e.message));
+  };
+  setTimeout(autoCheck, 4000);
+  setInterval(autoCheck, 30 * 60 * 1000);
+});
+let updateApplied = false;
+app.on('will-quit', () => {
+  // close the launcher → the downloaded update replaces Orbit.exe; it's the new version next time you open it
+  if (!updateApplied && settings.get('autoUpdate') !== false) updateApplied = updater.applyStaged(false);
 });
 app.on('window-all-closed', () => app.quit());

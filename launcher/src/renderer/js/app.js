@@ -172,10 +172,21 @@ export function updateDialog(u) {
 export function showUpdate(box, u) {
   if (!u.asset) { box.innerHTML = `Newest release <b>${esc(u.name)}</b> has no Orbit.exe attached.`; return; }
   if (!u.available) { box.innerHTML = `<span style="color:var(--ok)">You're up to date</span> — v${esc(u.current)} (newest release: v${esc(u.version)})`; return; }
-  box.innerHTML = `<b style="color:var(--accent)">v${esc(u.version)} is available</b> (you have v${esc(u.current)}) <button class="btn sm primary" data-upopen style="margin-left:8px">Update</button>`;
+  box.innerHTML = `<b style="color:var(--accent)">v${esc(u.version)} is ${u.ready ? 'downloaded — it installs when you close Orbit' : 'available'}</b> (you have v${esc(u.current)}) <button class="btn sm primary" data-upopen style="margin-left:8px">Update</button>`;
   $('[data-upopen]', box).onclick = () => updateDialog(u);
 }
-nova.on('update:available', (u) => updateDialog(u));
+// silent update downloaded in the background: a small notice, nothing to click (it installs when Orbit closes)
+nova.on('update:ready', (u) => {
+  if (!u || document.querySelector('.update-note')) return;
+  const n = h(`<div class="toast info update-note">${icon('download')}<div class="grow"><b>Orbit ${esc(u.version)} is ready</b><span>It installs by itself when you close Orbit.</span></div><button class="btn sm primary" data-now>Restart now</button></div>`);
+  $('#toasts').append(n);
+  $('[data-now]', n).onclick = async (e) => {
+    e.stopPropagation(); e.currentTarget.disabled = true;
+    try { await nova.update.install(); } catch (err) { toastErr(err, 'Update failed'); }
+  };
+  n.onclick = () => { n.classList.add('out'); setTimeout(() => n.remove(), 220); };
+  setTimeout(() => n.isConnected && n.onclick(), 15000);
+});
 // the game changed something through the in-game Accounts / Locker tabs
 nova.on('bridge:changed', (kind) => { if (kind === 'accounts') refreshAccounts(); emit('bridge:' + kind); });
 nova.on('win:maximized', (m) => ($('#win-max').innerHTML = icon(m ? 'copy' : 'max')));

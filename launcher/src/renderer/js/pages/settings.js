@@ -76,7 +76,7 @@ export function render(params = {}) {
       <section class="card section" id="sec-about"><h2>About</h2><p>Orbit v${esc(state.info.version)} — data stored in <code>${esc(state.info.dataDir)}</code></p>
         <div class="row"><button class="btn" data-data>${icon('folder')} Open data folder</button></div>
         <div class="sep"></div>
-        <div class="setting"><div class="l"><b>Automatic updates</b><span>Look for a new Orbit release on GitHub every time the launcher starts</span></div>${toggle('autoUpdate', s.autoUpdate !== false)}</div>
+        <div class="setting"><div class="l"><b>Automatic updates</b><span>New Orbit versions download in the background and install by themselves when you close the launcher</span></div>${toggle('autoUpdate', s.autoUpdate !== false)}</div>
         <label class="lbl">Update repository (GitHub)</label>
         <div class="row"><input class="input grow" data-repo value="${esc(s.updateRepo || '')}" placeholder="owner/repo, e.g. yourfriend/orbit"><button class="btn" data-reposave>Save</button><button class="btn primary" data-upcheck>${icon('download')} Check for updates</button></div>
         <div data-upstate class="muted" style="margin-top:10px;font-size:13px"></div>

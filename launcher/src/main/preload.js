@@ -26,7 +26,7 @@ for (const [g, names] of Object.entries(groups)) {
   api[g] = {};
   for (const n of names) api[g][n] = (...a) => call(`${g}:${n}`, ...a);
 }
-const allowed = ['game:progress', 'game:log', 'game:state', 'task:progress', 'win:maximized', 'bridge:changed', 'update:available', 'update:progress'];
+const allowed = ['game:progress', 'game:log', 'game:state', 'task:progress', 'win:maximized', 'bridge:changed', 'update:available', 'update:ready', 'update:progress'];
 // (update:* events come from updater.js via main.js)
 api.on = (channel, cb) => {
   if (!allowed.includes(channel)) return () => {};
