@@ -42,7 +42,12 @@ async function doLaunch(instanceId, emit) {
 
   progress('Preparing version');
   const vjson = await instances.versionJson(inst.mcVersion);
-  const javaPath = settings.get('javaPath') || (await java.ensureJava(java.requiredMajor(vjson, inst.mcVersion), progress));
+  let javaPath = settings.get('javaPath') || (await java.ensureJava(java.requiredMajor(vjson, inst.mcVersion), progress));
+  // a custom java.exe would open a black console window now that the game runs on its own: use javaw.exe next to it
+  if (process.platform === 'win32' && /java\.exe$/i.test(javaPath)) {
+    const w = javaPath.replace(/java\.exe$/i, 'javaw.exe');
+    if (require('fs').existsSync(w)) javaPath = w;
+  }
   const custom = await instances.ensureLoaderProfile(inst);
   instances.syncOrbitMod(inst);
   try { await require('./store').catalogue(); } catch { /* keeps owner unlocks in store.json current for the game */ }
@@ -79,7 +84,8 @@ async function doLaunch(instanceId, emit) {
     memory: { max: `${memory}M`, min: `${Math.min(1024, memory)}M` },
     javaPath,
     customArgs: extra,
-    overrides: { gameDirectory: gameDir, cwd: gameDir, detached: false, maxSockets: 16 },
+    // detached: the game is its own process, so closing the launcher doesn't close Minecraft
+    overrides: { gameDirectory: gameDir, cwd: gameDir, detached: true, maxSockets: 16 },
     ...(res.width && res.height ? { window: { width: res.width, height: res.height, fullscreen: !!res.fullscreen } } : {}),
   };
 
