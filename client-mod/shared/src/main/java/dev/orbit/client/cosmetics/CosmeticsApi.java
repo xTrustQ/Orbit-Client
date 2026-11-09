@@ -166,18 +166,24 @@ public final class CosmeticsApi {
     private static void fetch(List<String> ids) {
         try {
             HttpResponse<String> r = HTTP.send(HttpRequest.newBuilder(URI.create(base() + "/api/cosmetics?uuids=" + String.join(",", ids))).timeout(Duration.ofSeconds(15)).GET().build(), HttpResponse.BodyHandlers.ofString());
-            if (r.statusCode() != 200) return;
+            if (r.statusCode() != 200) { retrySoon(ids); return; }
             JsonObject o = JsonParser.parseString(r.body()).getAsJsonObject();
             long now = System.currentTimeMillis();
             for (String id : ids) {
                 UUID u = UUID.fromString(id);
-                if (!o.has(id)) { REMOTE.put(u, new Remote(null, null, null, null, now)); continue; }
+                // not an Orbit player (yet): ask again in a minute — they may have just started their game
+                if (!o.has(id)) { REMOTE.put(u, new Remote(null, null, null, null, now - 240_000)); continue; }
                 JsonObject c = o.getAsJsonObject(id);
                 String cape = c.has("cape") && !c.get("cape").isJsonNull() ? c.get("cape").getAsString() : null;
                 REMOTE.put(u, new Remote(str(c, "hat"), str(c, "wings"), str(c, "aura"), cape, now));
                 OrbitUsers.add(u); // they use Orbit: badge on their name tag
             }
-        } catch (Exception e) { OrbitClient.LOG.debug("Cosmetics fetch failed: {}", e.toString()); }
+        } catch (Exception e) { OrbitClient.LOG.debug("Cosmetics fetch failed: {}", e.toString()); retrySoon(ids); }
+    }
+    /** server unreachable (e.g. a free host waking up): try these players again in ~20 s */
+    private static void retrySoon(List<String> ids) {
+        long now = System.currentTimeMillis();
+        for (String id : ids) REMOTE.put(UUID.fromString(id), new Remote(null, null, null, null, now - 280_000));
     }
     private static String str(JsonObject o, String k) { return o.has(k) && !o.get(k).isJsonNull() ? o.get(k).getAsString() : "None"; }
 

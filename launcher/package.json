@@ -1,12 +1,12 @@
 {
   "name": "orbit-client",
   "productName": "Orbit",
-  "version": "1.3.3",
+  "version": "1.3.4",
   "description": "Orbit — an aesthetic, performance-focused Minecraft launcher",
   "main": "src/main/main.js",
   "orbit": {
-    "syncServer": "",
-    "updateRepo": ""
+    "syncServer": "wss://orbit-server-nyn5.onrender.com",
+    "updateRepo": "xTrustQ/Orbit-Client"
   },
   "scripts": {
     "start": "electron .",
