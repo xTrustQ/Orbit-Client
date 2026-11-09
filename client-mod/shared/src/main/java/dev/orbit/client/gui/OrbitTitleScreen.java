@@ -125,6 +125,8 @@ public final class OrbitTitleScreen extends OrbitBaseScreen {
         sub = name.equals("cosmetics") ? Sub.COSMETICS : name.equals("emotes") ? Sub.EMOTES : Sub.SKINS;
         return new OrbitTitleScreen();
     }
+    /** Friends tab with a chat open (tests / "message" shortcuts) */
+    public static OrbitTitleScreen onFriend(String uuid) { OrbitTitleScreen s = onTab("friends"); s.selectedFriend = uuid; return s; }
     /** pause menu opened on a tab (e.g. "emotes" from the emote wheel) */
     public static OrbitTitleScreen pauseOn(String name) { onTab(name); return new OrbitTitleScreen(true); }
     @Override public boolean shouldCloseOnEsc() { return false; }
@@ -151,7 +153,7 @@ public final class OrbitTitleScreen extends OrbitBaseScreen {
         if (ingame) for (int i = 1; i < buttons.size(); i++) buttons.set(i, new Button(buttons.get(i).label(), buttons.get(i).action(), true));
         skin = null;
         tileSupplier = skinSupplier();
-        if ((tab == Tab.HOME || tab == Tab.LOCKER) && width > 360) {
+        if ((tab == Tab.HOME || tab == Tab.LOCKER || (tab == Tab.ACCOUNTS && width > 520)) && width > 360) {
             int h = Math.min(170, height - 120), w = Math.round(h * 0.6f);
             skin = new PlayerPreview(skinCenterX() - w / 2, Math.max(48, height / 2 - h / 2 - 6), w, h, skinSupplier());
             skin.autoSpin = tab == Tab.HOME && OrbitClient.modules().ui().menuSpin.on();
@@ -244,7 +246,7 @@ public final class OrbitTitleScreen extends OrbitBaseScreen {
         // new tab slides in from the side it was clicked on and fades in
         float tp = easeOut((System.currentTimeMillis() - switchedAt) / 340f);
         float off = switchDir * (1 - tp) * 36;
-        if (skin != null && (tab == Tab.HOME || tab == Tab.LOCKER)) { int ox = Math.round(off); skin.x += ox; skin.render(c); skin.x -= ox; }
+        if (skin != null && (tab == Tab.HOME || tab == Tab.LOCKER || tab == Tab.ACCOUNTS)) { int ox = Math.round(off); skin.x += ox; skin.render(c); skin.x -= ox; }
         boolean anim = tp < 1;
         if (anim) { Render2D.fade = 0.1f + 0.9f * tp; Compat.push(c); Compat.translate(c, off, 0); }
         try {
@@ -267,7 +269,7 @@ public final class OrbitTitleScreen extends OrbitBaseScreen {
         if (appearanceOpen) appearancePanel(c, mx, my);
         if (ie >= 0) drawIntro(c, ie);
         String ver = FabricLoader.getInstance().getModContainer("minecraft").map(m -> m.getMetadata().getVersion().getFriendlyString()).orElse("");
-        if (!ingame) text(c, "Orbit 1.2  ·  Minecraft " + ver, 8, height - 16, withAlpha(0xFFFFFF, 110), false);
+        if (!ingame && tab != Tab.FRIENDS) text(c, "Orbit 1.2  ·  Minecraft " + ver, 8, height - 16, withAlpha(0xFFFFFF, 110), false);
     }
 
     private float hov(String key, boolean on) {
@@ -1108,112 +1110,383 @@ public final class OrbitTitleScreen extends OrbitBaseScreen {
 
     // ------------------------------------------------------------------ accounts
     private void accountsTab(DrawContext c, int mx, int my) {
-        int pw = Math.min(360, width - 48), px = (width - pw) / 2, y = 44;
+        hits.clear();
+        long since = System.currentTimeMillis() - switchedAt;
+        int acc = accent();
+        int px = 24, pw = Math.min(skin != null ? panelW() : width - 48, 460), y = 44;
         display(c, "Accounts", px, y, 0xFFFFFFFF, false);
-        text(c, "Switch account without restarting Minecraft", px, y + 12, MUTED, false);
-        if (accounts == null) { loadAccounts(); centered(c, OrbitBridge.available() ? "Loading…" : "Start Minecraft from the Orbit launcher to switch accounts", width / 2f, y + 50, FAINT, false); return; }
+        text(c, "Switch accounts without restarting Minecraft", px, y + 12, MUTED, false);
         String current = client.getSession().getUsername();
-        int ry = y + 32;
-        for (int i = 0; i < accounts.size(); i++) {
-            JsonObject a = accounts.get(i);
-            String name = str(a, "name");
-            boolean active = name.equalsIgnoreCase(current), h = in(mx, my, px, ry, pw, 30);
-            round(c, px, ry, pw, 30, 10, active ? withAlpha(accent(), 70) : h ? 0x2AFFFFFF : 0x16FFFFFF);
-            SkinTextures st = NameSkins.get(name);
-            if (st != null) face(c, st.body().texturePath(), px + 8, ry + 7, 16);
-            else round(c, px + 8, ry + 7, 16, 16, 4, 0x33FFFFFF);
-            bold(c, name, px + 32, ry + 6, 0xFFFFFFFF, false);
-            text(c, "msa".equals(str(a, "type")) ? "Microsoft" : "Offline", px + 32, ry + 17, MUTED, false);
-            String r = active ? "Signed in" : "Switch";
-            text(c, r, px + pw - width(r) - (active ? 10 : 30), ry + 11, active ? 0xFF8CF5B4 : h ? TEXT : MUTED, false);
-            if (!active && h) {
-                boolean conf = confirming("delacc:" + str(a, "id")), xh = in(mx, my, px + pw - 22, ry + 8, 14, 14);
-                round(c, px + pw - 22, ry + 8, 14, 14, 7, conf ? 0xFFE5484D : xh ? 0x66FFFFFF : 0x33FFFFFF);
-                centered(c, conf ? "?" : "×", px + pw - 15, ry + 11, 0xFFFFFFFF, false);
-            }
-            ry += 34;
+        boolean bridge = OrbitBridge.available();
+        if (accounts == null && bridge) loadAccounts();
+
+        // current account: big card
+        int cy = y + 30;
+        float a0 = easeOut((since - 40) / 300f);
+        int cyA = cy + Math.round((1 - a0) * 6);
+        round(c, px, cyA, pw, 46, 12, withAlpha(acc, (int) (60 * a0)));
+        round(c, px + 1, cyA + 1, pw - 2, 44, 11, withAlpha(0x0B0818, (int) (150 * a0)));
+        headOf(c, current, px + 10, cyA + 8, 30);
+        statusDot(c, px + 38, cyA + 36, true);
+        bold(c, current, px + 50, cyA + 10, 0xFFFFFFFF, false);
+        String type = offline() ? "Offline account" : "Microsoft account";
+        int tw = width(type) + 12;
+        round(c, px + 50, cyA + 23, tw, 13, 6, offline() ? 0x26FFFFFF : 0x332F80ED);
+        text(c, type, px + 56, cyA + 26, offline() ? MUTED : 0xFF9CC8FF, false);
+        String act = "Playing now";
+        int aw = width(act) + 18;
+        round(c, px + pw - aw - 10, cyA + 15, aw, 16, 8, 0x334ADE80);
+        disc(c, px + pw - aw - 2, cyA + 23, 2.2f, 0xFF4ADE80);
+        text(c, act, px + pw - aw + 4, cyA + 19, 0xFF8CF5B4, false);
+
+        int ry = cy + 58;
+        if (!bridge) { // started without the launcher: explain instead of an empty page
+            round(c, px, ry, pw, 52, 12, 0x1AFFFFFF);
+            item(c, net.minecraft.item.Items.COMPASS, px + 12, ry + 18, 16);
+            bold(c, "Open Minecraft from the Orbit launcher", px + 38, ry + 12, 0xFFFFFFFF, false);
+            text(c, fit("Your saved accounts live in the launcher — start the game from there to switch here.", pw - 50, false), px + 38, ry + 25, MUTED, false);
+            return;
         }
-        ry += 6;
-        text(c, "Add an offline account (skin comes from the username):", px, ry, MUTED, false);
-        inputBox(c, "offline", "Username…", px, ry + 12, pw - 86, mx, my);
-        btn(c, "addoff", px + pw - 80, ry + 12, 80, 20, "Add", mx, my, 0, true);
-        btn(c, "addms", px, ry + 40, pw, 20, "Add Microsoft account", mx, my, 0, false);
-        text(c, "The Microsoft sign-in opens in the Orbit launcher window.", px, ry + 66, FAINT, false);
+        if (accounts == null) {
+            for (int i = 0; i < 2; i++) { // loading shimmer
+                float s = 0.5f + 0.5f * (float) Math.sin(System.currentTimeMillis() / 220.0 + i);
+                round(c, px, ry + 16 + i * 40, pw, 34, 10, withAlpha(0xFFFFFF, (int) (14 + 14 * s)));
+            }
+            text(c, "YOUR ACCOUNTS", px + 2, ry, FAINT, false);
+            return;
+        }
+
+        // other accounts: grid of cards
+        var others = accounts.stream().filter(a -> !str(a, "name").equalsIgnoreCase(current)).toList();
+        text(c, "YOUR ACCOUNTS — " + others.size(), px + 2, ry, FAINT, false);
+        ry += 14;
+        int cols = pw >= 320 ? 2 : 1, gap = 8, cw = (pw - (cols - 1) * gap) / cols, ch = 36;
+        if (others.isEmpty()) {
+            round(c, px, ry, pw, 30, 10, 0x10FFFFFF);
+            centered(c, "No other accounts yet — add one below", px + pw / 2f, ry + 11, FAINT, false);
+            ry += 38;
+        }
+        for (int i = 0; i < others.size(); i++) {
+            JsonObject a = others.get(i);
+            String name = str(a, "name"), id = str(a, "id");
+            boolean msa = "msa".equals(str(a, "type"));
+            float ap = easeOut((since - 90 - i * 40) / 300f);
+            int x = px + (i % cols) * (cw + gap), yy = ry + (i / cols) * (ch + gap) + Math.round((1 - ap) * 6);
+            boolean h = in(mx, my, x, yy, cw, ch);
+            float hv = hov("acc:" + id, h);
+            round(c, x, yy, cw, ch, 10, lerpColor(withAlpha(0xFFFFFF, (int) (18 * ap)), withAlpha(acc, 70), hv));
+            headOf(c, name, x + 9, yy + 8, 20);
+            bold(c, fit(name, cw - 100, true), x + 36, yy + 8, 0xFFFFFFFF, false);
+            text(c, msa ? "Microsoft" : "Offline", x + 36, yy + 20, msa ? 0xFF9CC8FF : FAINT, false);
+            hit(x, yy, cw, ch, () -> { Sounds.click(); switchAccount(a); });
+            if (hv > 0.02f) {
+                int sw2 = width("Switch") + 14;
+                round(c, x + cw - sw2 - 26, yy + 10, sw2, 16, 8, withAlpha(acc, (int) (235 * hv)));
+                text(c, "Switch", x + cw - sw2 - 19, yy + 14, alpha(0xFF0E0A1C, hv), false);
+                boolean conf = confirming("delacc:" + id);
+                pill(c, "rmacc:" + id, conf ? "?" : "×", x + cw - 22, yy + 11, 14, 14, mx, my, conf ? 0xFFE5484D : 0x33FFFFFF, 0xFFE5484D, 0xFFFFFFFF, () -> {
+                    Sounds.click();
+                    if (!confirm("delacc:" + id)) return;
+                    OrbitBridge.post("accounts/remove", OrbitBridge.obj("id", id)).whenComplete((r, e) -> client.execute(() -> {
+                        if (e != null) say(OrbitBridge.message(e), false); else { accounts = objs(r); say("Removed " + name, true); }
+                    }));
+                });
+            }
+        }
+        if (!others.isEmpty()) ry += ((others.size() + cols - 1) / cols) * (ch + gap) + 4;
+
+        // add an account: two cards side by side (stacked when narrow)
+        text(c, "ADD AN ACCOUNT", px + 2, ry, FAINT, false);
+        ry += 14;
+        boolean side = pw >= 340;
+        int bw2 = side ? (pw - gap) / 2 : pw, bh = 54;
+        // Microsoft
+        round(c, px, ry, bw2, bh, 12, 0x1AFFFFFF);
+        round(c, px + 10, ry + 10, 14, 14, 3, 0xFF2F80ED);
+        c.fill(px + 12, ry + 12, px + 16, ry + 16, 0xFFF25022); c.fill(px + 18, ry + 12, px + 22, ry + 16, 0xFF7FBA00);
+        c.fill(px + 12, ry + 18, px + 16, ry + 22, 0xFF00A4EF); c.fill(px + 18, ry + 18, px + 22, ry + 22, 0xFFFFB900);
+        bold(c, "Microsoft", px + 30, ry + 11, 0xFFFFFFFF, false);
+        text(c, fit("Sign in opens in the launcher", bw2 - 40, false), px + 30, ry + 22, FAINT, false);
+        pill(c, "addms", "Sign in", px + 10, ry + 34, bw2 - 20, 15, mx, my, withAlpha(0x2F80ED, 170), 0xFF2F80ED, 0xFFFFFFFF, () -> {
+            Sounds.click();
+            say("Sign in with Microsoft in the Orbit launcher window…", true);
+            OrbitBridge.post("accounts/microsoft", null, 600).whenComplete((r, e) -> client.execute(() -> {
+                if (e != null) say(OrbitBridge.message(e), false);
+                else { accounts = objs(r); Sounds.success(); say("Microsoft account added — click it to switch", true); }
+            }));
+        });
+        // Offline
+        int ox = side ? px + bw2 + gap : px, oy = side ? ry : ry + bh + gap;
+        round(c, ox, oy, bw2, bh, 12, 0x1AFFFFFF);
+        item(c, net.minecraft.item.Items.PLAYER_HEAD, ox + 9, oy + 9, 16);
+        bold(c, "Offline", ox + 30, oy + 11, 0xFFFFFFFF, false);
+        text(c, fit("Skin comes from the username", bw2 - 40, false), ox + 30, oy + 22, FAINT, false);
+        inputBox(c, "offline", "Username…", ox + 10, oy + 32, bw2 - 56, mx, my);
+        hit(ox + 10, oy + 32, bw2 - 56, 20, () -> inputFor = "offline");
+        pill(c, "addoff", "Add", ox + bw2 - 42, oy + 34, 32, 16, mx, my, withAlpha(acc, 200), acc, 0xFF0E0A1C, () -> { inputFor = "offline"; Sounds.click(); submitInput(); });
+
+        // the preview on the right shows who you're playing as
+        if (skin != null) {
+            int scx = skinCenterX(), sy = skin.y + skin.h + 6;
+            centered(c, current, scx, sy, 0xFFFFFFFF, true);
+            centered(c, "Drag to spin", scx, sy + 11, FAINT, false);
+        }
+    }
+
+    // ------------------------------------------------------------------ clickable regions (Friends / Accounts)
+    /** drawn buttons register here while rendering, so clicks always hit exactly what is on screen */
+    private record Hit(int x, int y, int w, int h, Runnable action) {}
+    private final List<Hit> hits = new ArrayList<>();
+    private void hit(int x, int y, int w, int h, Runnable r) { hits.add(new Hit(x, y, w, h, r)); }
+    private boolean clickHits(double mx, double my) {
+        for (int i = hits.size() - 1; i >= 0; i--) {
+            Hit h = hits.get(i);
+            if (in(mx, my, h.x(), h.y(), h.w(), h.h())) { h.action().run(); return true; }
+        }
+        return false;
+    }
+    private static final java.time.format.DateTimeFormatter HHMM = java.time.format.DateTimeFormatter.ofPattern("HH:mm").withZone(java.time.ZoneId.systemDefault());
+    /** a player's face (or a soft placeholder while the skin loads) */
+    private void headOf(DrawContext c, String name, int x, int y, int size) {
+        SkinTextures st = NameSkins.get(name);
+        if (st != null) face(c, st.body().texturePath(), x, y, size);
+        else { round(c, x, y, size, size, Math.max(3, size / 5), 0x33FFFFFF); centered(c, name.isEmpty() ? "?" : name.substring(0, 1).toUpperCase(), x + size / 2f, y + size / 2f - 4, MUTED, false); }
+    }
+    /** status dot with a dark ring, bottom-right of a face */
+    private void statusDot(DrawContext c, float x, float y, boolean on) {
+        disc(c, x, y, 3.6f, 0xFF0B0818);
+        disc(c, x, y, 2.5f, on ? 0xFF4ADE80 : 0xFF6C6390);
+    }
+    /** small pill button, registers its click */
+    private void pill(DrawContext c, String id, String label, int x, int y, int w, int h, int mx, int my, int base, int hoverCol, int textCol, Runnable r) {
+        float hv = hov(id, in(mx, my, x, y, w, h));
+        round(c, x, y, w, h, h / 2, lerpColor(base, hoverCol, hv));
+        centered(c, label, x + w / 2f, y + (h - 8) / 2f + 1, textCol, false);
+        hit(x, y, w, h, r);
+    }
+    /** round "send" button with a paper-plane triangle */
+    private void sendButton(DrawContext c, int x, int y, int s, int mx, int my, Runnable r) {
+        float hv = hov("send", in(mx, my, x, y, s, s));
+        round(c, x, y, s, s, s / 2, lerpColor(accent(), 0xFFFFFFFF, 0.2f * hv));
+        int tx = x + s / 2 - 3, ty = y + s / 2 - 5;
+        for (int i = 0; i < 6; i++) c.fill(tx + i, ty + i, tx + i + 1, ty + 11 - i, 0xFF0E0A1C);
+        hit(x, y, s, s, r);
     }
 
     // ------------------------------------------------------------------ friends
     private String selectedFriend;
-    private int fLeftW() { return Math.min(200, Math.round(width * 0.36f)); }
+    private int friendFilter; // 0 all, 1 online, 2 requests
+    private float chatScroll, chatScrollTarget, friendScroll, friendScrollTarget;
+    private int chatX0, chatY0, chatX1, chatY1, listY0, listY1; // scroll areas (set while drawing)
+    private int fSideW() { return Math.max(150, Math.min(214, Math.round(width * 0.34f))); }
 
     private void friendsTab(DrawContext c, int mx, int my) {
-        int px = 24, y = 44, lw = fLeftW();
-        display(c, "Friends", px, y, 0xFFFFFFFF, false);
-        text(c, "Add Orbit players and chat with them", px, y + 12, MUTED, false);
-        boolean configured = dev.orbit.client.emote.EmoteSync.configured(), online = dev.orbit.client.friends.Friends.connected();
-        int ly = y + 30;
-        inputBox(c, "friendname", "Add by username…", px, ly, lw - 52, mx, my);
-        btn(c, "addfriend", px + lw - 48, ly, 48, 20, "Add", mx, my, 0, true);
-        ly += 28;
-        if (!online) { text(c, fit("Connecting to Orbit friends…", lw, false), px, ly, FAINT, false); ly += 14; }
-        // requests: people who messaged you
-        for (var r : new java.util.ArrayList<>(dev.orbit.client.friends.Friends.REQUESTS.entrySet())) {
-            round(c, px, ly, lw, 26, 8, withAlpha(accent(), 60));
-            bold(c, fit(r.getValue(), lw - 80, true), px + 8, ly + 4, 0xFFFFFFFF, false);
-            text(c, "wants to chat", px + 8, ly + 15, MUTED, false);
-            text(c, "Add", px + lw - 46, ly + 9, in(mx, my, px + lw - 50, ly, 26, 26) ? 0xFF8CF5B4 : TEXT, false);
-            text(c, "×", px + lw - 14, ly + 9, in(mx, my, px + lw - 18, ly, 18, 26) ? 0xFFFF6B6B : MUTED, false);
-            ly += 30;
-        }
-        var list = dev.orbit.client.friends.Friends.list();
-        if (list.isEmpty()) text(c, "No friends yet", px, ly + 4, FAINT, false);
-        for (var f : list) {
-            boolean sel = f.uuid.equals(selectedFriend), h = in(mx, my, px, ly, lw, 28), on = dev.orbit.client.friends.Friends.online(f.uuid);
-            round(c, px, ly, lw, 28, 8, sel ? withAlpha(accent(), 90) : h ? 0x2AFFFFFF : 0x16FFFFFF);
-            SkinTextures st = NameSkins.get(f.name);
-            if (st != null) face(c, st.body().texturePath(), px + 6, ly + 6, 16); else round(c, px + 6, ly + 6, 16, 16, 4, 0x33FFFFFF);
-            disc(c, px + 21, ly + 21, 3, on ? 0xFF4ADE80 : 0xFF6C6390);
-            bold(c, fit(f.name, lw - 70, true), px + 28, ly + 5, 0xFFFFFFFF, false);
-            text(c, on ? "Online" : "Offline", px + 28, ly + 16, on ? 0xFF8CF5B4 : FAINT, false);
-            int unread = dev.orbit.client.friends.Friends.UNREAD.getOrDefault(f.uuid, 0);
-            if (unread > 0) { round(c, px + lw - 40, ly + 8, 16, 12, 6, 0xFFE5484D); centered(c, String.valueOf(Math.min(99, unread)), px + lw - 32, ly + 10, 0xFFFFFFFF, false); }
-            if (h) {
-                boolean conf = confirming("delfriend:" + f.uuid);
-                text(c, conf ? "?" : "×", px + lw - 14, ly + 10, conf ? 0xFFFF6B6B : in(mx, my, px + lw - 18, ly, 18, 28) ? 0xFFFF6B6B : MUTED, false);
-            }
-            ly += 32;
-        }
+        hits.clear();
+        long since = System.currentTimeMillis() - switchedAt;
+        float appear = easeOut(since / 380f);
+        int acc = accent();
+        int sx = 16, top = 40, bottom = height - 14, sw = fSideW();
+        var all = new ArrayList<>(dev.orbit.client.friends.Friends.list());
+        var requests = new ArrayList<>(dev.orbit.client.friends.Friends.REQUESTS.entrySet());
+        java.util.function.Predicate<dev.orbit.client.friends.Friends.Friend> isOn = f -> dev.orbit.client.friends.Friends.online(f.uuid);
+        long onlineCount = all.stream().filter(isOn).count();
 
-        // chat
-        int cx = px + lw + 14, cw = width - 24 - cx, top = y, bottom = height - 26;
-        round(c, cx, top, cw, bottom - top, 12, 0x14FFFFFF);
-        var friend = list.stream().filter(f -> f.uuid.equals(selectedFriend)).findFirst().orElse(null);
-        if (friend == null) { centered(c, list.isEmpty() ? "Add a friend to start chatting" : "Pick a friend to chat", cx + cw / 2f, (top + bottom) / 2f - 4, FAINT, false); return; }
-        dev.orbit.client.friends.Friends.UNREAD.remove(friend.uuid);
-        boolean on = dev.orbit.client.friends.Friends.online(friend.uuid);
-        SkinTextures st = NameSkins.get(friend.name);
-        if (st != null) face(c, st.body().texturePath(), cx + 10, top + 8, 18);
-        bold(c, friend.name, cx + 34, top + 8, 0xFFFFFFFF, false);
-        text(c, on ? "● Online" : "● Offline — they'll miss messages until they're on", cx + 34, top + 18, on ? 0xFF8CF5B4 : FAINT, false);
-        // messages, newest at the bottom
-        int inputY = bottom - 28, my2 = inputY - 6, maxBubble = Math.round(cw * 0.7f);
-        var msgs = dev.orbit.client.friends.Friends.chat(friend.uuid);
-        c.enableScissor(cx, top + 32, cx + cw, inputY - 2);
-        for (int i = msgs.size() - 1; i >= 0 && my2 > top + 32; i--) {
-            var m = msgs.get(i);
-            List<String> lines = wrap(m.text, maxBubble - 16);
-            int bw = 0; for (String l : lines) bw = Math.max(bw, width(l));
-            bw += 16;
-            int bh = lines.size() * 10 + 8;
-            my2 -= bh;
-            int bx = m.mine ? cx + cw - 10 - bw : cx + 10;
-            round(c, bx, my2, bw, bh, 8, m.mine ? withAlpha(accent(), 200) : 0x30FFFFFF);
-            for (int k = 0; k < lines.size(); k++) text(c, lines.get(k), bx + 8, my2 + 5 + k * 10, m.mine ? 0xFF140A28 : TEXT, false);
-            my2 -= 5;
+        // ---------- sidebar
+        round(c, sx, top, sw, bottom - top, 14, withAlpha(0x0B0818, (int) (200 * appear)));
+        bold(c, "Friends", sx + 12, top + 11, 0xFFFFFFFF, false);
+        String cnt = onlineCount + " online";
+        text(c, cnt, sx + sw - 12 - width(cnt), top + 11, onlineCount > 0 ? 0xFF8CF5B4 : FAINT, false);
+        // add by name
+        int ay = top + 26;
+        inputBox(c, "friendname", "Add by username…", sx + 10, ay, sw - 44, mx, my);
+        hit(sx + 10, ay, sw - 44, 20, () -> inputFor = "friendname");
+        pill(c, "addf", "+", sx + sw - 30, ay, 20, 20, mx, my, withAlpha(acc, 200), acc, 0xFF0E0A1C, () -> { inputFor = "friendname"; Sounds.click(); submitInput(); });
+        // filter: All / Online / Requests
+        String[] fl = {"All", "Online", "Invites" + (requests.isEmpty() ? "" : " " + requests.size())};
+        int fx = sx + 10, fy = ay + 26, fw = (sw - 20 - 8) / 3;
+        round(c, fx - 2, fy - 2, sw - 16, 20, 10, 0x14FFFFFF);
+        for (int i = 0; i < 3; i++) {
+            int bx = fx + i * (fw + 4);
+            boolean a = friendFilter == i, h = in(mx, my, bx, fy, fw, 16);
+            float hv = hov("ff" + i, h && !a);
+            if (a) round(c, bx, fy, fw, 16, 8, 0xF2FFFFFF);
+            else if (hv > 0.01f) round(c, bx, fy, fw, 16, 8, withAlpha(0xFFFFFF, (int) (30 * hv)));
+            centered(c, fit(fl[i], fw - 4, false), bx + fw / 2f, fy + 4, a ? 0xFF140A28 : (i == 2 && !requests.isEmpty() ? 0xFFFFB86B : MUTED), false);
+            final int k = i;
+            hit(bx, fy, fw, 16, () -> { friendFilter = k; friendScrollTarget = 0; Sounds.tab(); });
+        }
+        // the friends service isn't reachable: say why instead of "Connecting…" forever
+        int ly = fy + 26;
+        if (!dev.orbit.client.emote.EmoteSync.configured()) {
+            List<String> l1 = wrap("Friends need the Orbit server", sw - 34), l2 = wrap("Set it in the launcher: Settings → Integrations", sw - 34);
+            int bh = 10 + (l1.size() + l2.size()) * 10;
+            round(c, sx + 10, ly, sw - 20, bh, 9, 0x26FFB020);
+            int ty = ly + 6;
+            for (String s : l1) { text(c, s, sx + 18, ty, 0xFFFFD08A, false); ty += 10; }
+            for (String s : l2) { text(c, s, sx + 18, ty, MUTED, false); ty += 10; }
+            ly += bh + 8;
+        } else if (!dev.orbit.client.friends.Friends.connected()) {
+            float pulse = 0.5f + 0.5f * (float) Math.sin(System.currentTimeMillis() / 250.0);
+            disc(c, sx + 15, ly + 4, 2.5f, withAlpha(0xFFB020, (int) (120 + 135 * pulse)));
+            text(c, "Connecting…", sx + 22, ly, FAINT, false);
+            ly += 14;
+        }
+        // list (scrollable)
+        listY0 = ly; listY1 = bottom - 8;
+        friendScroll = approach(friendScroll, friendScrollTarget, 16, frameDt);
+        c.enableScissor(sx, listY0, sx + sw, listY1);
+        int y = ly - Math.round(friendScroll), rowH = 30, n = 0;
+        if (friendFilter == 2 || (friendFilter == 0 && !requests.isEmpty())) {
+            y = sectionHead(c, "REQUESTS", requests.size(), sx + 12, y);
+            if (requests.isEmpty()) { text(c, "No requests", sx + 14, y, FAINT, false); y += 16; }
+            for (var r : requests) {
+                float ap = easeOut((since - 60 - n++ * 30) / 260f);
+                int ry = y + Math.round((1 - ap) * 6);
+                round(c, sx + 8, ry, sw - 16, rowH - 2, 9, withAlpha(acc, (int) (46 * ap)));
+                headOf(c, r.getValue(), sx + 14, ry + 5, 18);
+                boolean wide = sw >= 190;
+                int aw = wide ? 42 : 16, textW = sw - 46 - aw - 26;
+                bold(c, fit(r.getValue(), textW, true), sx + 38, ry + 5, 0xFFFFFFFF, false);
+                text(c, fit("wants to chat", textW, false), sx + 38, ry + 16, MUTED, false);
+                if (ry + rowH > listY0 && ry < listY1) {
+                    pill(c, "acc" + r.getKey(), wide ? "Accept" : "+", sx + sw - 34 - aw, ry + 6, aw, 16, mx, my, 0x4D4ADE80, 0xFF4ADE80, 0xFFFFFFFF,
+                            () -> { dev.orbit.client.friends.Friends.addDirect(r.getKey(), r.getValue()); dev.orbit.client.friends.Friends.REQUESTS.remove(r.getKey()); selectedFriend = r.getKey(); friendFilter = 0; Sounds.success(); });
+                    pill(c, "dec" + r.getKey(), "×", sx + sw - 30, ry + 6, 16, 16, mx, my, 0x22FFFFFF, 0xFFE5484D, 0xFFFFFFFF,
+                            () -> { dev.orbit.client.friends.Friends.REQUESTS.remove(r.getKey()); Sounds.click(); });
+                }
+                y += rowH + 2;
+            }
+            y += 4;
+        }
+        if (friendFilter != 2) {
+            var on = all.stream().filter(isOn).toList();
+            var off = friendFilter == 1 ? List.<dev.orbit.client.friends.Friends.Friend>of() : all.stream().filter(isOn.negate()).toList();
+            if (all.isEmpty()) {
+                text(c, "No friends yet", sx + 14, y + 2, MUTED, false);
+                text(c, fit("Type a username above and press +", sw - 28, false), sx + 14, y + 14, FAINT, false);
+            }
+            if (!on.isEmpty() || friendFilter == 1) y = sectionHead(c, "ONLINE", on.size(), sx + 12, y);
+            if (on.isEmpty() && friendFilter == 1) { text(c, "Nobody's online right now", sx + 14, y, FAINT, false); y += 16; }
+            for (var f : on) { y = friendRow(c, f, true, sx, y, sw, rowH, mx, my, since, n++); }
+            if (!off.isEmpty()) { y += 4; y = sectionHead(c, "OFFLINE", off.size(), sx + 12, y); }
+            for (var f : off) { y = friendRow(c, f, false, sx, y, sw, rowH, mx, my, since, n++); }
         }
         c.disableScissor();
-        if (msgs.isEmpty()) centered(c, "Say hi to " + friend.name + "!", cx + cw / 2f, (top + inputY) / 2f, FAINT, false);
-        inputBox(c, "chat", on ? "Message " + friend.name + "…" : "Message (they're offline)…", cx + 10, inputY, cw - 80, mx, my);
-        btn(c, "sendmsg", cx + cw - 66, inputY, 56, 20, "Send", mx, my, 0, true);
+        int listH = y + Math.round(friendScroll) - ly;
+        friendScrollTarget = Math.max(0, Math.min(friendScrollTarget, Math.max(0, listH - (listY1 - listY0))));
+
+        // ---------- chat
+        int cx = sx + sw + 10, cw = width - 16 - cx;
+        round(c, cx, top, cw, bottom - top, 14, withAlpha(0x0B0818, (int) (170 * appear)));
+        var friend = all.stream().filter(f -> f.uuid.equals(selectedFriend)).findFirst().orElse(null);
+        if (friend == null) {
+            float bob = (float) Math.sin(System.currentTimeMillis() / 600.0) * 2;
+            int ex = cx + cw / 2, ey = (top + bottom) / 2 - 20;
+            disc(c, ex, ey + bob, 22, withAlpha(acc, 40));
+            disc(c, ex, ey + bob, 14, withAlpha(acc, 70));
+            item(c, net.minecraft.item.Items.PLAYER_HEAD, ex - 8, Math.round(ey + bob) - 8, 16);
+            centered(c, all.isEmpty() ? "Your friends will show up here" : "Pick a friend to start chatting", ex, ey + 32, TEXT, false);
+            centered(c, all.isEmpty() ? "Add Orbit players by their Minecraft name" : "Messages are sent through Orbit — no server needed", ex, ey + 44, FAINT, false);
+            return;
+        }
+        dev.orbit.client.friends.Friends.UNREAD.remove(friend.uuid);
+        boolean on = dev.orbit.client.friends.Friends.online(friend.uuid);
+        // header
+        headOf(c, friend.name, cx + 12, top + 9, 22);
+        statusDot(c, cx + 32, top + 29, on);
+        bold(c, friend.name, cx + 42, top + 10, 0xFFFFFFFF, false);
+        boolean conf = confirming("delfriend:" + friend.uuid);
+        String rl0 = conf ? "Really remove?" : "Remove";
+        text(c, fit(on ? "Online" : "Offline — messages only arrive while they're online", cw - 70 - width(rl0) - 16, false), cx + 42, top + 21, on ? 0xFF8CF5B4 : FAINT, false);
+        String rl = conf ? "Really remove?" : "Remove";
+        int rw = width(rl) + 16;
+        pill(c, "rmfriend", rl, cx + cw - rw - 10, top + 12, rw, 16, mx, my, conf ? 0xCCE5484D : 0x1AFFFFFF, 0xFFE5484D, conf ? 0xFFFFFFFF : MUTED,
+                () -> { if (confirm("delfriend:" + friend.uuid)) { dev.orbit.client.friends.Friends.remove(friend.uuid); selectedFriend = null; } Sounds.click(); });
+        c.fill(cx + 10, top + 38, cx + cw - 10, top + 39, 0x18FFFFFF);
+
+        // messages: newest at the bottom, grouped by sender, time under each group
+        int inputY = bottom - 30;
+        chatX0 = cx; chatX1 = cx + cw; chatY0 = top + 40; chatY1 = inputY - 6;
+        chatScroll = approach(chatScroll, chatScrollTarget, 16, frameDt);
+        var msgs = dev.orbit.client.friends.Friends.chat(friend.uuid);
+        int maxBubble = Math.round(cw * 0.66f), yb = chatY1 - 4 + Math.round(chatScroll);
+        c.enableScissor(chatX0, chatY0, chatX1, chatY1);
+        for (int i = msgs.size() - 1; i >= 0; i--) {
+            var m = msgs.get(i);
+            var next = i + 1 < msgs.size() ? msgs.get(i + 1) : null;
+            var prev = i > 0 ? msgs.get(i - 1) : null;
+            boolean lastOfGroup = next == null || next.mine != m.mine || next.at - m.at > 300_000;
+            boolean firstOfGroup = prev == null || prev.mine != m.mine || m.at - prev.at > 300_000;
+            if (lastOfGroup) { // time below the group
+                yb -= 10;
+                String t = HHMM.format(java.time.Instant.ofEpochMilli(m.at));
+                if (m.mine) text(c, t, cx + cw - 14 - width(t), yb + 1, FAINT, false); else text(c, t, cx + 34, yb + 1, FAINT, false);
+            }
+            List<String> lines = wrap(m.text, maxBubble - 18);
+            int bw = 0; for (String l : lines) bw = Math.max(bw, width(l));
+            bw += 18;
+            int bh = lines.size() * 10 + 9;
+            yb -= bh;
+            int bx = m.mine ? cx + cw - 12 - bw : cx + 32;
+            if (yb + bh > chatY0 && yb < chatY1) {
+                round(c, bx, yb, bw, bh, 9, m.mine ? acc : 0x2EFFFFFF);
+                for (int k = 0; k < lines.size(); k++) text(c, lines.get(k), bx + 9, yb + 5 + k * 10, m.mine ? 0xFF0E0A1C : TEXT, false);
+                if (!m.mine && lastOfGroup) headOf(c, friend.name, cx + 12, yb + bh - 14, 14);
+            }
+            yb -= firstOfGroup ? 8 : 3;
+        }
+        c.disableScissor();
+        int contentH = (chatY1 - 4 + Math.round(chatScroll)) - yb;
+        chatScrollTarget = Math.max(0, Math.min(chatScrollTarget, Math.max(0, contentH - (chatY1 - chatY0))));
+        if (msgs.isEmpty()) {
+            headOf(c, friend.name, cx + cw / 2 - 12, (chatY0 + chatY1) / 2 - 26, 24);
+            centered(c, "This is the start of your chat with " + friend.name, cx + cw / 2f, (chatY0 + chatY1) / 2f + 4, TEXT, false);
+            centered(c, "Say hi!", cx + cw / 2f, (chatY0 + chatY1) / 2f + 16, FAINT, false);
+        }
+        if (chatScroll > 30) { // jump back to the newest message
+            int jw = 60, jx = cx + cw / 2 - jw / 2;
+            pill(c, "jump", "Newest", jx, chatY1 - 20, jw, 16, mx, my, 0xCC1A1530, acc, TEXT, () -> chatScrollTarget = 0);
+        }
+        // input bar
+        round(c, cx + 8, inputY - 2, cw - 16, 24, 12, 0x14FFFFFF);
+        inputBox(c, "chat", on ? "Message " + friend.name + "…" : "Message " + friend.name + " (offline)…", cx + 10, inputY, cw - 46, mx, my);
+        hit(cx + 10, inputY, cw - 46, 20, () -> inputFor = "chat");
+        sendButton(c, cx + cw - 32, inputY, 20, mx, my, () -> { inputFor = "chat"; submitInput(); chatScrollTarget = 0; });
+    }
+
+    /** "ONLINE — 3" style group heading; returns the y below it */
+    private int sectionHead(DrawContext c, String title, int count, int x, int y) {
+        text(c, title + " — " + count, x, y + 2, FAINT, false);
+        return y + 14;
+    }
+
+    private int friendRow(DrawContext c, dev.orbit.client.friends.Friends.Friend f, boolean on, int sx, int y, int sw, int rowH, int mx, int my, long since, int n) {
+        float ap = easeOut((since - 60 - n * 30) / 260f);
+        int ry = y + Math.round((1 - ap) * 6), x = sx + 8, w = sw - 16;
+        boolean sel = f.uuid.equals(selectedFriend), h = in(mx, my, x, ry, w, rowH - 2) && my >= listY0 && my < listY1;
+        float hv = hov("fr" + f.uuid, h);
+        int acc = accent();
+        round(c, x, ry, w, rowH - 2, 9, sel ? withAlpha(acc, 70) : withAlpha(0xFFFFFF, (int) (34 * hv)));
+        if (sel) round(c, x + 1, ry + 7, 2, rowH - 16, 1, acc);
+        headOf(c, f.name, x + 6, ry + 5, 18);
+        if (!on) round(c, x + 6, ry + 5, 18, 18, 3, 0x66000000); // offline faces are dimmed
+        statusDot(c, x + 23, ry + 22, on);
+        int unread = dev.orbit.client.friends.Friends.UNREAD.getOrDefault(f.uuid, 0);
+        int right = unread > 0 ? 26 : h ? 22 : 6;
+        bold(c, fit(f.name, w - 38 - right, true), x + 30, ry + 5, on ? 0xFFFFFFFF : lerpColor(MUTED, 0xFFFFFFFF, hv), false);
+        var msgs = dev.orbit.client.friends.Friends.chat(f.uuid);
+        String sub = msgs.isEmpty() ? (on ? "Online" : "Offline") : (msgs.get(msgs.size() - 1).mine ? "You: " : "") + msgs.get(msgs.size() - 1).text;
+        text(c, fit(sub, w - 38 - right, false), x + 30, ry + 16, unread > 0 ? TEXT : FAINT, false);
+        if (ry + rowH > listY0 && ry < listY1) {
+            hit(x, Math.max(ry, listY0), w, Math.min(rowH - 2, listY1 - Math.max(ry, listY0)), () -> { selectedFriend = f.uuid; input = ""; inputFor = "chat"; chatScroll = chatScrollTarget = 0; Sounds.click(); });
+            if (unread > 0) { round(c, x + w - 24, ry + 8, 18, 12, 6, 0xFFE5484D); centered(c, String.valueOf(Math.min(99, unread)), x + w - 15, ry + 10, 0xFFFFFFFF, false); }
+            else if (h) {
+                boolean conf = confirming("delfriend:" + f.uuid);
+                pill(c, "rmf" + f.uuid, conf ? "?" : "×", x + w - 20, ry + 7, 14, 14, mx, my, conf ? 0xFFE5484D : 0x22FFFFFF, 0xFFE5484D, 0xFFFFFFFF,
+                        () -> { if (confirm("delfriend:" + f.uuid)) { dev.orbit.client.friends.Friends.remove(f.uuid); if (f.uuid.equals(selectedFriend)) selectedFriend = null; } Sounds.click(); });
+            }
+        }
+        return y + rowH + 2;
     }
 
     /** word-wraps text to a pixel width */
@@ -1232,36 +1505,7 @@ public final class OrbitTitleScreen extends OrbitBaseScreen {
         return out.isEmpty() ? List.of("") : out;
     }
 
-    private boolean clickFriends(double mx, double my) {
-        int px = 24, y = 44, lw = fLeftW(), ly = y + 30;
-        if (in(mx, my, px, ly, lw - 52, 20)) { inputFor = "friendname"; return true; }
-        if (in(mx, my, px + lw - 48, ly, 48, 20)) { inputFor = "friendname"; Sounds.click(); submitInput(); return true; }
-        ly += 28;
-        if (!dev.orbit.client.friends.Friends.connected()) ly += 14;
-        for (var r : new java.util.ArrayList<>(dev.orbit.client.friends.Friends.REQUESTS.entrySet())) {
-            if (in(mx, my, px + lw - 50, ly, 26, 26)) { dev.orbit.client.friends.Friends.addDirect(r.getKey(), r.getValue()); selectedFriend = r.getKey(); Sounds.success(); return true; }
-            if (in(mx, my, px + lw - 18, ly, 18, 26)) { dev.orbit.client.friends.Friends.REQUESTS.remove(r.getKey()); Sounds.click(); return true; }
-            ly += 30;
-        }
-        for (var f : new java.util.ArrayList<>(dev.orbit.client.friends.Friends.list())) {
-            if (in(mx, my, px, ly, lw, 28)) {
-                if (in(mx, my, px + lw - 18, ly, 18, 28)) {
-                    if (confirm("delfriend:" + f.uuid)) { dev.orbit.client.friends.Friends.remove(f.uuid); if (f.uuid.equals(selectedFriend)) selectedFriend = null; }
-                    Sounds.click();
-                    return true;
-                }
-                selectedFriend = f.uuid; input = ""; inputFor = "chat"; Sounds.click();
-                return true;
-            }
-            ly += 32;
-        }
-        int cx = px + lw + 14, cw = width - 24 - cx, inputY = height - 26 - 28;
-        if (selectedFriend != null) {
-            if (in(mx, my, cx + 10, inputY, cw - 80, 20)) { inputFor = "chat"; return true; }
-            if (in(mx, my, cx + cw - 66, inputY, 56, 20)) { inputFor = "chat"; submitInput(); return true; }
-        }
-        return false;
-    }
+    private boolean clickFriends(double mx, double my) { return clickHits(mx, my); }
 
     // ------------------------------------------------------------------ bridge loading
     private static String str(JsonObject o, String k) { return o.has(k) && !o.get(k).isJsonNull() ? o.get(k).getAsString() : ""; }
@@ -1566,41 +1810,16 @@ public final class OrbitTitleScreen extends OrbitBaseScreen {
         return false;
     }
 
-    private boolean clickAccounts(double mx, double my) {
-        if (accounts == null) return false;
-        int pw = Math.min(360, width - 48), px = (width - pw) / 2, ry = 44 + 32;
-        String current = client.getSession().getUsername();
-        for (JsonObject a : accounts) {
-            if (in(mx, my, px, ry, pw, 30)) {
-                boolean active = str(a, "name").equalsIgnoreCase(current);
-                if (!active && in(mx, my, px + pw - 22, ry + 8, 14, 14)) { // remove (click twice)
-                    if (!confirm("delacc:" + str(a, "id"))) { Sounds.click(); return true; }
-                    OrbitBridge.post("accounts/remove", OrbitBridge.obj("id", str(a, "id"))).whenComplete((r, e) -> client.execute(() -> {
-                        if (e != null) say(OrbitBridge.message(e), false); else { accounts = objs(r); say("Removed " + str(a, "name"), true); }
-                    }));
-                    return true;
-                }
-                if (!active) { Sounds.click(); switchAccount(a); }
-                return true;
-            }
-            ry += 34;
-        }
-        ry += 6;
-        if (in(mx, my, px, ry + 12, pw - 86, 20)) { inputFor = "offline"; return true; }
-        if (in(mx, my, px + pw - 80, ry + 12, 80, 20)) { inputFor = "offline"; Sounds.click(); submitInput(); return true; }
-        if (in(mx, my, px, ry + 40, pw, 20)) {
-            Sounds.click();
-            say("Sign in with Microsoft in the Orbit launcher window…", true);
-            OrbitBridge.post("accounts/microsoft", null, 600).whenComplete((r, e) -> client.execute(() -> {
-                if (e != null) say(OrbitBridge.message(e), false);
-                else { accounts = objs(r); Sounds.success(); say("Microsoft account added — click it to switch", true); }
-            }));
-            return true;
+    private boolean clickAccounts(double mx, double my) { return clickHits(mx, my); }
+
+    @Override protected boolean onScroll(double mx, double my, double v) {
+        if (tab == Tab.SHOTS || tab == Tab.LOCKER) { scrollTarget -= (float) (v * 30); return true; }
+        if (tab == Tab.FRIENDS) {
+            if (mx >= chatX0 && mx < chatX1 && my >= chatY0 && my < chatY1) { chatScrollTarget += (float) (v * 24); return true; } // up = older messages
+            if (my >= listY0 && my < listY1 && mx < chatX0) { friendScrollTarget -= (float) (v * 24); return true; }
         }
         return false;
     }
-
-    @Override protected boolean onScroll(double mx, double my, double v) { if (tab == Tab.SHOTS || tab == Tab.LOCKER) { scrollTarget -= (float) (v * 30); return true; } return false; }
 
     @Override
     protected boolean onKey(int key, int scan, int mods) {

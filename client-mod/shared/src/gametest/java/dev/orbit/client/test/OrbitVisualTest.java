@@ -49,6 +49,18 @@ public class OrbitVisualTest implements FabricClientGameTest {
             ctx.waitTicks(20);
             ctx.takeScreenshot("00-title-" + t);
         }
+        // an open chat with a few messages (grouped bubbles, times, avatar)
+        ctx.runOnClient(c -> {
+            var chat = dev.orbit.client.friends.Friends.chat("069a79f4-44e9-4726-a5be-fca90e38aaf5");
+            long now = System.currentTimeMillis();
+            chat.add(new dev.orbit.client.friends.Friends.Msg(false, "yo are you on tonight?", now - 600_000));
+            chat.add(new dev.orbit.client.friends.Friends.Msg(false, "got a new cape btw", now - 590_000));
+            chat.add(new dev.orbit.client.friends.Friends.Msg(true, "yeah in like 10 min", now - 120_000));
+            chat.add(new dev.orbit.client.friends.Friends.Msg(true, "join eu.mcpvp.club, I'll be in duels", now - 100_000));
+        });
+        ctx.setScreen(() -> OrbitTitleScreen.onFriend("069a79f4-44e9-4726-a5be-fca90e38aaf5"));
+        ctx.waitTicks(20);
+        ctx.takeScreenshot("00-title-friends-chat");
         // locker preview: a hat + wings shown on the 3D model (turned round), then the cosmetics tiles
         ctx.setScreen(() -> OrbitTitleScreen.onTab("locker"));
         ctx.runOnClient(c -> { dev.orbit.client.cosmetics.CosmeticsFeature.previewHat = "Top Hat"; dev.orbit.client.cosmetics.CosmeticsFeature.previewWings = "Butterfly"; dev.orbit.client.cosmetics.CosmeticsFeature.previewAura = "Flames"; });
