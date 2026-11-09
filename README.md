@@ -58,7 +58,9 @@ Spotify only lets apps read "now playing" through your own free developer app:
    git tag v1.3.0
    git push origin v1.3.0
    ```
-   `.github/workflows/release.yml` builds the mod and the launcher on Windows and attaches `Orbit.exe` to the release.
+   `.github/workflows/release.yml` builds the mod and the launcher on Windows and attaches `Orbit-Setup.exe` (installer: desktop + Start menu
+   shortcut, uninstall entry; what new players download) and `Orbit.exe` (portable) to the release. Installed Orbit
+   updates by running the new setup silently; the portable exe swaps itself.
    You can also make a release by hand and upload an `Orbit.exe` to it.
 4. Each launcher checks on start, shows the changelog and, after **Update now**, downloads the new exe,
    replaces itself and restarts.

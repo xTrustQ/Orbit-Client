@@ -24,7 +24,11 @@ async function check(repo) {
   if (r.status === 404) throw new Error('No releases found in ' + repo);
   if (!r.ok) throw new Error('GitHub answered ' + r.status);
   const rel = await r.json();
-  const asset = (rel.assets || []).find((a) => /^orbit.*\.exe$/i.test(a.name));
+  // installed Orbit updates with the setup; the portable Orbit.exe swaps itself for the new Orbit.exe
+  const assets = rel.assets || [];
+  const asset = portable()
+    ? assets.find((a) => /^orbit\.exe$/i.test(a.name)) || assets.find((a) => /^orbit(?!.*setup).*\.exe$/i.test(a.name))
+    : assets.find((a) => /^orbit-setup\.exe$/i.test(a.name));
   latest = {
     current: app.getVersion(), version: (rel.tag_name || '').replace(/^v/i, ''), name: rel.name || rel.tag_name,
     notes: (rel.body || '').slice(0, 2000), url: rel.html_url, asset: asset ? { name: asset.name, size: asset.size, url: asset.browser_download_url } : null,
@@ -37,6 +41,8 @@ async function check(repo) {
 
 /** where the portable exe really lives (electron-builder's portable target unpacks to temp and tells us here) */
 const exePath = () => process.env.PORTABLE_EXECUTABLE_FILE || process.execPath;
+/** true for the single-file Orbit.exe, false for Orbit installed with Orbit-Setup.exe */
+const portable = () => !!process.env.PORTABLE_EXECUTABLE_FILE;
 
 /** the downloaded update waiting to be installed, if it is newer than what runs now */
 function staged() {
@@ -56,7 +62,7 @@ function download(progress) {
   downloading = (async () => {
     fs.rmSync(STAGE(), { recursive: true, force: true });
     fs.mkdirSync(STAGE(), { recursive: true });
-    const file = path.join(STAGE(), `Orbit-${latest.version}.exe`);
+    const file = path.join(STAGE(), portable() ? `Orbit-${latest.version}.exe` : `Orbit-Setup-${latest.version}.exe`);
     const r = await fetch(latest.asset.url, { headers: { 'User-Agent': 'Orbit-Launcher' } });
     if (!r.ok || !r.body) throw new Error('Download failed (' + r.status + ')');
     const total = +r.headers.get('content-length') || latest.asset.size || 0;
@@ -83,6 +89,17 @@ function applyStaged(restart) {
   try { fs.writeFileSync(STAGED_INFO(), JSON.stringify(st)); } catch { /* ignore */ }
   const target = exePath();
   const bat = path.join(STAGE(), 'update.cmd');
+  if (!portable() || /setup/i.test(path.basename(st.file))) {
+    // installed Orbit: run the new setup silently once we've exited (--force-run starts Orbit again afterwards)
+    fs.writeFileSync(bat, [
+      '@echo off',
+      'timeout /t 2 /nobreak >nul',
+      `"${st.file}" /S${restart ? ' --force-run' : ''}`,
+      `del /q "${st.file}" "${STAGED_INFO()}" >nul 2>&1`,
+    ].join('\r\n'));
+    spawn('cmd.exe', ['/c', bat], { detached: true, stdio: 'ignore', windowsHide: true }).unref();
+    return true;
+  }
   fs.writeFileSync(bat, [
     '@echo off',
     'set n=0',
