@@ -1,1 +1,1 @@
-{"providers":[{"type":"ttf","file":"orbit:montserrat-medium.ttf","shift":[0,1],"size":9,"oversample":4},{"type":"reference","id":"minecraft:default"}]}
+{"providers":[{"type":"ttf","file":"orbit:inter-medium.ttf","shift":[0,1],"size":9,"oversample":4},{"type":"ttf","file":"orbit:montserrat-medium.ttf","shift":[0,1],"size":9,"oversample":4},{"type":"reference","id":"minecraft:default"}]}

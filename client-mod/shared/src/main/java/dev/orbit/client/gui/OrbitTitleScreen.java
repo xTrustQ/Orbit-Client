@@ -269,7 +269,7 @@ public final class OrbitTitleScreen extends OrbitBaseScreen {
         if (appearanceOpen) appearancePanel(c, mx, my);
         if (ie >= 0) drawIntro(c, ie);
         String ver = FabricLoader.getInstance().getModContainer("minecraft").map(m -> m.getMetadata().getVersion().getFriendlyString()).orElse("");
-        if (!ingame && tab != Tab.FRIENDS) text(c, "Orbit 1.2  ·  Minecraft " + ver, 8, height - 16, withAlpha(0xFFFFFF, 110), false);
+        if (!ingame && tab != Tab.FRIENDS && !(tab == Tab.HOME && height < 320)) text(c, "Orbit 1.3  ·  Minecraft " + ver, 8, height - 16, withAlpha(0xFFFFFF, 110), false);
     }
 
     private float hov(String key, boolean on) {
@@ -386,23 +386,6 @@ public final class OrbitTitleScreen extends OrbitBaseScreen {
     }
 
     // ------------------------------------------------------------------ home
-    private int bw() { return Math.min(170, width - 40); }
-    private int bx() { return width > 360 ? Math.round(width * 0.36f) - bw() / 2 : (width - bw()) / 2; }
-    private int by(int i) { return height / 2 - 18 + i * 24; }
-    /** button rectangles {x, y, w, h, index}; index -1 = Options, -2 = Quit/Disconnect */
-    private List<int[]> layout() {
-        List<int[]> out = new ArrayList<>();
-        int row = 0, half = (bw() - 6) / 2;
-        for (int i = 0; i < buttons.size(); i++, row++) {
-            if (buttons.get(i).half() && i + 1 < buttons.size() && buttons.get(i + 1).half()) {
-                out.add(new int[]{bx(), by(row), half, 20, i});
-                out.add(new int[]{bx() + half + 6, by(row), half, 20, ++i});
-            } else out.add(new int[]{bx(), by(row), bw(), 20, i});
-        }
-        out.add(new int[]{bx(), by(row) + 6, half, 20, -1});
-        out.add(new int[]{bx() + half + 6, by(row) + 6, half, 20, -2});
-        return out;
-    }
 
     // ------------------------------------------------------------------ appearance (main menu look)
     private boolean appearanceOpen;
@@ -632,38 +615,140 @@ public final class OrbitTitleScreen extends OrbitBaseScreen {
         }
         return false;
     }
+    // ------------------------------------------------------------------ main menu, in the launcher's "Clean" style
+    private int hColX() { return Math.max(28, Math.round(width * 0.08f)); }
+    private int hColW() { return Math.max(170, Math.min(250, Math.round(width * 0.40f))); }
+    /** letter-spaced small caps, like the launcher's eyebrow labels */
+    private void spaced(DrawContext c, String s, float x, float y, int col) {
+        for (int i = 0; i < s.length(); i++) { String ch = s.substring(i, i + 1); text(c, ch, x, y, col, false); x += width(ch) + 1.2f; }
+    }
+    private int buttonIndex(String label) { for (int i = 0; i < buttons.size(); i++) if (buttons.get(i).label().equals(label)) return i; return -1; }
+
+    private void homeClean(DrawContext c, int mx, int my) {
+        hits.clear();
+        long since = System.currentTimeMillis() - openedAt;
+        int acc = accent(), x = hColX(), w = hColW();
+        String user = client.getSession().getUsername();
+        float k = Render2D.pixelScale(2.0f);
+        String head1 = "Ready for ", head2 = "liftoff", head3 = "?";
+        float headW = boldWidth(head1 + head2 + head3) * k;
+        if (headW > w) k *= w / headW;
+        boolean compact = height < 320;
+        List<String> sub = compact ? List.of() : wrap("Pick a world or a server — Orbit takes care of the rest.", w);
+        int tw = (w - 24 - 8) / 2;
+        boolean stacked = tw < 96; // narrow: the two tiles go under each other
+        int ch = stacked ? 22 + 2 * 24 + 6 : 74;
+        int total = 10 + (compact ? 14 : 18) - 10 + Math.round(10 * k) + 8 + sub.size() * 10 + (compact ? 8 : 16) + ch + 10 + 20;
+        int y = Math.max(compact ? 40 : 46, (height - total) / 2 + (compact ? 0 : 8));
+
+        // eyebrow
+        float a1 = easeOut((since - 60) / 420f);
+        int hour = java.time.LocalTime.now().getHour();
+        String greet = (hour < 5 ? "GOOD NIGHT" : hour < 12 ? "GOOD MORNING" : hour < 18 ? "GOOD AFTERNOON" : "GOOD EVENING") + ", " + user.toUpperCase();
+        spaced(c, fit(greet, w - greet.length(), false), x, y + (1 - a1) * 6, alpha(acc, a1));
+        y += compact ? 14 : 18;
+        // headline
+        float a2 = easeOut((since - 120) / 420f);
+        Compat.push(c);
+        Compat.translate(c, Render2D.snap(x), Render2D.snap(y + (1 - a2) * 8));
+        Compat.scale(c, k);
+        bold(c, head1, 0, 0, alpha(0xFFFFFFFF, a2), false);
+        bold(c, head2, boldWidth(head1), 0, alpha(acc, a2), false);
+        bold(c, head3, boldWidth(head1 + head2), 0, alpha(0xFFFFFFFF, a2), false);
+        Compat.pop(c);
+        y += Math.round(10 * k) + 8;
+        // sub line
+        float a3 = easeOut((since - 180) / 420f);
+        for (String s : sub) { text(c, s, x, y + (1 - a3) * 6, alpha(MUTED, a3), false); y += 10; }
+        y += compact ? 8 : 16;
+
+        // play card: two big tiles (side by side, or stacked when narrow)
+        float a4 = easeOut((since - 240) / 460f);
+        int cy = y + Math.round((1 - a4) * 10);
+        round(c, x - 1, cy - 1, w + 2, ch + 2, 15, withAlpha(0xFFFFFF, (int) (16 * a4)));
+        round(c, x, cy, w, ch, 14, withAlpha(0x0B0818, (int) (190 * a4)));
+        spaced(c, "PLAY", x + 12, cy + 9, alpha(FAINT, a4));
+        int th = stacked ? 22 : 42, tW = stacked ? w - 24 : tw;
+        String[][] tiles = {{"Singleplayer", "Your worlds"}, {"Multiplayer", "Servers & friends"}};
+        for (int i = 0; i < 2; i++) {
+            int tx = stacked ? x + 12 : x + 12 + i * (tw + 8), ty = stacked ? cy + 22 + i * 24 : cy + 22;
+            int bi = buttonIndex(tiles[i][0]);
+            float hv = hov("ht" + i, in(mx, my, tx, ty, tW, th));
+            boolean primary = i == 0;
+            int base = primary ? withAlpha(acc, (int) (220 * a4)) : withAlpha(0xFFFFFF, (int) (20 * a4));
+            int hot = primary ? withAlpha(lerpColor(acc, 0xFFFFFF, 0.2f), (int) (255 * a4)) : withAlpha(acc, (int) (90 * a4));
+            round(c, tx, ty, tW, th, stacked ? 11 : 11, lerpColor(base, hot, hv));
+            int tcol = primary ? 0xFF0E0A1C : 0xFFFFFFFF;
+            item(c, i == 0 ? net.minecraft.item.Items.GRASS_BLOCK : net.minecraft.item.Items.COMPASS, tx + (stacked ? 6 : 10), ty + (th - 16) / 2, 16);
+            if (stacked) {
+                bold(c, fit(tiles[i][0], tW - 30, true), tx + 28, ty + 7, alpha(tcol, a4), false);
+            } else {
+                bold(c, fit(tiles[i][0], tW - 40, true), tx + 32, ty + 11, alpha(tcol, a4), false);
+                text(c, fit(tiles[i][1], tW - 40, false), tx + 32, ty + 23, alpha(primary ? withAlpha(0x0E0A1C, 170) : FAINT, a4), false);
+            }
+            if (bi >= 0) hit(tx, ty, tW, th, () -> { Sounds.click(); buttons.get(bi).action().run(); });
+        }
+        y += ch + 10;
+
+        // secondary actions: slim glass pills with icons
+        List<String> sec = new ArrayList<>();
+        if (buttonIndex("Orbit Mods") >= 0) sec.add("Orbit Mods");
+        if (buttonIndex("Mod Menu") >= 0) sec.add("Mod Menu");
+        sec.add("Options");
+        sec.add("Quit");
+        // widths follow the labels; icons only when everything fits with them
+        int gap = 6, free = w - gap * (sec.size() - 1);
+        boolean icons = true;
+        int[] ws = new int[sec.size()];
+        for (int pass = 0; pass < 2; pass++) {
+            int sum = 0;
+            for (int i = 0; i < ws.length; i++) { ws[i] = width(sec.get(i)) + 16 + (icons && !sec.get(i).equals("Quit") ? 20 : 0); sum += ws[i]; }
+            if (sum <= free) { int extra = (free - sum) / ws.length; for (int i = 0; i < ws.length; i++) ws[i] += extra; break; }
+            if (pass == 0) { icons = false; continue; }
+            for (int i = 0; i < ws.length; i++) ws[i] = free / ws.length; // still too wide: equal, labels get shortened
+        }
+        int px = x;
+        for (int i = 0; i < sec.size(); i++) {
+            String label = sec.get(i);
+            int pw = ws[i];
+            float ap = easeOut((since - 320 - i * 50) / 380f);
+            int py = y + Math.round((1 - ap) * 6);
+            boolean quit = label.equals("Quit");
+            float hv = hov("hs" + label, in(mx, my, px, py, pw, 20));
+            round(c, px, py, pw, 20, 10, lerpColor(withAlpha(0xFFFFFF, (int) (20 * ap)), quit ? withAlpha(0xE5484D, (int) (200 * ap)) : withAlpha(0xFFFFFF, (int) (52 * ap)), hv));
+            boolean icon = icons && !quit;
+            if (icon) item(c, tileIcon(label), px + 4, py + 2, 16);
+            float lx = icon ? px + 22 + (pw - 24 - width(fit(label, pw - 26, false))) / 2f : px + (pw - width(fit(label, pw - 8, false))) / 2f;
+            text(c, fit(label, icon ? pw - 26 : pw - 8, false), lx, py + 6, alpha(lerpColor(MUTED, 0xFFFFFFFF, hv), ap), false);
+            Runnable r = switch (label) {
+                case "Options" -> () -> { Sounds.click(); client.setScreen(new OptionsScreen(this, client.options)); };
+                case "Quit" -> () -> client.scheduleStop();
+                default -> () -> { Sounds.click(); buttons.get(buttonIndex(label)).action().run(); };
+            };
+            hit(px, py, pw, 20, r);
+            px += pw + gap;
+        }
+
+        // you, on the right: name badge above (like the launcher), account + Locker below
+        if (skin != null) {
+            int sx = skinCenterX();
+            float a5 = easeOut((since - 200) / 500f);
+            int nw = width(user) + 30, ny = skin.y - 14;
+            round(c, sx - nw / 2f, ny, nw, 18, 9, withAlpha(0x0B0818, (int) (190 * a5)));
+            logo(c, sx - nw / 2f + 10, ny + 9, 3.2f);
+            text(c, user, sx - nw / 2f + 19, ny + 5, alpha(0xFFFFFFFF, a5), false);
+            int by0 = skin.y + skin.h + 6;
+            centered(c, offline() ? "Offline account" : "Microsoft account", sx, by0, alpha(FAINT, a5), false);
+            float lh = hov("locker", in(mx, my, sx - 40, by0 + 14, 80, 18));
+            round(c, sx - 40, by0 + 14, 80, 18, 9, lerpColor(withAlpha(0xFFFFFF, (int) (22 * a5)), withAlpha(acc, 200), lh));
+            centered(c, "Locker", sx, by0 + 19, alpha(lerpColor(TEXT, 0xFF0E0A1C, lh), a5), false);
+            hit(sx - 40, by0 + 14, 80, 18, () -> switchTab(Tab.LOCKER));
+        }
+    }
+
     private void home(DrawContext c, int mx, int my, float intro) {
         if (ingame) { gameHome(c, mx, my, intro); return; }
-        int cx = bx() + bw() / 2;
-        float ly = by(0) - 62 - (1 - intro) * 10;
-        String name = "ORBIT";
-        float k = Render2D.pixelScale(2.6f), tw = boldWidth(name) * k;
-        logo(c, cx - tw / 2f - 14, ly + 10, 7f);
-        Compat.push(c);
-        Compat.translate(c, Render2D.snap(cx - tw / 2f + 4), Render2D.snap(ly));
-        Compat.scale(c, k);
-        // soft drop shadow instead of Minecraft's hard, blocky one
-        bold(c, name, 0.35f, 0.5f, alpha(0x40000000, intro), false);
-        bold(c, name, 0, 0, alpha(0xFFFFFFFF, intro), false);
-        Compat.pop(c);
-        centered(c, ingame ? "P A U S E D" : "C L I E N T", cx + 4, ly + 28, alpha(MUTED, intro), false);
-
-        List<int[]> rects = layout();
-        for (int ri = 0; ri < rects.size(); ri++) {
-            int[] r = rects.get(ri);
-            String label = r[4] >= 0 ? buttons.get(r[4]).label() : r[4] == -1 ? "Options" : !ingame ? "Quit" : client.isInSingleplayer() ? "Save & Quit" : "Disconnect";
-            btn(c, "b" + r[4], r[0], r[1], r[2], r[3], label, mx, my, ri, r[4] == 0);
-        }
-
-        if (skin != null) {
-            String user = client.getSession().getUsername();
-            int sx = skinCenterX(), sy = skin.y + skin.h + 6;
-            centered(c, user, sx, sy, 0xFFFFFFFF, true);
-            String where = !ingame ? (offline() ? "Offline account" : "Microsoft account")
-                    : client.isInSingleplayer() ? "Singleplayer" : client.getCurrentServerEntry() != null ? client.getCurrentServerEntry().address : "Multiplayer";
-            centered(c, fit(where, 150, false), sx, sy + 11, MUTED, false);
-            btn(c, "locker", sx - 40, sy + 26, 80, 18, "Locker", mx, my, 2, false);
-        }
+        homeClean(c, mx, my);
     }
     private boolean offline() { String t = client.getSession().getAccessToken(); return t == null || t.length() < 20; }
 
@@ -1624,21 +1709,7 @@ public final class OrbitTitleScreen extends OrbitBaseScreen {
 
     private boolean clickHome(double mx, double my) {
         if (ingame) return clickGameHome(mx, my);
-        int hit = Integer.MIN_VALUE;
-        for (int[] r : layout()) if (in(mx, my, r[0], r[1], r[2], r[3])) hit = r[4];
-        if (hit >= 0) { Sounds.click(); buttons.get(hit).action().run(); return true; }
-        if (hit == -1) { Sounds.click(); client.setScreen(new OptionsScreen(this, client.options)); return true; }
-        if (hit == -2) {
-            if (!ingame) { client.scheduleStop(); return true; }
-            Sounds.click();
-            client.getAbuseReportContext().tryShowDraftScreen(client, this, () -> client.disconnect(net.minecraft.client.world.ClientWorld.QUITTING_MULTIPLAYER_TEXT), true);
-            return true;
-        }
-        if (skin != null) {
-            int sx = skinCenterX(), sy = skin.y + skin.h + 6;
-            if (in(mx, my, sx - 40, sy + 26, 80, 18)) { switchTab(Tab.LOCKER); return true; }
-        }
-        return false;
+        return clickHits(mx, my); // the launcher-style menu registers its own buttons
     }
 
     private boolean clickLocker(double mx, double my) {
