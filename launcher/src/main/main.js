@@ -16,12 +16,14 @@ const discord = require('./discord');
 // defaults baked into the build (package.json → "orbit"): the shared server and the GitHub repo for updates
 const BUILT = (() => { try { return require('../../package.json').orbit || {}; } catch { return {}; } })();
 const settings = new Store('settings', {
-  theme: 'nebula', font: 'orbit', animations: true, memory: null, optimizedJvm: true, javaPath: '', jvmArgs: '',
+  theme: 'nebula', font: 'clean', animations: true, memory: null, optimizedJvm: true, javaPath: '', jvmArgs: '',
   closeOnLaunch: false, curseforgeKey: '', performancePack: true, standardMods: true, resolution: {}, lastInstance: null, background: 'stars',
   discordEnabled: true, discordAppId: '', syncServer: '', apiServer: '', updateRepo: '', autoUpdate: true,
 });
 // a build that ships with a server / repo fills them in for players who haven't set their own
 for (const k of ['syncServer', 'updateRepo']) if (!settings.get(k) && BUILT[k]) settings.set(k, BUILT[k]);
+// Clean is the default typography now: switch everyone over once (they can still pick Orbit or Pixel afterwards)
+if (!settings.get('cleanFontDefault')) { settings.set('font', 'clean'); settings.set('cleanFontDefault', true); }
 const updater = require('./updater');
 
 // Discord Rich Presence: "Playing Orbit Client" (needs your Discord application ID in Settings).

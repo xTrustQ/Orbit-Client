@@ -52,10 +52,29 @@ export function render(params = {}) {
       <div class="split"><button class="btn sm soft" data-install>${icon('download')} Install</button><button class="btn sm" data-open title="Open website">${icon('external')}</button></div></div>
   </div>`;
 
+  // what the selected profile already has, so the same mod can't be installed twice
+  const norm = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  let have = { ids: new Set(), names: new Set(), files: [] };
+  const loadInstalled = async () => {
+    have = { ids: new Set(), names: new Set(), files: [] };
+    if (!target || q.type === 'modpack') return;
+    try {
+      for (const c of await nova.instances.contents(target, q.type)) {
+        if (c.projectId) have.ids.add(String(c.projectId));
+        have.names.add(norm(c.title));
+        have.files.push(norm(c.file));
+      }
+    } catch { /* profile gone */ }
+  };
+  const isInstalled = (m) => q.type !== 'modpack' && (have.ids.has(String(m.id)) || have.names.has(norm(m.title))
+    || (norm(m.slug).length >= 4 && have.files.some((f) => f.startsWith(norm(m.slug)))));
+  const markInstalled = (btn) => { btn.innerHTML = `${icon('check')} Installed`; btn.disabled = true; btn.classList.add('installed'); };
+
   const bind = (hits) => hits.forEach((m) => {
     const row = list.querySelector(`.mod[data-id="${CSS.escape(m.id)}"]`);
     if (!row) return;
     $('[data-open]', row).onclick = () => m.url && nova.app.openExternal(m.url);
+    if (isInstalled(m)) return markInstalled($('[data-install]', row));
     $('[data-install]', row).onclick = (e) => busy(e.currentTarget, async () => {
       if (q.type === 'modpack') {
         toast('Installing modpack', m.title, 'info');
@@ -65,11 +84,14 @@ export function render(params = {}) {
         return;
       }
       if (!target) return go('profiles', { create: true });
+      await loadInstalled();
+      if (isInstalled(m)) { toast('Already installed', `${m.title} is already in this profile`, 'info'); return true; }
       await nova.content.install({ source: m.source, projectId: m.id, type: q.type, instanceId: target, meta: { title: m.title, icon: m.icon } });
       const inst = state.instances.find((i) => i.id === target);
       toast('Installed', `${m.title} → ${inst?.name}`);
+      await loadInstalled();
       return true;
-    }).then((ok) => { if (ok) $('[data-install]', row).innerHTML = `${icon('check')} Installed`; });
+    }).then((ok) => { if (ok) markInstalled($('[data-install]', row)); });
   });
 
   async function search(append = false) {
@@ -77,7 +99,7 @@ export function render(params = {}) {
     if (!append) { q.offset = 0; list.innerHTML = Array.from({ length: 5 }, () => `<div class="mod"><div class="skeleton" style="width:80px;height:80px"></div><div><div class="skeleton" style="height:18px;width:40%;margin-bottom:10px"></div><div class="skeleton" style="height:12px;width:80%"></div></div><div></div></div>`).join(''); }
     loading = true;
     try {
-      const r = await nova.content.search({ ...q });
+      const [r] = await Promise.all([nova.content.search({ ...q }), append ? null : loadInstalled()]);
       if (my !== token) return;
       total = r.total;
       const html = r.hits.map(card).join('');

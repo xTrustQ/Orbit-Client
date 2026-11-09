@@ -21,7 +21,7 @@ export function render(params = {}) {
         <label class="lbl">Theme</label>
         <div class="theme-grid">${THEMES.map(([t, n]) => `<div class="theme sw-${t} ${(s.theme || 'nebula') === t ? 'sel' : ''}" data-th="${t}"><div class="stars"></div><div class="orb"></div><div class="nm">${n}</div></div>`).join('')}</div>
         <div class="sep"></div>
-        <div class="setting"><div class="l"><b>Typography</b><span>Futuristic Orbitron, clean modern, or retro pixel headings</span></div>${seg('font', [['orbit', 'Orbit'], ['clean', 'Clean'], ['pixel', 'Pixel']], s.font || 'orbit')}</div>
+        <div class="setting"><div class="l"><b>Typography</b><span>Futuristic Orbitron, clean modern, or retro pixel headings</span></div>${seg('font', [['orbit', 'Orbit'], ['clean', 'Clean'], ['pixel', 'Pixel']], s.font || 'clean')}</div>
         <div class="setting"><div class="l"><b>Background</b><span>Live starfield, thick nebula clouds, or a calm minimal sky</span></div>${seg('background', [['stars', 'Starfield'], ['nebula', 'Nebula'], ['minimal', 'Minimal']], s.background || 'stars')}</div>
         <div class="setting"><div class="l"><b>Animations</b><span>Page transitions and motion</span></div>${toggle('animations', s.animations !== false)}</div>
         <div class="setting"><div class="l"><b>Sound effects</b><span>Soft clicks, swooshes and a liftoff sound when you launch</span></div>${toggle('sounds', s.sounds !== false)}</div>

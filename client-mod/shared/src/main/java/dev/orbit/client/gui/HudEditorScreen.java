@@ -24,7 +24,9 @@ public final class HudEditorScreen extends OrbitBaseScreen {
     private HudModule dragging, selected;
     private double offX, offY;
     private final List<float[]> guides = new ArrayList<>(); // {x1, y1, x2, y2}
-    private static boolean grid = true, listOpen = true;
+    private static boolean grid = true;
+    /** the old "Elements" side list is gone: elements are switched on/off in the Orbit menu's HUD tab */
+    private static final boolean listOpen = false;
     private float listScroll;
 
     public HudEditorScreen(Screen parent) { super(Text.literal("Orbit HUD designer")); this.parent = parent; }
@@ -122,7 +124,7 @@ public final class HudEditorScreen extends OrbitBaseScreen {
             round(c, sx, by + 3, 52, 16, 8, mx >= sx && mx < sx + 52 && my >= by + 3 && my < by + 19 ? withAlpha(acc, 230) : 0x30FFFFFF);
             centered(c, "Settings", sx + 26, by + 7, 0xFFFFFFFF, false);
         } else {
-            String hint = "Drag · scroll to resize · click to select (arrows nudge, H hides, R resets) · G grid · Tab list · Esc done";
+            String hint = "Drag · scroll to resize · click to select (arrows nudge, H hides, R resets) · G grid · Esc done";
             int tw = Math.min(width - 20, width(hint) + 20);
             round(c, (width - tw) / 2f, barY() + 2, tw, 18, 9, 0xE00E0B1E);
             centered(c, fit(hint, tw - 16, false), width / 2f, barY() + 7, MUTED, false);
@@ -220,7 +222,6 @@ public final class HudEditorScreen extends OrbitBaseScreen {
     protected boolean onKey(int key, int scan, int mods) {
         if (key == GLFW.GLFW_KEY_ESCAPE) { if (selected != null) { selected = null; return true; } close(); return true; }
         if (key == GLFW.GLFW_KEY_G) { grid = !grid; return true; }
-        if (key == GLFW.GLFW_KEY_TAB) { listOpen = !listOpen; return true; }
         if (selected == null) return false;
         int step = (mods & GLFW.GLFW_MOD_SHIFT) != 0 ? 10 : 1, dx = 0, dy = 0;
         switch (key) {

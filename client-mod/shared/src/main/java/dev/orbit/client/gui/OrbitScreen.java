@@ -188,6 +188,11 @@ public final class OrbitScreen extends OrbitBaseScreen {
         boolean ch = in(mx, my, cfx, TOP + 14, cw, 18);
         round(c, cfx, TOP + 15, cw, 16, 8, ch ? withAlpha(acc, 200) : withAlpha(acc, 120));
         text(c, "Configs", cfx + 11, TOP + 19, 0xFFFFFFFF, false);
+        // move HUD elements (coordinates, FPS, …) around the screen
+        int ew = width("Edit HUD") + 22, efx = cfx - 6 - ew;
+        boolean eh = in(mx, my, efx, TOP + 14, ew, 18);
+        round(c, efx, TOP + 15, ew, 16, 8, eh ? 0x40FFFFFF : 0x24FFFFFF);
+        text(c, "Edit HUD", efx + 11, TOP + 19, 0xFFFFFFFF, false);
 
         List<Module> mods = visible();
         scroll = approach(scroll, scrollTarget, 18, dt);
@@ -341,6 +346,8 @@ public final class OrbitScreen extends OrbitBaseScreen {
         }
         int cw = width("Configs") + 22;
         if (in(mx, my, fx - 8 - cw, TOP + 14, cw, 18)) { Sounds.click(); client.setScreen(new ConfigsScreen(this)); return true; }
+        int ew = width("Edit HUD") + 22;
+        if (in(mx, my, fx - 8 - cw - 6 - ew, TOP + 14, ew, 18)) { Sounds.click(); client.setScreen(new HudEditorScreen(this)); return true; }
         if (my < GRID_Y - 4 || my > gridBottom()) return false;
         List<Module> mods = visible();
         int w = cardW();

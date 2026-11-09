@@ -18,7 +18,7 @@ const THEMES = ['nebula', 'deepspace', 'supernova', 'aurora', 'mars', 'eclipse',
 export function applyLook(s = state.settings) {
   const root = document.documentElement;
   root.dataset.theme = THEMES.includes(s.theme) ? s.theme : 'nebula';
-  root.dataset.font = ['orbit', 'clean', 'pixel'].includes(s.font) ? s.font : 'orbit';
+  root.dataset.font = ['orbit', 'clean', 'pixel'].includes(s.font) ? s.font : 'clean';
   root.dataset.bg = ['stars', 'nebula', 'minimal'].includes(s.background) ? s.background : 'stars';
   root.dataset.anim = s.animations === false ? 'off' : 'on';
   sfx.setEnabled(s.sounds !== false);

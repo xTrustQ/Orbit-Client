@@ -159,7 +159,10 @@ public final class OrbitTitleScreen extends OrbitBaseScreen {
         }
     }
 
-    private int skinCenterX() { return tab == Tab.HOME ? Math.round(width * 0.74f) : Math.round(width * 0.8f); }
+    private int skinCenterX() {
+        if (ingame && tab == Tab.HOME) return (pX() + pW() + width) / 2; // centred in the space next to the pause panel
+        return tab == Tab.HOME ? Math.round(width * 0.74f) : Math.round(width * 0.8f);
+    }
 
     private Supplier<SkinTextures> skinSupplier() {
         var session = client.getSession();
@@ -205,7 +208,9 @@ public final class OrbitTitleScreen extends OrbitBaseScreen {
     public void renderBackground(DrawContext c, int mouseX, int mouseY, float delta) {
         if (ingame && client.world != null) { // the world stays visible behind the menu
             super.renderBackground(c, mouseX, mouseY, delta);
-            c.fillGradient(0, 0, width, height, 0x88050310, 0xCC050310);
+            // lighter on the Game tab so the world stays visible next to the panel
+            if (tab == Tab.HOME) c.fillGradient(0, 0, width, height, 0x55050310, 0x99050310);
+            else c.fillGradient(0, 0, width, height, 0x88050310, 0xCC050310);
             return;
         }
         SpaceBackground.draw(c, width, height, mouseX, mouseY, true);
@@ -519,73 +524,83 @@ public final class OrbitTitleScreen extends OrbitBaseScreen {
             default -> net.minecraft.item.Items.PAPER;
         };
     }
-    /** not enough room for the big logo: a small "Paused" title instead */
-    private boolean gCompact() { int rows = (buttons.size() + 1) / 2; return height < 16 + 28 + rows * 24 + 26 + 44 + 70 + 20; }
-    private int gTop() { int rows = (buttons.size() + 1) / 2; int body = 16 + 28 + rows * 24 + 26; return Math.max(gCompact() ? 64 : 106, (height - body) / 2 + (gCompact() ? 6 : 24)); }
-    private int gBackY() { return gTop() + 16; }
-    /** {x, y, w, h} for the small buttons (buttons 1.. then Options) */
-    private List<int[]> gTiles() {
-        List<int[]> out = new ArrayList<>();
-        int half = (bw() - 6) / 2, n = buttons.size(); // buttons minus "Back" plus "Options"
-        for (int i = 0; i < n; i++) out.add(new int[]{bx() + (i % 2) * (half + 6), gBackY() + 28 + (i / 2) * 24, half, 20});
-        return out;
+    // pause menu = a slim glass panel on the left; the game (and your player) stay visible on the right
+    private int pX() { return 12; }
+    private int pW() { return Math.max(150, Math.min(196, Math.round(width * 0.26f))); }
+    private int pTop() { return pTight() ? 36 : 40; }
+    private int pBottom() { return height - (pTight() ? 8 : 12); }
+    /** rows: 0 = Back to game, then the other buttons, then Options */
+    private int pRows() { return buttons.size() + 1; }
+    private String pLabel(int i) { return i < buttons.size() ? buttons.get(i).label() : "Options"; }
+    /** small window: one-line header and slimmer rows */
+    private boolean pTight() { return height - 52 < 66 + pRows() * 25 + 40; }
+    private int pRowH() { return pTight() ? 17 : 21; }
+    private int pRowsTop() { return pTop() + (pTight() ? 30 : 60); }
+    private int pRowY(int i) { return pRowsTop() + i * (pRowH() + (pTight() ? 2 : 4)) + (i > 0 ? (pTight() ? 3 : 7) : 0); }
+    private int pQuitY() {
+        int afterRows = pRowY(pRows() - 1) + pRowH() + (pTight() ? 6 : 10);
+        return Math.min(Math.max(afterRows, pBottom() - 10 - pRowH()), pBottom() - 6 - pRowH());
     }
-    private int gQuitY() { return gBackY() + 28 + ((buttons.size() + 1) / 2) * 24 + 4; }
 
     private void gameHome(DrawContext c, int mx, int my, float intro) {
-        int cx = bx() + bw() / 2;
-        // logo + "PAUSED"
-        if (gCompact()) {
-            logo(c, cx - boldWidth("Game paused") / 2f - 12, gTop() - 22, 5f);
-            bold(c, "Game paused", cx - boldWidth("Game paused") / 2f + 2, gTop() - 26, alpha(0xFFFFFFFF, intro), false);
-        } else {
-        float ly = gTop() - 58 - (1 - intro) * 8;
-        String name = "ORBIT";
-        float k = Render2D.pixelScale(2.2f), tw = boldWidth(name) * k;
-        logo(c, cx - tw / 2f - 13, ly + 9, 6.5f);
-        Compat.push(c);
-        Compat.translate(c, Render2D.snap(cx - tw / 2f + 3), Render2D.snap(ly));
-        Compat.scale(c, k);
-        bold(c, name, 0.35f, 0.5f, alpha(0x40000000, intro), false);
-        bold(c, name, 0, 0, alpha(0xFFFFFFFF, intro), false);
-        Compat.pop(c);
-        centered(c, "P A U S E D", cx + 3, ly + 24, alpha(lerpColor(MUTED, accent(), 0.35f), intro), false);
-        }
-        // where you are
+        long since = System.currentTimeMillis() - openedAt;
+        float slide = easeOut(since / 420f);
+        int acc = accent();
+        int x = pX() + Math.round(-(1 - slide) * 22), w = pW(), top = pTop(), bot = pBottom();
+        // glass panel (two layers = a soft edge)
+        round(c, x - 1, top - 1, w + 2, bot - top + 2, 15, withAlpha(0xFFFFFF, (int) (14 * slide)));
+        round(c, x, top, w, bot - top, 14, withAlpha(0x0B0818, (int) (205 * slide)));
+
+        // header: title + where you are
+        int hx = x + 14, hy = top + (pTight() ? 10 : 13);
         String where = client.isInSingleplayer() ? "Singleplayer" : client.getCurrentServerEntry() != null ? client.getCurrentServerEntry().address : "Multiplayer";
-        StringBuilder info = new StringBuilder(where);
-        if (client.getNetworkHandler() != null && !client.isInSingleplayer()) {
-            info.append("  ·  ").append(client.getNetworkHandler().getPlayerList().size()).append(" online");
+        if (pTight()) { // one line: "Paused  • server"
+            bold(c, "Paused", hx, hy, alpha(0xFFFFFFFF, slide), false);
+            int wx = hx + boldWidth("Paused") + 8;
+            disc(c, wx + 2.5f, hy + 4.5f, 2.2f, withAlpha(0x4ADE80, (int) (255 * slide)));
+            text(c, fit(where, x + w - 14 - wx - 9, false), wx + 9, hy + 1, alpha(MUTED, slide), false);
+        } else {
+            bold(c, "Game paused", hx, hy, alpha(0xFFFFFFFF, slide), false);
+            disc(c, hx + 2.5f, hy + 18.5f, 2.2f, withAlpha(0x4ADE80, (int) (255 * slide)));
+            text(c, fit(where, w - 36, false), hx + 9, hy + 15, alpha(TEXT, slide), false);
+        }
+        if (!pTight() && client.getNetworkHandler() != null && !client.isInSingleplayer()) {
+            String info = client.getNetworkHandler().getPlayerList().size() + " online";
             var me = client.player == null ? null : client.getNetworkHandler().getPlayerListEntry(client.player.getUuid());
-            if (me != null) info.append("  ·  ").append(me.getLatency()).append(" ms");
+            if (me != null) info += "  ·  " + me.getLatency() + " ms";
+            text(c, fit(info, w - 36, false), hx + 9, hy + 26, alpha(FAINT, slide), false);
         }
-        String inf = fit(info.toString(), bw() - 16, false);
-        int iw = width(inf) + 16;
-        round(c, cx - iw / 2f, gTop() - 6, iw, 14, 7, withAlpha(0xFFFFFF, (int) (22 * intro)));
-        disc(c, cx - iw / 2f + 6, gTop() + 1, 2, withAlpha(0x4ADE80, (int) (255 * intro)));
-        centered(c, inf, cx + 3, gTop() - 3, alpha(TEXT, intro), false);
-        // back to game
-        btn(c, "b0", bx(), gBackY(), bw(), 22, buttons.get(0).label(), mx, my, 0, true);
-        // icon buttons in two columns
-        List<int[]> tiles = gTiles();
-        for (int i = 0; i < tiles.size(); i++) {
-            int[] r = tiles.get(i);
-            String label = i == tiles.size() - 1 ? "Options" : buttons.get(i + 1).label();
-            float appear = easeOut(((System.currentTimeMillis() - openedAt) - 120 - i * 45) / 320f);
+        c.fill(hx, pRowsTop() - (pTight() ? 6 : 9), x + w - 14, pRowsTop() - (pTight() ? 5 : 8), withAlpha(0xFFFFFF, (int) (20 * slide)));
+
+        // rows
+        int rh = pRowH(), rw = w - 16;
+        for (int i = 0; i < pRows(); i++) {
+            float appear = easeOut((since - 120 - i * 35) / 300f);
             if (appear <= 0) continue;
-            int ry = r[1] + Math.round((1 - appear) * 6);
-            float h = hov("gt" + i, in(mx, my, r[0], ry, r[2], r[3]));
-            round(c, r[0], ry, r[2], r[3], 10, lerpColor(withAlpha(0xFFFFFF, (int) (24 * appear)), withAlpha(accent(), (int) (170 * appear)), h));
-            item(c, tileIcon(label), r[0] + 5, ry + 2, 16);
-            text(c, fit(label, r[2] - 28, false), r[0] + 24, ry + 6, alpha(lerpColor(TEXT, 0xFFFFFFFF, h), appear), false);
+            int ry = pRowY(i), rx = x + 8 + Math.round(-(1 - appear) * 10);
+            float h = hov("pr" + i, in(mx, my, x + 8, ry, rw, rh));
+            String label = pLabel(i);
+            int ty = ry + (rh - 8) / 2 + 1;
+            if (i == 0) { // Back to game: the one accent button
+                round(c, rx, ry, rw, rh, rh / 2, withAlpha(lerpColor(acc, 0xFFFFFF, 0.18f * h), (int) (235 * appear)));
+                centered(c, label, rx + rw / 2f, ty, alpha(0xFF0E0A1C, appear), false);
+                continue;
+            }
+            round(c, rx, ry, rw, rh, 8, withAlpha(0xFFFFFF, (int) ((8 + 22 * h) * appear)));
+            if (h > 0.01f) round(c, rx + 2, ry + 4, 2, rh - 8, 1, withAlpha(acc, (int) (255 * h * appear)));
+            item(c, tileIcon(label), rx + 7, ry + (rh - 16) / 2, 16);
+            text(c, fit(label, rw - 34, false), rx + 28 + h * 2, ty, alpha(lerpColor(MUTED, 0xFFFFFFFF, h), appear), false);
         }
-        // leave
-        int qy = gQuitY();
-        String quit = client.isInSingleplayer() ? "Save & Quit" : "Disconnect";
-        float qh = hov("quitg", in(mx, my, bx(), qy, bw(), 20));
-        round(c, bx(), qy, bw(), 20, 10, lerpColor(withAlpha(0xE5484D, 60), withAlpha(0xE5484D, 220), qh));
-        centered(c, quit, cx, qy + 6, 0xFFFFFFFF, false);
-        // your character on the right
+        // leave, pinned to the bottom of the panel
+        float qa = easeOut((since - 120 - pRows() * 35) / 300f);
+        if (qa > 0) {
+            int qy = pQuitY(), qx = x + 8;
+            String quit = client.isInSingleplayer() ? "Save & Quit" : "Disconnect";
+            float qh = hov("quitg", in(mx, my, qx, qy, rw, rh));
+            round(c, qx, qy, rw, rh, rh / 2, withAlpha(0xE5484D, (int) ((40 + 180 * qh) * qa)));
+            centered(c, quit, qx + rw / 2f, qy + (rh - 8) / 2 + 1, alpha(lerpColor(0xFFFF9C9C, 0xFFFFFFFF, qh), qa), false);
+        }
+        // your character in the free space on the right
         if (skin != null) {
             String user = client.getSession().getUsername();
             int sx = skinCenterX(), sy = skin.y + skin.h + 6;
@@ -596,17 +611,15 @@ public final class OrbitTitleScreen extends OrbitBaseScreen {
     }
 
     private boolean clickGameHome(double mx, double my) {
-        if (in(mx, my, bx(), gBackY(), bw(), 22)) { Sounds.click(); buttons.get(0).action().run(); return true; }
-        List<int[]> tiles = gTiles();
-        for (int i = 0; i < tiles.size(); i++) {
-            int[] r = tiles.get(i);
-            if (!in(mx, my, r[0], r[1], r[2], r[3])) continue;
+        int rw = pW() - 16, rh = pRowH(), rx = pX() + 8;
+        for (int i = 0; i < pRows(); i++) {
+            if (!in(mx, my, rx, pRowY(i), rw, rh)) continue;
             Sounds.click();
-            if (i == tiles.size() - 1) client.setScreen(new OptionsScreen(this, client.options));
-            else buttons.get(i + 1).action().run();
+            if (i < buttons.size()) buttons.get(i).action().run();
+            else client.setScreen(new OptionsScreen(this, client.options));
             return true;
         }
-        if (in(mx, my, bx(), gQuitY(), bw(), 20)) {
+        if (in(mx, my, rx, pQuitY(), rw, rh)) {
             Sounds.click();
             client.getAbuseReportContext().tryShowDraftScreen(client, this, () -> client.disconnect(net.minecraft.client.world.ClientWorld.QUITTING_MULTIPLAYER_TEXT), true);
             return true;
