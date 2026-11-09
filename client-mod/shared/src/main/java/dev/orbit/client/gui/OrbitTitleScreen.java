@@ -1400,17 +1400,8 @@ public final class OrbitTitleScreen extends OrbitBaseScreen {
             final int k = i;
             hit(bx, fy, fw, 16, () -> { friendFilter = k; friendScrollTarget = 0; Sounds.tab(); });
         }
-        // the friends service isn't reachable: say why instead of "Connecting…" forever
         int ly = fy + 26;
-        if (!dev.orbit.client.emote.EmoteSync.configured()) {
-            List<String> l1 = wrap("Friends need the Orbit server", sw - 34), l2 = wrap("Set it in the launcher: Settings → Integrations", sw - 34);
-            int bh = 10 + (l1.size() + l2.size()) * 10;
-            round(c, sx + 10, ly, sw - 20, bh, 9, 0x26FFB020);
-            int ty = ly + 6;
-            for (String s : l1) { text(c, s, sx + 18, ty, 0xFFFFD08A, false); ty += 10; }
-            for (String s : l2) { text(c, s, sx + 18, ty, MUTED, false); ty += 10; }
-            ly += bh + 8;
-        } else if (!dev.orbit.client.friends.Friends.connected()) {
+        if (dev.orbit.client.emote.EmoteSync.configured() && !dev.orbit.client.friends.Friends.connected()) {
             float pulse = 0.5f + 0.5f * (float) Math.sin(System.currentTimeMillis() / 250.0);
             disc(c, sx + 15, ly + 4, 2.5f, withAlpha(0xFFB020, (int) (120 + 135 * pulse)));
             text(c, "Connecting…", sx + 22, ly, FAINT, false);
