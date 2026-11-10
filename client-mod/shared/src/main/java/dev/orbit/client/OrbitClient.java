@@ -50,6 +50,7 @@ public final class OrbitClient implements ClientModInitializer {
             dev.orbit.client.pvp.Combat.tick();
             try { dev.orbit.client.cosmetics.CosmeticsApi.tick(); } catch (Throwable t) { LOG.debug("Cosmetics API tick", t); }
             try { dev.orbit.client.sync.SettingsSync.tick(); } catch (Throwable t) { LOG.debug("Settings sync tick", t); }
+            dev.orbit.client.pvp.StatsReporter.tick();
             while (clipKey.wasPressed()) dev.orbit.client.clips.ClipRecorder.saveClip();
             while (paletteKey.wasPressed()) if (client.player != null && client.currentScreen == null) client.setScreen(new dev.orbit.client.gui.CommandPaletteScreen(null));
             SpotifyLyrics.setWanted(modules.get("lyrics").isEnabled() || modules.get("spotify").isEnabled());
@@ -75,6 +76,7 @@ public final class OrbitClient implements ClientModInitializer {
             if (modules.get("invprofiles") instanceof dev.orbit.client.module.PvpModules.InventoryProfiles ip) ip.onJoin();
         }));
         net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> client.execute(() -> {
+            dev.orbit.client.pvp.StatsReporter.report(); // the last numbers of this session for your player profile
             if (modules.get("recap") instanceof dev.orbit.client.module.PvpModules.SessionRecap r && r.isEnabled()) {
                 var snap = dev.orbit.client.pvp.Combat.snapshot();
                 if (snap.millis() >= r.minMinutes.get() * 60_000) dev.orbit.client.pvp.Combat.pendingRecap = snap;

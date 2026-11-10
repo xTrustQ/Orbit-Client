@@ -34,6 +34,19 @@ addEventListener('scroll', () => nav.classList.toggle('scrolled', scrollY > 8), 
 const io = new IntersectionObserver((entries) => entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: .12 });
 document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
 
+document.getElementById('year').textContent = new Date().getFullYear();
+// highlight the current page in the menu
+document.querySelectorAll('.links a').forEach((a) => { if (a.getAttribute('href') === location.pathname.split('/').pop()) a.classList.add('here'); });
+const ORBIT_SERVER = 'https://orbit-server-nyn5.onrender.com';
+const fmt = (n) => new Intl.NumberFormat('en').format(n);
+const countUp = (el, to) => {
+  const start = performance.now(), from = 0, dur = 900;
+  const step = (t) => { const k = Math.min(1, (t - start) / dur), e = 1 - Math.pow(1 - k, 3); el.textContent = fmt(Math.round(from + (to - from) * e)); if (k < 1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+};
+
+// ------------------------------------------------------------------ home page only
+if (document.getElementById('shot')) {
 // screenshot tabs
 const captions = {
   menu: 'The main menu, in the same clean style as the launcher.',
@@ -58,15 +71,8 @@ fetch('https://api.github.com/repos/xTrustQ/Orbit-Client/releases/latest')
   .then((r) => (r.ok ? r.json() : null))
   .then((rel) => { if (rel?.tag_name) document.getElementById('ver').textContent = 'Version ' + rel.tag_name.replace(/^v/i, ''); })
   .catch(() => {});
-document.getElementById('year').textContent = new Date().getFullYear();
 
 // live statistics: downloads from GitHub (all versions), players from the Orbit server
-const fmt = (n) => new Intl.NumberFormat('en').format(n);
-const countUp = (el, to) => {
-  const start = performance.now(), from = 0, dur = 900;
-  const step = (t) => { const k = Math.min(1, (t - start) / dur), e = 1 - Math.pow(1 - k, 3); el.textContent = fmt(Math.round(from + (to - from) * e)); if (k < 1) requestAnimationFrame(step); };
-  requestAnimationFrame(step);
-};
 fetch('https://api.github.com/repos/xTrustQ/Orbit-Client/releases?per_page=100')
   .then((r) => (r.ok ? r.json() : []))
   .then((rels) => {
@@ -74,7 +80,6 @@ fetch('https://api.github.com/repos/xTrustQ/Orbit-Client/releases?per_page=100')
     countUp(document.getElementById('st-downloads'), total);
   })
   .catch(() => {});
-const ORBIT_SERVER = 'https://orbit-server-nyn5.onrender.com';
 const loadOnline = () => fetch(ORBIT_SERVER + '/api/stats')
   .then((r) => (r.ok ? r.json() : null))
   .then((s) => {
@@ -86,3 +91,4 @@ const loadOnline = () => fetch(ORBIT_SERVER + '/api/stats')
   .catch(() => {});
 loadOnline(); // the free server may need a moment to wake up — the numbers appear when it answers
 setInterval(loadOnline, 60_000);
+}

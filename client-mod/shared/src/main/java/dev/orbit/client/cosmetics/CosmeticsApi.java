@@ -131,6 +131,18 @@ public final class CosmeticsApi {
         String t = token(me);
         return t != null ? t : signIn(me);
     }
+    /** the saved login if there is one (no network; refreshed every 10 s) — sent with the live connection for profiles */
+    private static String cached; private static long cachedAt;
+    public static String cachedBearer() {
+        long now = System.currentTimeMillis();
+        if (now - cachedAt > 10_000) {
+            cachedAt = now;
+            UUID me = MinecraftClient.getInstance().getSession().getUuidOrNull();
+            cached = me == null || !enabled() ? null : token(me);
+        }
+        return cached;
+    }
+
     /** the server didn't accept our login any more: sign in again next time */
     public static void dropLogin() {
         UUID me = MinecraftClient.getInstance().getSession().getUuidOrNull();

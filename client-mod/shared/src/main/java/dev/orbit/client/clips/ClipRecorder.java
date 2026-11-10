@@ -63,13 +63,15 @@ public final class ClipRecorder {
         ClipsModule m = mod();
         if (m == null || !m.isEnabled()) { scheduled = false; if (!FRAMES.isEmpty()) synchronized (FRAMES) { FRAMES.clear(); } return; }
         MinecraftClient mc = MinecraftClient.getInstance();
-        if (mc.world == null) return; // only record while playing
+        if (mc.world == null) { lastSkip = "no world"; return; } // only record while playing
+        SEEN.incrementAndGet();
         long now = System.nanoTime(), interval = 1_000_000_000L / m.fps();
         // a steady schedule (not "time since the last frame"), with a little slack so normal frame-time
         // jitter doesn't make us skip every other frame
         // (nanoTime can be any number, even negative: only ever compare differences)
         if (scheduled && now - nextDue < -interval / 4) return;
         if (IN_FLIGHT.get() > Math.max(6, m.fps() / 3)) { // the PC can't keep up: drop a frame instead of slowing the game
+            lastSkip = "busy (" + IN_FLIGHT.get() + " in flight)";
             if (now - lastDone > 2_000_000_000L) { IN_FLIGHT.set(0); lastDone = now; } // a copy never came back: don't stay stuck
             return;
         }
@@ -80,10 +82,13 @@ public final class ClipRecorder {
     }
     private static volatile long lastDone = System.nanoTime();
     private static boolean warned;
+    // where frames get lost, if they do (logged when saving)
+    private static final AtomicInteger SEEN = new AtomicInteger(), ISSUED = new AtomicInteger(), COPIED = new AtomicInteger(), ENCODED = new AtomicInteger();
+    private static String lastSkip = "";
 
     private static void capture(Framebuffer fb, long at, ClipsModule m) {
         GpuTexture tex = fb.getColorAttachment();
-        if (tex == null) return;
+        if (tex == null) { lastSkip = "no colour texture"; return; }
         int w = fb.textureWidth, h = fb.textureHeight, px = tex.getFormat().pixelSize();
         int f = Math.max(1, Math.round(h / (float) m.height()));
         int oh = (h / f) & ~1, rowBytes = w * px;
@@ -103,17 +108,19 @@ public final class ClipRecorder {
                     return;
                 }
                 buf.close();
+                COPIED.incrementAndGet();
                 lastDone = System.nanoTime();
                 // would the whole buffer get too big? then compress a little harder (and back up when there's room)
                 long need = avgFrameBytes * m.fps() * m.seconds();
                 if (need > MEMORY_BUDGET && quality > 0.55f) quality = Math.max(0.55f, quality - 0.01f);
                 else if (need < MEMORY_BUDGET * 0.7 && quality < 0.82f) quality = Math.min(0.82f, quality + 0.01f);
                 WORK.execute(() -> {
-                    try { add(new Frame(encode(raw, w, oh, px, f), at), m.seconds()); }
+                    try { add(new Frame(encode(raw, w, oh, px, f), at), m.seconds()); ENCODED.incrementAndGet(); }
                     catch (Throwable t) { if (!warned) { warned = true; OrbitClient.LOG.warn("Clips: could not encode a frame", t); } }
                     finally { IN_FLIGHT.decrementAndGet(); }
                 });
             }, 0);
+            ISSUED.incrementAndGet();
         } catch (Throwable t) { IN_FLIGHT.decrementAndGet(); buf.close(); throw t; }
     }
 
@@ -169,7 +176,8 @@ public final class ClipRecorder {
         if (saving) return;
         List<Frame> frames;
         synchronized (FRAMES) { frames = new ArrayList<>(FRAMES); }
-        OrbitClient.LOG.info("Clips: saving {} frames (in flight {})", frames.size(), IN_FLIGHT.get());
+        OrbitClient.LOG.info("Clips: saving {} frames (frames seen {}, copies asked {}, arrived {}, compressed {}, in flight {}, last skip: {})",
+                frames.size(), SEEN.get(), ISSUED.get(), COPIED.get(), ENCODED.get(), IN_FLIGHT.get(), lastSkip);
         frames.sort((a, b) -> Long.compare(a.nanos, b.nanos));
         if (frames.size() < 10) { FriendToasts.show(null, "Nothing to save yet", "Clips record while you play — try again in a moment", false); return; }
         saving = true;

@@ -23,6 +23,26 @@ api.setStats(() => {
   peak = Math.max(peak, users.size);
   return { online: users.size, inGame, peak };
 });
+api.setLive((uuid) => { // only signed-in connections count — anyone could claim to be someone else otherwise
+  const mine = [...(users.get(uuid) || [])].filter((s) => s.profile);
+  return { online: mine.length > 0, inGame: mine.some((s) => s.where) };
+});
+
+// ------------------------------------------------------------------ player profiles (website lookup)
+const profiles = require('./profiles');
+/** in a world/server (counts as playtime) or not, for a verified connection */
+async function track(ws) {
+  if (!ws.profile) return;
+  const p = ws.profile, now = Date.now();
+  profiles.online(p);
+  if (ws.where && !ws.playStart) { ws.playStart = now; profiles.startSession(p); }
+  else if (!ws.where && ws.playStart) { profiles.addPlaytime(p, now - ws.playStart); ws.playStart = null; }
+}
+setInterval(() => { // long sessions: add playtime every minute so a crash doesn't lose it
+  const now = Date.now();
+  for (const ws of wss.clients) if (ws.profile && ws.playStart) { profiles.addPlaytime(ws.profile, now - ws.playStart); ws.playStart = now; }
+}, 60_000);
+
 /** does this player have `friendUuid` in their friend list (on any of their connections)? */
 const lists = (uuid, friendUuid) => [...(users.get(uuid) || [])].some((s) => s.friends?.has(friendUuid));
 /** where a player is playing, shown only to people they have added as a friend themselves */
@@ -66,6 +86,18 @@ wss.on('connection', (ws) => {
       ws.where = typeof m.where === 'string' ? m.where.replace(/[^\w.:\- ]/g, '').slice(0, 100) : '';
       ws.share = m.share !== false;
       if (Array.isArray(m.friends)) ws.friends = new Set(m.friends.slice(0, 300).filter((u) => typeof u === 'string' && UUID.test(u)).map((u) => u.toLowerCase()));
+      // profiles: only for players who proved who they are (same login as cosmetics)
+      const wantPublic = m.profile !== false;
+      (async () => {
+        if (!ws.profile && m.token) {
+          const t = await api.tokenOwner(m.token);
+          if (t && t.uuid === ws.uuid.toLowerCase()) ws.profile = await profiles.get(t.uuid, ws.name);
+        }
+        if (ws.profile) {
+          if (ws.profile.public !== wantPublic) { ws.profile.public = wantPublic; profiles.touch(ws.profile.uuid); }
+          await track(ws);
+        }
+      })().catch(() => {});
       if (!users.has(ws.uuid)) users.set(ws.uuid, new Set());
       users.get(ws.uuid).add(ws);
       ws.room = m.room.toLowerCase();
@@ -94,11 +126,13 @@ wss.on('connection', (ws) => {
       if (!text) return;
       const ok = sendTo(m.to, { type: 'dm', uuid: ws.uuid, name: ws.name, text, at: Date.now() });
       ws.send(JSON.stringify({ type: ok ? 'dm-sent' : 'dm-offline', uuid: m.to }));
+    } else if (m.type === 'stats' && ws.profile) {
+      profiles.addStats(ws.profile, m); // PvP numbers since the game's last report
     } else if (m.type === 'stop' && ws.room) {
       broadcast(ws, { type: 'stop', uuid: ws.uuid });
     }
   });
-  ws.on('close', () => { leave(ws); if (ws.uuid) { users.get(ws.uuid)?.delete(ws); if (!users.get(ws.uuid)?.size) users.delete(ws.uuid); } });
+  ws.on('close', () => { if (ws.profile && ws.playStart) { profiles.addPlaytime(ws.profile, Date.now() - ws.playStart); ws.playStart = null; } leave(ws); if (ws.uuid) { users.get(ws.uuid)?.delete(ws); if (!users.get(ws.uuid)?.size) users.delete(ws.uuid); } });
 });
 
 setInterval(() => {

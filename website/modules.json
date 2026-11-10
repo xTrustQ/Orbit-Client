@@ -1,0 +1,464 @@
+[
+ {
+  "id": "armor",
+  "name": "Armor Status",
+  "desc": "Armor & held item durability",
+  "category": "COMBAT",
+  "settings": 3
+ },
+ {
+  "id": "autoclicker",
+  "name": "Auto Clicker",
+  "desc": "Keeps clicking while you hold a mouse button — check the server rules first",
+  "category": "COMBAT",
+  "settings": 6
+ },
+ {
+  "id": "combo",
+  "name": "Combo Counter",
+  "desc": "Counts your hits in a row before you get hit",
+  "category": "COMBAT",
+  "settings": 0
+ },
+ {
+  "id": "cps",
+  "name": "CPS",
+  "desc": "Clicks per second",
+  "category": "COMBAT",
+  "settings": 1
+ },
+ {
+  "id": "crosshair",
+  "name": "Crosshair",
+  "desc": "Pick a style or paint your own pixel crosshair",
+  "category": "COMBAT",
+  "settings": 12
+ },
+ {
+  "id": "damagenumbers",
+  "name": "Damage Numbers",
+  "desc": "Floating, animated damage numbers over everything that gets hurt",
+  "category": "COMBAT",
+  "settings": 4
+ },
+ {
+  "id": "fightstats",
+  "name": "Fight Statistics",
+  "desc": "Hits, misses, accuracy, combos, damage, kills",
+  "category": "COMBAT",
+  "settings": 0
+ },
+ {
+  "id": "hitcolors",
+  "name": "Hit Colours",
+  "desc": "Recolour the red hurt flash and the damage numbers",
+  "category": "COMBAT",
+  "settings": 3
+ },
+ {
+  "id": "hitdelay",
+  "name": "Hit Delay Indicator",
+  "desc": "Attack cooldown bar and time between your hits",
+  "category": "COMBAT",
+  "settings": 0
+ },
+ {
+  "id": "hitboxes",
+  "name": "Hitboxes",
+  "desc": "See exactly where you can hit players and mobs",
+  "category": "COMBAT",
+  "settings": 8
+ },
+ {
+  "id": "keystrokes",
+  "name": "Keystrokes",
+  "desc": "WASD, mouse & space",
+  "category": "COMBAT",
+  "settings": 4
+ },
+ {
+  "id": "killeffects",
+  "name": "Kill Effects",
+  "desc": "Your own particles, sound and popup when you kill someone",
+  "category": "COMBAT",
+  "settings": 6
+ },
+ {
+  "id": "hurtcam",
+  "name": "No Hurt Cam",
+  "desc": "No screen shake when you take damage",
+  "category": "COMBAT",
+  "settings": 0
+ },
+ {
+  "id": "pearls",
+  "name": "Pearl Tracker",
+  "desc": "Ender pearl cooldown, how many you have and your pearls in the air",
+  "category": "COMBAT",
+  "settings": 0
+ },
+ {
+  "id": "potions",
+  "name": "Potion Effects",
+  "desc": "Active effects & timers",
+  "category": "COMBAT",
+  "settings": 3
+ },
+ {
+  "id": "trajectories",
+  "name": "Projectile Predictor",
+  "desc": "See where pearls, snowballs, eggs, potions, arrows and tridents will fly",
+  "category": "COMBAT",
+  "settings": 2
+ },
+ {
+  "id": "reach",
+  "name": "Reach Display",
+  "desc": "Shows the distance of your last hit",
+  "category": "COMBAT",
+  "settings": 2
+ },
+ {
+  "id": "timeline",
+  "name": "Replay HUD",
+  "desc": "Your last fight as a mini timeline of hits given and taken",
+  "category": "COMBAT",
+  "settings": 2
+ },
+ {
+  "id": "saturation",
+  "name": "Saturation",
+  "desc": "AppleSkin-style saturation, food preview & exhaustion",
+  "category": "COMBAT",
+  "settings": 5
+ },
+ {
+  "id": "shield",
+  "name": "Shield Status",
+  "desc": "Your shield turns green when it works and red when an axe disabled it",
+  "category": "COMBAT",
+  "settings": 7
+ },
+ {
+  "id": "targethud",
+  "name": "Target HUD",
+  "desc": "Animated card of who you're fighting: health, armor, distance, weapon",
+  "category": "COMBAT",
+  "settings": 2
+ },
+ {
+  "id": "totems",
+  "name": "Totem Counter",
+  "desc": "How many Totems of Undying you carry",
+  "category": "COMBAT",
+  "settings": 1
+ },
+ {
+  "id": "wtap",
+  "name": "W-Tap Counter",
+  "desc": "Counts your W-taps (letting go of W after a hit)",
+  "category": "COMBAT",
+  "settings": 0
+ },
+ {
+  "id": "clock",
+  "name": "Clock",
+  "desc": "Real-world time",
+  "category": "HUD",
+  "settings": 2
+ },
+ {
+  "id": "coords",
+  "name": "Coordinates",
+  "desc": "XYZ, facing & biome",
+  "category": "HUD",
+  "settings": 3
+ },
+ {
+  "id": "day",
+  "name": "Day Counter",
+  "desc": "In-game day number",
+  "category": "HUD",
+  "settings": 0
+ },
+ {
+  "id": "direction",
+  "name": "Direction",
+  "desc": "Compass heading",
+  "category": "HUD",
+  "settings": 1
+ },
+ {
+  "id": "fps",
+  "name": "FPS",
+  "desc": "Frames per second",
+  "category": "HUD",
+  "settings": 1
+ },
+ {
+  "id": "memory",
+  "name": "Memory",
+  "desc": "RAM usage",
+  "category": "HUD",
+  "settings": 0
+ },
+ {
+  "id": "ping",
+  "name": "Ping",
+  "desc": "Latency to the server",
+  "category": "HUD",
+  "settings": 0
+ },
+ {
+  "id": "scoreboard",
+  "name": "Scoreboard",
+  "desc": "Resize, move, recolour or hide the sidebar",
+  "category": "HUD",
+  "settings": 5
+ },
+ {
+  "id": "server",
+  "name": "Server Address",
+  "desc": "Shows the server you're on",
+  "category": "HUD",
+  "settings": 0
+ },
+ {
+  "id": "speed",
+  "name": "Speed",
+  "desc": "Blocks per second",
+  "category": "HUD",
+  "settings": 0
+ },
+ {
+  "id": "spotify",
+  "name": "Spotify",
+  "desc": "Now playing — open chat to pause or skip",
+  "category": "HUD",
+  "settings": 4
+ },
+ {
+  "id": "lyrics",
+  "name": "Spotify Lyrics",
+  "desc": "Synced lyrics of what's playing, up in the sky",
+  "category": "HUD",
+  "settings": 11
+ },
+ {
+  "id": "gametime",
+  "name": "World Time",
+  "desc": "The Minecraft time of day (sun & moon)",
+  "category": "HUD",
+  "settings": 3
+ },
+ {
+  "id": "chunkborders",
+  "name": "Chunk Borders",
+  "desc": "Show chunk boundaries (like F3 + G)",
+  "category": "RENDER",
+  "settings": 0
+ },
+ {
+  "id": "deathanim",
+  "name": "Death Animations",
+  "desc": "Cool custom deaths: souls rising, black holes, lightning, fireworks, shattering ice — only you see them",
+  "category": "RENDER",
+  "settings": 4
+ },
+ {
+  "id": "fullbright",
+  "name": "Fullbright",
+  "desc": "See clearly in the dark",
+  "category": "RENDER",
+  "settings": 0
+ },
+ {
+  "id": "hidearmor",
+  "name": "Hide Armor",
+  "desc": "Don't draw armor on you or other players (only for you)",
+  "category": "RENDER",
+  "settings": 2
+ },
+ {
+  "id": "itemphysics",
+  "name": "Item Physics",
+  "desc": "Dropped items lie flat on the ground and tumble when they fall",
+  "category": "RENDER",
+  "settings": 1
+ },
+ {
+  "id": "itemscale",
+  "name": "Item Scale",
+  "desc": "Resize dropped and held items — all of them or only the ones you pick",
+  "category": "RENDER",
+  "settings": 10
+ },
+ {
+  "id": "motionblur",
+  "name": "Motion Blur",
+  "desc": "Smooth trails when you turn your camera",
+  "category": "RENDER",
+  "settings": 1
+ },
+ {
+  "id": "trails",
+  "name": "Movement Trails",
+  "desc": "A trail of particles behind you as you move (only you see it)",
+  "category": "RENDER",
+  "settings": 3
+ },
+ {
+  "id": "nofog",
+  "name": "No Fog",
+  "desc": "Removes distance fog — overworld, Nether & End",
+  "category": "RENDER",
+  "settings": 1
+ },
+ {
+  "id": "nametag",
+  "name": "Own Nametag",
+  "desc": "See your own name above you in third person",
+  "category": "RENDER",
+  "settings": 0
+ },
+ {
+  "id": "sky",
+  "name": "Sky Changer",
+  "desc": "Replace the overworld sky with a preset",
+  "category": "RENDER",
+  "settings": 5
+ },
+ {
+  "id": "time",
+  "name": "Time Changer",
+  "desc": "Change the time of day — only for you",
+  "category": "RENDER",
+  "settings": 3
+ },
+ {
+  "id": "tnttimer",
+  "name": "TNT Timer",
+  "desc": "Countdown above lit TNT",
+  "category": "RENDER",
+  "settings": 1
+ },
+ {
+  "id": "weather",
+  "name": "Weather Changer",
+  "desc": "Pick the weather you see: clear, rain, thunder or snow",
+  "category": "RENDER",
+  "settings": 1
+ },
+ {
+  "id": "autoreconnect",
+  "name": "Auto Reconnect",
+  "desc": "Rejoin the server after a disconnect",
+  "category": "PLAYER",
+  "settings": 2
+ },
+ {
+  "id": "chatbubbles",
+  "name": "Chat Bubbles",
+  "desc": "Chat messages pop up above the player who sent them",
+  "category": "PLAYER",
+  "settings": 2
+ },
+ {
+  "id": "clips",
+  "name": "Clips",
+  "desc": "Press F8 to save the last 30 seconds as a video (uses some FPS while on)",
+  "category": "PLAYER",
+  "settings": 4
+ },
+ {
+  "id": "cosmetics",
+  "name": "Cosmetics",
+  "desc": "Hats, wings and auras — change them in the Locker",
+  "category": "PLAYER",
+  "settings": 4
+ },
+ {
+  "id": "emotes",
+  "name": "Emotes",
+  "desc": "Hold the key for the emote wheel — dance, wave, floss…",
+  "category": "PLAYER",
+  "settings": 3
+ },
+ {
+  "id": "freelook",
+  "name": "Freelook",
+  "desc": "Look around without turning your player",
+  "category": "PLAYER",
+  "settings": 4
+ },
+ {
+  "id": "invprofiles",
+  "name": "Inventory Profiles",
+  "desc": "Save hotbar layouts and switch between them (per server too)",
+  "category": "PLAYER",
+  "settings": 2
+ },
+ {
+  "id": "badge",
+  "name": "Orbit Badge",
+  "desc": "Planet icon before Orbit players' names (name tags & Tab)",
+  "category": "PLAYER",
+  "settings": 0
+ },
+ {
+  "id": "capes",
+  "name": "Orbit Capes",
+  "desc": "Shows the cape picked in the launcher",
+  "category": "PLAYER",
+  "settings": 1
+ },
+ {
+  "id": "nameskins",
+  "name": "Skins by Name",
+  "desc": "Players without a skin (cracked servers, offline accounts) get the skin of their username",
+  "category": "PLAYER",
+  "settings": 0
+ },
+ {
+  "id": "togglesprint",
+  "name": "Toggle Sprint",
+  "desc": "Always sprint while moving forward",
+  "category": "PLAYER",
+  "settings": 0
+ },
+ {
+  "id": "troll",
+  "name": "Troll Mod",
+  "desc": "Show players as any mob, or make them invisible with just their name tag — only you see it",
+  "category": "PLAYER",
+  "settings": 2
+ },
+ {
+  "id": "waypoints",
+  "name": "Waypoints",
+  "desc": "Mark places and see them through walls — with beams, edge arrows and a death point",
+  "category": "PLAYER",
+  "settings": 7
+ },
+ {
+  "id": "zoom",
+  "name": "Zoom",
+  "desc": "Hold to zoom, scroll to adjust",
+  "category": "PLAYER",
+  "settings": 5
+ },
+ {
+  "id": "interface",
+  "name": "Interface",
+  "desc": "Theme, main menu & HUD behaviour",
+  "category": "CLIENT",
+  "settings": 16
+ },
+ {
+  "id": "recap",
+  "name": "Session Recap",
+  "desc": "A summary of your session (kills, hits, accuracy, distance…) when you leave",
+  "category": "CLIENT",
+  "settings": 1
+ }
+]

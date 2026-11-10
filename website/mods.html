@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orbit Mods — every built-in mod</title>
+<meta name="description" content="Browse every mod built into Orbit Client: combat, HUD, render, player and more.">
+<meta name="theme-color" content="#06120f">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="stars" aria-hidden="true"></canvas>
+
+<header class="nav">
+  <a class="brand" href="index.html" aria-label="Orbit home">
+    <svg class="logo" viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="pl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7DFFD4"/><stop offset="1" stop-color="#19B9C9"/></linearGradient></defs><ellipse cx="20" cy="21" rx="18" ry="6.5" fill="none" stroke="#2EE6A6" stroke-width="2.4" transform="rotate(-18 20 21)" opacity=".55"/><circle cx="20" cy="20" r="10" fill="url(#pl)"/><path d="M3.2 25.9a18 6.5-18 0 0 33.6-11.2" fill="none" stroke="#2EE6A6" stroke-width="2.4"/></svg>
+    <span>Orbit</span>
+  </a>
+  <nav class="links">
+    <a class="opt" href="index.html#features">Features</a>
+    <a href="mods.html">Mods</a>
+    <a href="players.html">Players</a>
+    <a class="opt" href="index.html#faq">FAQ</a>
+    <a class="opt" href="https://github.com/xTrustQ/Orbit-Client" target="_blank" rel="noopener">GitHub</a>
+  </nav>
+  <a class="btn small primary" href="https://github.com/xTrustQ/Orbit-Client/releases/latest/download/Orbit-Setup.exe">Download</a>
+</header>
+
+<main class="page">
+  <section class="page-head reveal">
+    <p class="eyebrow">Built into Orbit</p>
+    <h1 class="page-title">Every mod, one click away</h1>
+    <p class="sub">All of these come with Orbit — no downloads, no setup. In the game, press <b>Right Shift</b> to turn them on and tweak them.</p>
+  </section>
+
+  <section class="explorer reveal">
+    <aside class="cats" id="cats" aria-label="Categories"></aside>
+    <div class="mods-panel">
+      <div class="mods-bar">
+        <span class="mods-title" id="cat-title">All mods</span>
+        <div class="search">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input id="q" type="search" placeholder="Search mods…" autocomplete="off" aria-label="Search mods">
+        </div>
+        <span class="count" id="count"></span>
+      </div>
+      <div class="mods-list" id="list"><p class="muted-row">Loading mods…</p></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <span>© <span id="year">2026</span> Orbit Client</span>
+  <a href="https://github.com/xTrustQ/Orbit-Client" target="_blank" rel="noopener">GitHub</a>
+  <a href="https://github.com/xTrustQ/Orbit-Client/releases" target="_blank" rel="noopener">All versions</a>
+  <p class="legal">Not an official Minecraft product. Not approved by or associated with Mojang or Microsoft.</p>
+</footer>
+
+<script src="main.js"></script>
+<script src="mods.js"></script>
+</body>
+</html>

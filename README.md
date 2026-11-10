@@ -65,6 +65,15 @@ Spotify only lets apps read "now playing" through your own free developer app:
 4. Each launcher checks on start, shows the changelog and, after **Update now**, downloads the new exe,
    replaces itself and restarts.
 
+## Website (orbit-client.com)
+
+Static site in `website/` (hosted on Render as a Static Site, publish directory `website`):
+`index.html` (home, live stats), `mods.html` (mod browser), `players.html` (player lookup + top players).
+The mod browser reads `website/modules.json` — regenerate it after adding or renaming mods:
+```bash
+node website/tools/gen-modules.js
+```
+
 ## Shared cosmetics
 
 Host `orbit-server` (see `orbit-server/README.md`) and put its address in `"orbit": { "syncServer": "wss://…" }`.

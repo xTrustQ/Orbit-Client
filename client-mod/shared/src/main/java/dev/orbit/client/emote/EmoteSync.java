@@ -55,7 +55,8 @@ public final class EmoteSync {
         }
         String r = currentRoom();
         // re-announce when the emote room, the server you're on, your friend list or sharing changes
-        String key = r + "|" + currentWhere() + "|" + Friends.list().size() + "|" + OrbitClient.modules().ui().shareServer.on();
+        String key = r + "|" + currentWhere() + "|" + Friends.list().size() + "|" + OrbitClient.modules().ui().shareServer.on()
+                + "|" + (dev.orbit.client.cosmetics.CosmeticsApi.cachedBearer() != null) + "|" + OrbitClient.modules().ui().publicProfile.on();
         if (!r.equals(room) || !key.equals(helloKey)) { room = r; helloKey = key; sendHello(); Friends.poll(true); }
         Friends.poll(false);
     }
@@ -110,7 +111,17 @@ public final class EmoteSync {
         JsonArray fr = new JsonArray();
         for (Friends.Friend f : Friends.list()) fr.add(f.uuid.toLowerCase());
         o.add("friends", fr);
+        // player profile on orbit-client.com: the login proves it's really you; "profile" = show it publicly
+        String token = dev.orbit.client.cosmetics.CosmeticsApi.cachedBearer();
+        if (token != null) o.addProperty("token", token);
+        o.addProperty("profile", OrbitClient.modules().ui().publicProfile.on());
         send(o);
+    }
+
+    /** PvP numbers since the last report (for the player profile) */
+    public static boolean sendStats(JsonObject delta) {
+        delta.addProperty("type", "stats");
+        return send(delta);
     }
 
     public static boolean sendInvite(String to, String server) {

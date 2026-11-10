@@ -16,8 +16,11 @@ const path = require('path');
 const crypto = require('crypto');
 const store = require('./store');
 let statsSource = () => ({});
-/** server.js tells us how many players are connected right now */
+let liveSource = () => ({ online: false, inGame: false });
+/** server.js tells us how many players are connected right now, and whether one player is */
 function setStats(fn) { statsSource = fn; }
+function setLive(fn) { liveSource = fn; }
+const profiles = require('./profiles');
 
 const DATA = process.env.DATA_DIR || path.join(__dirname, 'data');
 const CAPES = path.join(DATA, 'capes');
@@ -113,6 +116,28 @@ async function handle(req, res) {
       return send(res, 200, { ...statsSource(), players: Object.keys(db).length, at: Date.now() });
     }
 
+    // player lookup for the website: /api/player/<minecraft name>
+    const pm = url.pathname.match(/^\/api\/player\/([A-Za-z0-9_]{1,16})$/);
+    if (pm && req.method === 'GET') {
+      if (!allow(ip, 2)) return send(res, 429, { error: 'Slow down' });
+      const p = await profiles.lookup(pm[1]);
+      if (!p) return send(res, 404, { error: 'No Orbit player with that name yet' });
+      if (!p.public) return send(res, 200, { name: p.name, private: true });
+      const live = liveSource(p.uuid);
+      const cos = db[p.uuid] || null;
+      return send(res, 200, {
+        name: p.name, uuid: p.uuid, online: live.online, inGame: live.inGame,
+        firstSeen: p.firstSeen, lastSeen: live.online ? Date.now() : p.lastSeen, playMs: p.playMs, sessions: p.sessions,
+        kills: p.kills, deaths: p.deaths, hits: p.hits, misses: p.misses, wtaps: p.wtaps, dealt: p.dealt, taken: p.taken, bestCombo: p.bestCombo,
+        cosmetics: cos ? { hat: cos.hat, wings: cos.wings, aura: cos.aura, cape: cos.cape } : null,
+      });
+    }
+    if (url.pathname === '/api/leaderboard' && req.method === 'GET') {
+      if (!allow(ip, 1)) return send(res, 429, { error: 'Slow down' });
+      const b = await profiles.loadBoard();
+      return send(res, 200, b.slice(0, 10).map((e) => ({ name: e.name, playMs: e.playMs, kills: e.kills, online: liveSource(e.uuid).online })));
+    }
+
     if (url.pathname === '/api/settings') {
       if (!allow(ip, req.method === 'PUT' ? 4 : 2)) return send(res, 429, { error: 'Slow down' });
       const t = await auth(req);
@@ -167,4 +192,10 @@ async function handle(req, res) {
   }
 }
 
-module.exports = { handle, setStats };
+/** the player a login token belongs to (for the live connection), or null */
+async function tokenOwner(tok) {
+  if (typeof tok !== 'string' || !tok || tok.length > 100) return null;
+  return auth({ headers: { authorization: 'Bearer ' + tok } });
+}
+
+module.exports = { handle, setStats, setLive, tokenOwner };

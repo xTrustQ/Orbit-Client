@@ -38,6 +38,14 @@ re-sends them), but **Settings sync** needs real storage. Free fix, 2 minutes:
 
 Without them, settings are kept only until the server restarts.
 
+## Player profiles (orbit-client.com/players.html)
+- A game that is signed in (the same Mojang-verified login as cosmetics) sends its login token with the live
+  connection; only then does the server keep a profile: playtime (only while in a world/server), sessions,
+  first/last seen and PvP stats the game reports every 30 s (`stats` message, small deltas, capped).
+- Players can turn their profile private in the Orbit menu (Interface → Public player profile).
+- `GET /api/player/<name>` → profile (or `{private:true}` / 404), `GET /api/leaderboard` → top 10 by playtime.
+- **Profiles need the Upstash store above** on Render's free plan — otherwise they reset whenever the server sleeps.
+
 ## Friends 2.0 & statistics
 - Each game tells the server which Minecraft server it's on; the server shows that **only** to players the person
   added as a friend themselves (and only if "Show friends which server I'm on" is on).
