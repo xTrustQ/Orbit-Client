@@ -1258,6 +1258,8 @@ public final class OrbitTitleScreen extends OrbitBaseScreen {
     private static String mmss(double s) { int t = (int) Math.round(s); return t / 60 + ":" + String.format("%02d", t % 60); }
     /** opens the player on a clip (tests / "watch" shortcuts) */
     public void playClip(File f) { clipsView = true; openClip(f); }
+    /** frames per second the in-game player is showing right now (tests) */
+    public float clipPlaybackFps() { return clipPlayer == null ? 0 : clipPlayer.shownFps; }
     private void closeClip() { if (clipPlayer != null) { clipPlayer.close(); clipPlayer = null; } }
     private void openClip(File f) {
         closeClip();
@@ -1348,6 +1350,13 @@ public final class OrbitTitleScreen extends OrbitBaseScreen {
         hit(x, by - 4, w, 12, () -> p.seek((clickX - bx0) / (float) bw0));
         String meta = mmss(p.position()) + " / " + mmss(inf.seconds()) + "  ·  " + Math.round(inf.fps()) + " fps · " + inf.width() + "×" + inf.height();
         text(c, meta, x, by + 10, MUTED, false);
+        // can this PC show every frame here? if not, say so (the video file itself is fine)
+        boolean slow = p.playing && p.shownFps > 0 && p.shownFps < inf.fps() * 0.85;
+        if (slow) {
+            String warn = "Playing at ~" + Math.round(p.shownFps) + " fps here — \"Open in player\" shows all " + Math.round(inf.fps());
+            round(c, width / 2f - width(warn) / 2f - 8, yy + h - 18, width(warn) + 16, 13, 6, 0xC0201000);
+            centered(c, warn, width / 2f, yy + h - 15, 0xFFFFC66B, false);
+        }
         int room = w - width(meta) - 16; // the file name only where it fits
         if (room > 50) { String nm = fit(p.file.getName(), room, false); text(c, nm, x + w - width(nm), by + 10, FAINT, false); }
         // buttons

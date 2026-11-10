@@ -53,6 +53,7 @@ public final class ClipRecorder {
     private static final ExecutorService SAVE = Executors.newSingleThreadExecutor(r -> { Thread t = new Thread(r, "Orbit-Clips-Save"); t.setDaemon(true); return t; });
     private static final AtomicInteger IN_FLIGHT = new AtomicInteger();
     private static long nextDue;
+    private static boolean scheduled;
     private static volatile boolean saving;
 
     private static ClipsModule mod() { return OrbitClient.modules() != null && OrbitClient.modules().get("clips") instanceof ClipsModule m ? m : null; }
@@ -60,18 +61,20 @@ public final class ClipRecorder {
     /** called once per finished frame, right before it goes to the screen */
     public static void onFrame() {
         ClipsModule m = mod();
-        if (m == null || !m.isEnabled()) { if (!FRAMES.isEmpty()) synchronized (FRAMES) { FRAMES.clear(); } return; }
+        if (m == null || !m.isEnabled()) { scheduled = false; if (!FRAMES.isEmpty()) synchronized (FRAMES) { FRAMES.clear(); } return; }
         MinecraftClient mc = MinecraftClient.getInstance();
         if (mc.world == null) return; // only record while playing
         long now = System.nanoTime(), interval = 1_000_000_000L / m.fps();
         // a steady schedule (not "time since the last frame"), with a little slack so normal frame-time
         // jitter doesn't make us skip every other frame
-        if (now < nextDue - interval / 4) return;
+        // (nanoTime can be any number, even negative: only ever compare differences)
+        if (scheduled && now - nextDue < -interval / 4) return;
         if (IN_FLIGHT.get() > Math.max(6, m.fps() / 3)) { // the PC can't keep up: drop a frame instead of slowing the game
             if (now - lastDone > 2_000_000_000L) { IN_FLIGHT.set(0); lastDone = now; } // a copy never came back: don't stay stuck
             return;
         }
-        nextDue = now - nextDue > interval * 2 ? now + interval : nextDue + interval;
+        nextDue = !scheduled || now - nextDue > interval * 2 ? now + interval : nextDue + interval;
+        scheduled = true;
         try { capture(mc.getFramebuffer(), now, m); }
         catch (Throwable t) { if (!warned) { warned = true; OrbitClient.LOG.warn("Clips: could not capture a frame", t); } }
     }

@@ -436,6 +436,8 @@ public class OrbitVisualTest implements FabricClientGameTest {
             });
             ctx.waitTicks(30);
             ctx.takeScreenshot("21g-clip-player");
+            ctx.waitTicks(60);
+            ctx.runOnClient(c -> { if (c.currentScreen instanceof OrbitTitleScreen ts) OrbitClient.LOG.info("[TEST] clip playback: {} fps shown in-game (game {} FPS)", Math.round(ts.clipPlaybackFps()), c.getCurrentFps()); });
             ctx.setScreen(() -> null);
             ctx.runOnClient(c -> { var m = OrbitClient.modules(); for (String id : new String[]{"targethud", "combo", "hitdelay", "fightstats", "timeline", "trajectories", "pearls", "wtap"}) m.get(id).setEnabled(false); });
             // Death Animations on zombies, one per style

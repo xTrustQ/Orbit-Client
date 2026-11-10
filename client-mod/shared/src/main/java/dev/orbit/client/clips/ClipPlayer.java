@@ -46,7 +46,7 @@ public final class ClipPlayer implements AutoCloseable {
         this.info = read(file);
         if (info.frames() == 0) throw new IOException("Empty clip");
         this.raf = new RandomAccessFile(file, "r");
-        NativeImage first = decode(0);
+        NativeImage first = decodeNow(0);
         this.id = Compat.id("clip/player" + (counter++));
         this.texture = Compat.texture("orbit-clip-player", first, true);
         MinecraftClient.getInstance().getTextureManager().registerTexture(id, texture);
@@ -55,44 +55,80 @@ public final class ClipPlayer implements AutoCloseable {
         thread.start();
     }
 
+    // several threads decode the next frames ahead of time, so 60 fps clips play smoothly even at 1080p
+    private static final int DECODERS = Math.max(2, Math.min(6, Runtime.getRuntime().availableProcessors() / 2));
+    private static final int AHEAD = 24;
+    private final java.util.concurrent.ExecutorService pool = java.util.concurrent.Executors.newFixedThreadPool(DECODERS, r -> { Thread t = new Thread(r, "Orbit-ClipDecode"); t.setDaemon(true); return t; });
+    private final java.util.concurrent.ConcurrentHashMap<Integer, NativeImage> ready = new java.util.concurrent.ConcurrentHashMap<>();
+    private final java.util.Set<Integer> queued = java.util.concurrent.ConcurrentHashMap.newKeySet();
+    /** frames actually shown per second (to tell the viewer if their PC can't keep up) */
+    public volatile float shownFps;
+
     /** playback follows the clock: if decoding can't keep up, frames are skipped instead of playing in slow motion */
     private void loop() {
         double fps = info.fps();
-        long start = System.nanoTime();
-        int startFrame = 0, shown = 0;
+        long start = System.nanoTime(), statAt = start;
+        int startFrame = 0, shown = 0, shownCount = 0;
         while (running) {
             try {
                 int s = seekTo;
-                if (s >= 0) { seekTo = -1; startFrame = s; start = System.nanoTime(); show(s); shown = s; }
-                if (!playing) { Thread.sleep(15); start = System.nanoTime(); startFrame = shown; continue; }
+                if (s >= 0) { seekTo = -1; dropAll(); startFrame = s; start = System.nanoTime(); show(s, decodeNow(s)); shown = s; }
+                if (!playing) { Thread.sleep(15); start = System.nanoTime(); startFrame = shown; statAt = start; shownCount = 0; continue; }
                 int due = startFrame + (int) ((System.nanoTime() - start) / 1e9 * fps);
-                if (due >= info.frames()) { start = System.nanoTime(); startFrame = 0; due = 0; } // loop
-                if (due == shown) { Thread.sleep(2); continue; }
-                show(due);
-                shown = due;
+                if (due >= info.frames()) { start = System.nanoTime(); startFrame = 0; due = 0; dropAll(); } // loop
+                prefetch(due);
+                if (due != shown) {
+                    // the newest frame that's ready and not late (a frame that's a moment late beats a skipped one)
+                    int best = -1;
+                    for (Integer k : ready.keySet()) if (k > shown && k <= due && k > best) best = k;
+                    if (best >= 0) {
+                        NativeImage img = ready.remove(best);
+                        if (img != null) { show(best, img); shown = best; shownCount++; }
+                    }
+                    // frames we've passed: throw away
+                    for (Integer k : ready.keySet()) if (k <= shown) { NativeImage o = ready.remove(k); if (o != null) o.close(); }
+                }
+                long now = System.nanoTime();
+                if (now - statAt > 1_000_000_000L) { shownFps = shownCount * 1e9f / (now - statAt); statAt = now; shownCount = 0; }
+                java.util.concurrent.locks.LockSupport.parkNanos(400_000); // short, precise wait (sleep(1) can be 2 ms on Windows)
+                if (Thread.interrupted()) return;
             } catch (InterruptedException e) { return; }
             catch (Exception e) { OrbitClient.LOG.debug("Clip playback", e); }
         }
     }
-    private void show(int i) throws IOException {
-        NativeImage img = decode(i);
+    private void prefetch(int from) {
+        for (int k = from; k < Math.min(info.frames(), from + AHEAD); k++) {
+            final int i = k;
+            if (ready.containsKey(i) || !queued.add(i)) continue;
+            pool.execute(() -> {
+                try { if (running) { NativeImage img = decodeNow(i); if (running) ready.put(i, img); else img.close(); } }
+                catch (Exception e) { OrbitClient.LOG.debug("Clip frame {}", i, e); }
+                finally { queued.remove(i); }
+            });
+        }
+    }
+    private void dropAll() { for (Integer k : ready.keySet()) { NativeImage o = ready.remove(k); if (o != null) o.close(); } }
+    private void show(int i, NativeImage img) {
         NativeImage old = pending;
         pending = img;
         if (old != null) old.close();
         frame = i;
     }
 
-    private synchronized NativeImage decode(int i) throws IOException {
+    private byte[] readFrame(int i) throws IOException {
         byte[] jpeg = new byte[info.lengths()[i]];
-        raf.seek(info.offsets()[i]);
-        raf.readFully(jpeg);
-        // Minecraft's NativeImage.read only takes PNG: decode the JPEG with Java, then copy the pixels over
-        BufferedImage src = ImageIO.read(new ByteArrayInputStream(jpeg));
+        synchronized (raf) { raf.seek(info.offsets()[i]); raf.readFully(jpeg); }
+        return jpeg;
+    }
+    private NativeImage decodeNow(int i) throws IOException {
+        // Minecraft's NativeImage.read only takes PNG: decode the JPEG with Java, then copy all pixels in one go
+        BufferedImage src = ImageIO.read(new ByteArrayInputStream(readFrame(i)));
         if (src == null) throw new IOException("Unreadable frame " + i);
         int w = src.getWidth(), h = src.getHeight();
         int[] px = src.getRGB(0, 0, w, h, null, 0, w);
+        for (int k = 0; k < px.length; k++) { int c = px[k]; px[k] = 0xFF000000 | (c & 0x00FF00) | ((c >> 16) & 0xFF) | ((c & 0xFF) << 16); } // ARGB -> ABGR
         NativeImage img = new NativeImage(w, h, false);
-        for (int y = 0, k = 0; y < h; y++) for (int x = 0; x < w; x++, k++) img.setColorArgb(x, y, px[k] | 0xFF000000);
+        org.lwjgl.system.MemoryUtil.memIntBuffer(img.imageId(), w * h).put(px);
         return img;
     }
 
@@ -116,7 +152,10 @@ public final class ClipPlayer implements AutoCloseable {
         running = false;
         thread.interrupt();
         try { thread.join(500); } catch (InterruptedException ignored) { }
-        try { raf.close(); } catch (IOException ignored) { }
+        pool.shutdownNow();
+        try { pool.awaitTermination(500, java.util.concurrent.TimeUnit.MILLISECONDS); } catch (InterruptedException ignored) { }
+        try { synchronized (raf) { raf.close(); } } catch (IOException ignored) { }
+        dropAll();
         NativeImage p = pending; pending = null;
         if (p != null) p.close();
         MinecraftClient.getInstance().getTextureManager().destroyTexture(id);
