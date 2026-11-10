@@ -96,7 +96,7 @@ export function render(params = {}) {
 
   async function search(append = false) {
     const my = ++token;
-    if (!append) { q.offset = 0; list.innerHTML = Array.from({ length: 5 }, () => `<div class="mod"><div class="skeleton" style="width:80px;height:80px"></div><div><div class="skeleton" style="height:18px;width:40%;margin-bottom:10px"></div><div class="skeleton" style="height:12px;width:80%"></div></div><div></div></div>`).join(''); }
+    if (!append) { q.offset = 0; total = 0; $('[data-more]', el).innerHTML = ''; list.innerHTML = Array.from({ length: 5 }, () => `<div class="mod"><div class="skeleton" style="width:80px;height:80px"></div><div><div class="skeleton" style="height:18px;width:40%;margin-bottom:10px"></div><div class="skeleton" style="height:12px;width:80%"></div></div><div></div></div>`).join(''); }
     loading = true;
     try {
       const [r] = await Promise.all([nova.content.search({ ...q }), append ? null : loadInstalled()]);
@@ -108,6 +108,9 @@ export function render(params = {}) {
       $('[data-more]', el).innerHTML = q.offset + 20 < total ? `<span class="muted">Scroll for more · ${fmtNum(total)} results</span>` : '';
     } catch (e) {
       if (my !== token) return;
+      total = 0; // no "Scroll for more" (and no loading more) under an error
+      $('[data-more]', el).innerHTML = '';
+      if (append) return;
       list.innerHTML = `<div class="empty">${icon('alert')}<h3>${e.code === 'NO_CF_KEY' ? 'CurseForge API key needed' : 'Could not load'}</h3><p>${esc(e.message)}</p>${e.code === 'NO_CF_KEY' ? `<button class="btn primary" data-key>${icon('key')} Open settings</button>` : ''}</div>`;
       $('[data-key]', list)?.addEventListener('click', () => go('settings', { section: 'integrations' }));
     } finally { loading = false; }

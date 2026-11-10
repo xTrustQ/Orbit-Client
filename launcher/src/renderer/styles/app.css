@@ -140,6 +140,7 @@ input[type=range]::-webkit-slider-thumb:active { transform: scale(1.25); }
 .divider { height: 1px; background: linear-gradient(90deg, transparent, var(--line-strong), transparent); margin: 8px 0 20px; }
 .empty { text-align: center; padding: 60px 20px; color: var(--muted); }
 .empty svg { width: 46px; height: 46px; opacity: .5; margin-bottom: 10px; display: inline-block; }
+.empty .btn svg { width: 15px; height: 15px; opacity: 1; margin: 0; } /* button icons stay button-sized */
 .empty h3 { color: var(--text); margin: 0 0 6px; font: 700 15px var(--display); letter-spacing: .1em; }
 
 /* glass cards with a light-catching gradient edge */

@@ -2,7 +2,8 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 const call = async (channel, ...args) => {
   const r = await ipcRenderer.invoke(channel, ...args);
-  if (!r.ok) { const e = new Error(r.error); e.code = r.code; throw e; }
+  // a plain object, not an Error: Electron's contextBridge drops extra fields (like `code`) from Error objects
+  if (!r.ok) throw { name: 'OrbitError', message: r.error, code: r.code || null };
   return r.data;
 };
 
