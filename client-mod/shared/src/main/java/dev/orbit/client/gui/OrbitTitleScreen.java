@@ -132,6 +132,8 @@ public final class OrbitTitleScreen extends OrbitBaseScreen {
         return new OrbitTitleScreen();
     }
     /** Friends tab with a chat open (tests / "message" shortcuts) */
+    /** Friends tab with a filter selected: 0 all, 1 online, 2 invites (tests) */
+    public static OrbitTitleScreen onFriends(int filter) { OrbitTitleScreen s = onTab("friends"); s.friendFilter = filter; return s; }
     public static OrbitTitleScreen onFriend(String uuid) { OrbitTitleScreen s = onTab("friends"); s.selectedFriend = uuid; return s; }
     /** pause menu opened on a tab (e.g. "emotes" from the emote wheel) */
     public static OrbitTitleScreen pauseOn(String name) { onTab(name); return new OrbitTitleScreen(true); }
@@ -1624,8 +1626,8 @@ public final class OrbitTitleScreen extends OrbitBaseScreen {
         c.enableScissor(sx, listY0, sx + sw, listY1);
         int y = ly - Math.round(friendScroll), rowH = 30, n = 0;
         if (friendFilter == 2 || (friendFilter == 0 && !requests.isEmpty())) {
-            y = sectionHead(c, "REQUESTS", requests.size(), sx + 12, y);
-            if (requests.isEmpty()) { text(c, "No requests", sx + 14, y, FAINT, false); y += 16; }
+            y = sectionHead(c, "INVITES", requests.size(), sx + 12, y);
+            if (requests.isEmpty()) { text(c, "No invites", sx + 14, y, FAINT, false); y += 16; }
             for (var r : requests) {
                 float ap = easeOut((since - 60 - n++ * 30) / 260f);
                 int ry = y + Math.round((1 - ap) * 6);
@@ -1648,15 +1650,17 @@ public final class OrbitTitleScreen extends OrbitBaseScreen {
         if (friendFilter != 2) {
             var on = all.stream().filter(isOn).toList();
             var off = friendFilter == 1 ? List.<dev.orbit.client.friends.Friends.Friend>of() : all.stream().filter(isOn.negate()).toList();
-            if (all.isEmpty()) {
+            if (all.isEmpty()) { // nobody added yet: just the hint (no empty "ONLINE — 0" section on top of it)
                 text(c, "No friends yet", sx + 14, y + 2, MUTED, false);
                 text(c, fit("Type a username above and press +", sw - 28, false), sx + 14, y + 14, FAINT, false);
+                y += 30;
+            } else {
+                if (!on.isEmpty() || friendFilter == 1) y = sectionHead(c, "ONLINE", on.size(), sx + 12, y);
+                if (on.isEmpty() && friendFilter == 1) { text(c, "Nobody's online right now", sx + 14, y, FAINT, false); y += 16; }
+                for (var f : on) { y = friendRow(c, f, true, sx, y, sw, rowH, mx, my, since, n++); }
+                if (!off.isEmpty()) { y += 4; y = sectionHead(c, "OFFLINE", off.size(), sx + 12, y); }
+                for (var f : off) { y = friendRow(c, f, false, sx, y, sw, rowH, mx, my, since, n++); }
             }
-            if (!on.isEmpty() || friendFilter == 1) y = sectionHead(c, "ONLINE", on.size(), sx + 12, y);
-            if (on.isEmpty() && friendFilter == 1) { text(c, "Nobody's online right now", sx + 14, y, FAINT, false); y += 16; }
-            for (var f : on) { y = friendRow(c, f, true, sx, y, sw, rowH, mx, my, since, n++); }
-            if (!off.isEmpty()) { y += 4; y = sectionHead(c, "OFFLINE", off.size(), sx + 12, y); }
-            for (var f : off) { y = friendRow(c, f, false, sx, y, sw, rowH, mx, my, since, n++); }
         }
         c.disableScissor();
         int listH = y + Math.round(friendScroll) - ly;

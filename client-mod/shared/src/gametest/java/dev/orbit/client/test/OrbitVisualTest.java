@@ -38,6 +38,10 @@ public class OrbitVisualTest implements FabricClientGameTest {
         ctx.setScreen(() -> new net.minecraft.client.gui.screen.option.OptionsScreen(new OrbitTitleScreen(), net.minecraft.client.MinecraftClient.getInstance().options));
         ctx.waitTicks(15);
         ctx.takeScreenshot("00-options-menu");
+        // no friends yet + "Online" filter: one clear message, nothing drawn on top of each other
+        ctx.setScreen(() -> OrbitTitleScreen.onFriends(1));
+        ctx.waitTicks(20);
+        ctx.takeScreenshot("00-title-friends-empty-online");
         ctx.setScreen(OrbitTitleScreen::new);
         ctx.waitTicks(5);
         ctx.runOnClient(c -> {
