@@ -540,7 +540,27 @@ public class OrbitVisualTest implements FabricClientGameTest {
             ctx.waitTicks(20);
             ctx.takeScreenshot("c5-walking-dragon");
             ctx.getInput().releaseKey(fwd);
-            ctx.runOnClient(c -> { var cm = (NewModules.Cosmetics) OrbitClient.modules().get("cosmetics"); cm.pet.set("None"); cm.hat.set("None"); c.options.setPerspective(Perspective.FIRST_PERSON); });
+            ctx.runOnClient(c -> { var cm = (NewModules.Cosmetics) OrbitClient.modules().get("cosmetics"); cm.pet.set("None"); cm.hat.set("None"); });
+            // Joyride: parked black car, engine start (front view, then from the side once it runs)
+            ctx.runOnClient(c -> { c.options.setPerspective(Perspective.THIRD_PERSON_FRONT); c.player.setPitch(18); Emotes.playLocal(Emote.JOYRIDE); });
+            ctx.waitTicks(1);
+            ctx.waitTicks(7);
+            ctx.takeScreenshot("c6-car-press");
+            ctx.waitTicks(10);
+            ctx.takeScreenshot("c6-car-crank");
+            ctx.waitTicks(20);
+            ctx.takeScreenshot("c6-car-running");
+            ctx.runOnClient(c -> c.options.setPerspective(Perspective.THIRD_PERSON_BACK));
+            ctx.getInput().holdKey(OrbitClient.freelookKey);
+            ctx.waitTicks(3);
+            ctx.runOnClient(c -> OrbitClient.modules().freelook().turn(-450, 60));
+            ctx.waitTicks(10);
+            ctx.takeScreenshot("c6-car-side");
+            ctx.runOnClient(c -> OrbitClient.modules().freelook().turn(-500, 0));
+            ctx.waitTicks(10);
+            ctx.takeScreenshot("c6-car-front-quarter");
+            ctx.getInput().releaseKey(OrbitClient.freelookKey);
+            ctx.runOnClient(c -> { Emotes.stop(c.player.getUuid()); c.options.setPerspective(Perspective.FIRST_PERSON); });
             OrbitTitleScreen.allowVanillaOnce = true;
         }
     }

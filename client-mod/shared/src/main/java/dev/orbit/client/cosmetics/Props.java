@@ -106,9 +106,10 @@ public final class Props extends FeatureRenderer<PlayerEntityRenderState, Player
     }
     private static float[] pt(float cx, float cy, float cz, float[] u, float[] v, float a, float b) { return new float[]{cx + u[0] * a + v[0] * b, cy + u[1] * a + v[1] * b, cz + u[2] * a + v[2] * b}; }
 
-    // ================================================================== Joyride: a sleek convertible sports coupe
-    private static final int PAINT_TOP = 0xFF4C7BF4, PAINT = 0xFF1F4FD8, PAINT_LOW = 0xFF12318C, TRIM = 0xFF17171C, CHROME = 0xFFDCE0E8, GLASS = 0x8CA8D8FF;
-    private static float carSpin(float t) { return -t * 16f; }
+    // ================================================================== Joyride: a black BMW-style M convertible, parked
+    private static final int PAINT_TOP = 0xFF30333A, PAINT = 0xFF121316, PAINT_LOW = 0xFF070708, TRIM = 0xFF101013, CHROME = 0xFFDCE0E8, GLASS = 0x8CA8D8FF;
+    private static final int CALIPER = 0xFF1E5BD8; // M-style blue brakes
+    private static float carSpin(float t) { return 0.4f; } // parked: the wheels don't turn
 
     /**
      * A smooth body made of cross-sections {z, centreX, halfWidth, topY, bottomY} joined by quads, shaded
@@ -162,7 +163,7 @@ public final class Props extends FeatureRenderer<PlayerEntityRenderState, Player
             m.tri(c, new float[]{c[0], cy + (float) Math.sin(a0) * rr, cz + (float) Math.cos(a0) * rr}, new float[]{c[0], cy + (float) Math.sin(a1) * rr, cz + (float) Math.cos(a1) * rr}, 0xFF2A2C33);
         }
         float bx = face + (left ? 0.4f : -0.4f);
-        m.box(bx - 0.25f, cy - r * 0.55f, cz + r * 0.1f, bx + 0.25f, cy - r * 0.15f, cz + r * 0.5f, 0xFFE0242F);
+        m.box(bx - 0.25f, cy - r * 0.55f, cz + r * 0.1f, bx + 0.25f, cy - r * 0.15f, cz + r * 0.5f, CALIPER);
         for (int k = 0; k < 5; k++) { // spokes
             double a = spin + k * Math.PI * 2 / 5;
             m.line(new float[]{rimX, cy, cz}, new float[]{rimX, cy + (float) Math.sin(a) * rr, cz + (float) Math.cos(a) * rr}, 0.55f, CHROME);
@@ -200,14 +201,17 @@ public final class Props extends FeatureRenderer<PlayerEntityRenderState, Player
         // cockpit: floor, seats with headrests, dashboard, steering wheel
         m.box(-8, 19.4f, -11, 20, 19.9f, 11, 0xFF1D1D23);
         for (float sx : new float[]{0, 12}) {
-            m.box(sx - 4.6f, 16.6f, -5, sx + 4.6f, 18.6f, 4, 0xFF2D1F1A);        // cushion (dark leather)
-            m.box(sx - 4.6f, 8.4f, 3.4f, sx + 4.6f, 18.6f, 6.4f, 0xFF2D1F1A);    // back
-            m.box(sx - 4.6f, 9, 3.2f, sx + 4.6f, 10, 3.5f, 0xFFE0242F);          // red stitching stripe
-            m.box(sx - 2.6f, 5.6f, 4.2f, sx + 2.6f, 8.4f, 6.2f, 0xFF2D1F1A);    // headrest
+            m.box(sx - 4.6f, 16.6f, -5, sx + 4.6f, 18.6f, 4, 0xFF5A2E22);        // cushion (cognac leather)
+            m.box(sx - 4.6f, 8.4f, 3.4f, sx + 4.6f, 18.6f, 6.4f, 0xFF5A2E22);    // back
+            m.box(sx - 4.6f, 9, 3.2f, sx + 4.6f, 10, 3.5f, 0xFF1E5BD8);          // M stripes: light blue, dark blue, red
+            m.box(sx - 4.6f, 10, 3.2f, sx + 4.6f, 10.6f, 3.5f, 0xFF16206B);
+            m.box(sx - 4.6f, 10.6f, 3.2f, sx + 4.6f, 11.2f, 3.5f, 0xFFE0242F);
+            m.box(sx - 2.6f, 5.6f, 4.2f, sx + 2.6f, 8.4f, 6.2f, 0xFF5A2E22);    // headrest
         }
+        m.box(3.2f, 12.9f, -10.6f, 4.4f, 13.05f, -9.6f, 0xFF2A2A30);            // engine start button (right of the wheel)
         m.box(-8, 13.2f, -12, 20, 15.6f, -7.5f, 0xFF202027);                    // dashboard
         m.box(-1.2f, 13, -10.8f, 13.2f, 13.3f, -7.7f, 0xFF34343E);               // dash trim
-        float steer = (float) Math.sin(t * 1.3f) * 0.12f + 0.18f;
+        float steer = 0; // parked
         float[] u = {(float) Math.cos(steer), (float) Math.sin(steer) * 0.5f, 0}, v = {0, 0.75f, 0.66f};
         ringIn(m, 0, 11.4f, -8.2f, u, v, 3.3f, 0.5f, 14, 0xFF141417);
         m.line(new float[]{0, 11.4f, -8.2f}, new float[]{0, 14, -11}, 0.5f, 0xFF141417);
@@ -217,11 +221,19 @@ public final class Props extends FeatureRenderer<PlayerEntityRenderState, Player
         m.line(w0, w3, 0.55f, TRIM); m.line(w1, w2, 0.55f, TRIM); m.line(w3, w2, 0.55f, TRIM);
         // roll hoops behind the seats
         for (float sx : new float[]{0, 12}) { m.line(new float[]{sx - 3.5f, 13.4f, 8.5f}, new float[]{sx - 2.5f, 6.5f, 9}, 0.5f, CHROME); m.line(new float[]{sx + 3.5f, 13.4f, 8.5f}, new float[]{sx + 2.5f, 6.5f, 9}, 0.5f, CHROME); m.line(new float[]{sx - 2.5f, 6.5f, 9}, new float[]{sx + 2.5f, 6.5f, 9}, 0.5f, CHROME); }
-        // front: lower intake mesh, slim upper grille, splitter
-        m.box(-5, 18.6f, -44.25f, 17, 20.6f, -43.9f, TRIM);
-        for (int i = 0; i < 6; i++) m.box(-4.5f + i * 3.6f, 18.8f, -44.4f, -3.9f + i * 3.6f, 20.4f, -44.2f, 0xFF2C2C33);
-        m.box(1, 17.4f, -44.3f, 11, 18.2f, -44f, TRIM);
+        // front: the twin kidney grille (chrome surround, black slats), big lower intake, splitter
+        for (float kx : new float[]{3.3f, 8.7f}) { // the nose face runs from y 18.2 (top) to 21.2
+            m.box(kx - 2.3f, 17.7f, -44.75f, kx + 2.3f, 20.4f, -43.6f, CHROME);
+            m.box(kx - 1.9f, 18.0f, -44.85f, kx + 1.9f, 20.1f, -44.7f, 0xFF08080A);
+            for (int i = 0; i < 5; i++) m.box(kx - 1.75f + i * 0.85f, 18.05f, -44.95f, kx - 1.45f + i * 0.85f, 20.05f, -44.8f, 0xFF3A3A42);
+        }
+        m.box(-5, 20.5f, -44.25f, 17, 21.1f, -43.9f, TRIM);                    // lower intake
+        for (int i = 0; i < 6; i++) if (i != 2 && i != 3) m.box(-4.5f + i * 3.6f, 18.4f, -44.4f, -3.9f + i * 3.6f, 20.3f, -44.2f, 0xFF2C2C33);
         m.box(-7, 21.2f, -45.2f, 19, 21.7f, -41, TRIM);
+        // round badge at the front of the bonnet (plain colours — no real logo)
+        m.box(5.0f, 16.35f, -40.6f, 7.0f, 16.5f, -38.8f, CHROME);
+        m.box(5.3f, 16.25f, -40.3f, 6.0f, 16.38f, -39.7f, 0xFF2E86E6); m.box(6.0f, 16.25f, -39.7f, 6.7f, 16.38f, -39.1f, 0xFF2E86E6);
+        m.box(6.0f, 16.25f, -40.3f, 6.7f, 16.38f, -39.7f, 0xFFF2F2F2); m.box(5.3f, 16.25f, -39.7f, 6.0f, 16.38f, -39.1f, 0xFFF2F2F2);
         // hood vents + centre crease
         for (float hx : new float[]{1.5f, 10.5f}) m.box(hx - 1.6f, 14.6f, -32, hx + 1.6f, 14.75f, -24, TRIM);
         m.line(new float[]{6, 14.3f, -40}, new float[]{6, 13.85f, -12}, 0.18f, PAINT_TOP);
@@ -240,23 +252,32 @@ public final class Props extends FeatureRenderer<PlayerEntityRenderState, Player
         for (float ex : new float[]{-3.4f, -0.6f, 12.6f, 15.4f}) m.box(ex - 1, 18.3f, 26.8f, ex + 1, 20f, 28.6f, CHROME);
     }
     private static void carGlow(CosmeticsFeature.Mesh m, float t) {
-        // angular LED headlights + daytime running light lines
-        for (float side : new float[]{-1, 1}) {
-            float x0 = side < 0 ? -8.5f : 15, x1 = side < 0 ? -3 : 20.5f;
-            m.quad(new float[]{x0, 16.4f, -42.3f}, new float[]{x1, 16.8f, -42.6f}, new float[]{x1, 17.7f, -42.6f}, new float[]{x0, 17.2f, -42.3f}, 0xFFF4F8FF);
-            m.line(new float[]{x0, 18, -42.4f}, new float[]{x1, 18.3f, -42.7f}, 0.18f, 0xFF9AD8FF);
+        float press = t >= START_PRESS && t < ENGINE_ON ? 1 : 0;
+        m.box(3.35f, 12.85f, -10.45f, 4.25f, 12.9f, -9.75f, press > 0 || engineOn(t) ? 0xFFFF3B3B : 0x60FF3B3B); // start button lights up
+        if (t < START_PRESS) return; // everything else is dark until you press start
+        // the lights wake up: dashboard first, headlights when the engine catches
+        float wake = Math.min(1, (t - START_PRESS) / 0.5f);
+        int dashA = (int) (255 * wake) << 24;
+        m.box(-3, 13.05f, -10.9f, 3, 13.15f, -8.6f, dashA | 0x59D2FF);
+        m.box(7, 13.05f, -10.9f, 12, 13.15f, -8.6f, dashA | 0xFF9A3C);
+        if (t < CRANK_FROM) return;
+        // "angel eye" headlights: two glowing rings per side, plus the light inside
+        float on = engineOn(t) ? 1 : 0.35f + 0.25f * (float) Math.abs(Math.sin(t * 30)); // flicker while cranking
+        int ring = ((int) (255 * on) << 24) | 0xEAF4FF;
+        float[] u = {1, 0, 0}, v = {0, -0.37f, 0.93f}; // lying on the sloped front of the bonnet
+        for (float rx : new float[]{-5.9f, -2.6f, 14.6f, 17.9f}) {
+            ringIn(m, rx, 17.35f, -42.5f, u, v, 1.25f, 0.22f, 12, ring);
+            m.box(rx - 0.45f, 17.2f, -42.8f, rx + 0.45f, 17.45f, -42.2f, ring);
         }
-        // full-width LED tail light bar
-        m.box(-6, 15.2f, 27.05f, 18, 15.8f, 27.3f, 0xFFFF2236);
-        m.box(-8, 14.8f, 26.4f, -5.5f, 16.2f, 27.3f, 0xFFFF2236); m.box(17.5f, 14.8f, 26.4f, 20, 16.2f, 27.3f, 0xFFFF2236);
-        // dashboard screens
-        m.box(-3, 13.05f, -10.9f, 3, 13.15f, -8.6f, 0xFF59D2FF);
-        m.box(7, 13.05f, -10.9f, 12, 13.15f, -8.6f, 0xFFB18CFF);
-        // pulsing underglow
-        float pulse = 0.55f + 0.45f * (float) Math.sin(t * 4);
-        int ug = ((int) (pulse * 200) << 24) | 0x3DD8FF;
-        m.box(-8, 21.9f, -36, 20, 22.1f, 20, ug);
-        // exhaust flames now and then
+        if (!engineOn(t)) return;
+        // L-shaped LED tail lights
+        for (float sx : new float[]{-1, 1}) {
+            float x0 = sx < 0 ? -8 : 13, x1 = sx < 0 ? -1 : 20;
+            m.box(x0, 14.8f, 27.05f, x1, 15.6f, 27.35f, 0xFFFF2236);
+            float xv = sx < 0 ? -8 : 19.2f;
+            m.box(xv, 14.8f, 26.4f, xv + 0.8f, 17.2f, 27.35f, 0xFFFF2236);
+        }
+        // exhaust flames now and then (pops on the throttle)
         if ((t % 2.6f) > 2.2f) for (float ex : new float[]{-3.4f, -0.6f, 12.6f, 15.4f}) {
             float len = 3 + (float) Math.sin(t * 40 + ex) * 1.2f;
             m.tri(new float[]{ex - 0.8f, 19.1f, 28.7f}, new float[]{ex + 0.8f, 19.1f, 28.7f}, new float[]{ex, 19.1f, 28.7f + len}, 0xFFFF8A2B);
@@ -444,20 +465,25 @@ public final class Props extends FeatureRenderer<PlayerEntityRenderState, Player
         }
     }
 
-    // ================================================================== Joyride motion (whole player + car)
-    /** applied in setupTransforms (y up, rotated by body yaw): the car drives one smooth loop and ends where it started */
+    // ================================================================== Joyride motion: the car stays parked, the engine starts
+    /** press the start button, the starter cranks, the engine catches (a rev and a rock), then it idles */
+    public static final float START_PRESS = 0.3f, CRANK_FROM = 0.55f, ENGINE_ON = 1.45f;
+    public static boolean engineOn(float t) { return t >= ENGINE_ON; }
+    /** applied in setupTransforms (y up, rotated by body yaw): the car (and you in it) shakes with the engine */
     public static void motion(PlayerEntityRenderState s, MatrixStack m) {
-        if (s.id <= CosmeticsFeature.PREVIEW_ID) return;
         float[] info = emoteOf(s);
         if (info == null || Emote.values()[(int) info[0]] != Emote.JOYRIDE) return;
-        float th = loopAngle(info[1]);
-        float R = 3f;
-        m.translate(R - R * (float) Math.cos(th), 0, -R * (float) Math.sin(th));
-        m.multiply(RotationAxis.POSITIVE_Y.rotation(-th));
-    }
-    private static float loopAngle(float t) {
-        float k = Math.max(0, Math.min(1, (t - 0.8f) / (Emote.JOYRIDE.seconds - 1.6f)));
-        return (float) (k * k * (3 - 2 * k) * Math.PI * 2);
+        float t = info[1];
+        float y = 0, roll = 0;
+        if (t >= CRANK_FROM && t < ENGINE_ON) { // starter motor: a rough shudder
+            y = 0.012f * (float) Math.sin(t * 38); roll = 0.006f * (float) Math.sin(t * 31);
+        } else if (engineOn(t)) {
+            float rev = Math.max(0, 1 - (t - ENGINE_ON) / 0.6f);          // the first rev rocks the car
+            y = 0.004f * (float) Math.sin(t * 60) + 0.01f * rev * (float) Math.sin(t * 18);
+            roll = 0.003f * (float) Math.sin(t * 47) + 0.03f * rev * (float) Math.sin((t - ENGINE_ON) * 9);
+        }
+        m.translate(0, y, 0);
+        m.multiply(RotationAxis.POSITIVE_Z.rotation(roll));
     }
 
     // ================================================================== particles & sounds for prop emotes
@@ -475,15 +501,25 @@ public final class Props extends FeatureRenderer<PlayerEntityRenderState, Player
             double fx = -Math.sin(yawRad), fz = Math.cos(yawRad); // forward
             switch (e) {
                 case JOYRIDE -> {
-                    if (tick == 1) mc.world.playSoundClient(p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_MINECART_RIDING, SoundCategory.PLAYERS, 0.5f, 0.6f, false);
-                    // where the car is on its loop (same maths as motion())
-                    double th = loopAngle(t), R = 3;
-                    double lx = R - R * Math.cos(th), lz = -R * Math.sin(th);
-                    double back = 1.6;
-                    double bx = lx - back * Math.sin(th), bz = lz + back * Math.cos(th);
-                    double a = Math.toRadians(180 - p.bodyYaw);
-                    double wx = bx * Math.cos(a) + bz * Math.sin(a), wz = -bx * Math.sin(a) + bz * Math.cos(a);
-                    if (tick % 2 == 0) mc.world.addParticleClient(ParticleTypes.SMOKE, p.getX() + wx, p.getY() + 0.25, p.getZ() + wz, 0, 0.02, 0);
+                    double x = p.getX(), y = p.getY(), z = p.getZ();
+                    int press = (int) (START_PRESS * 20), crank = (int) (CRANK_FROM * 20), on = (int) (ENGINE_ON * 20);
+                    if (tick == press) mc.world.playSoundClient(x, y + 1, z, SoundEvents.BLOCK_STONE_BUTTON_CLICK_ON, SoundCategory.PLAYERS, 0.9f, 1.3f, false);
+                    if (tick == crank || tick == crank + 7) mc.world.playSoundClient(x, y, z, SoundEvents.BLOCK_GRINDSTONE_USE, SoundCategory.PLAYERS, 0.55f, 0.55f, false); // starter
+                    if (tick == on) { // it catches: a deep rev
+                        mc.world.playSoundClient(x, y, z, SoundEvents.ENTITY_RAVAGER_ROAR, SoundCategory.PLAYERS, 0.55f, 1.55f, false);
+                        mc.world.playSoundClient(x, y, z, SoundEvents.ENTITY_BLAZE_SHOOT, SoundCategory.PLAYERS, 0.35f, 0.5f, false);
+                    }
+                    if (tick > on && (tick - on) % 36 == 4) mc.world.playSoundClient(x, y, z, SoundEvents.ENTITY_MINECART_RIDING, SoundCategory.PLAYERS, 0.35f, 0.5f, false); // idle rumble
+                    boolean backfire = engineOn(t) && (int) ((t % 2.6f) * 20) == 44;
+                    if (backfire) mc.world.playSoundClient(x, y, z, SoundEvents.ITEM_FIRECHARGE_USE, SoundCategory.PLAYERS, 0.3f, 1.6f, false);
+                    // exhaust smoke from the two pipe pairs at the back of the car (x 0 and 14 px to your left, 29 px behind)
+                    double lx = Math.cos(yawRad), lz = Math.sin(yawRad);
+                    for (double side : new double[]{-2 / 16.0, 14 / 16.0}) {
+                        double ex = x + lx * side - fx * (29 / 16.0), ez = z + lz * side - fz * (29 / 16.0), ey = y + 0.3;
+                        if (tick >= crank && tick < on && tick % 3 == 0) mc.world.addParticleClient(ParticleTypes.SMOKE, ex, ey, ez, -fx * 0.02, 0.01, -fz * 0.02);
+                        if (tick >= on && tick < on + 8) mc.world.addParticleClient(ParticleTypes.LARGE_SMOKE, ex, ey, ez, -fx * 0.08, 0.02, -fz * 0.08);
+                        else if (engineOn(t) && tick % 9 == 0) mc.world.addParticleClient(ParticleTypes.SMOKE, ex, ey, ez, -fx * 0.03, 0.005, -fz * 0.03);
+                    }
                 }
                 case CAMPFIRE -> {
                     double x = p.getX() + fx * 1.25, z = p.getZ() + fz * 1.25;

@@ -23,12 +23,16 @@ public enum Emote {
     TPOSE("T-Pose", true, 3f, Items.ARMOR_STAND, (p, t) -> { p.rightArm.roll = 1.5708f; p.leftArm.roll = -1.5708f; p.rightArm.pitch = 0; p.leftArm.pitch = 0; p.head.pitch = 0; p.head.yaw = 0; }),
     // ---- emotes with props (drawn by cosmetics.Props)
     JOYRIDE("Joyride", true, 10f, Items.MINECART, (p, t) -> {
-        float steer = (float) Math.sin(t * 1.3f) * 0.12f + 0.18f;
+        // parked: press the start button (centre console), hold the wheel while it cranks, then enjoy the idle
+        float press = Math.max(0, Math.min(1, Math.min((t - 0.05f) / 0.25f, (1.2f - t) / 0.3f)));
+        float on = t > 1.45f ? 1 : 0;
+        float vib = on * 0.015f * (float) Math.sin(t * 55);
         recline(p, 0.22f, 7);
         p.rightLeg.pitch = -1.45f; p.leftLeg.pitch = -1.45f; p.rightLeg.yaw = 0.06f; p.leftLeg.yaw = -0.06f;
-        p.rightArm.pitch = -1.25f; p.leftArm.pitch = -1.25f; p.rightArm.yaw = 0.25f; p.leftArm.yaw = -0.25f;
-        p.rightArm.roll = steer * 0.6f; p.leftArm.roll = steer * 0.6f;
-        p.head.yaw = -steer * 1.6f; p.head.pitch = -0.1f;
+        p.rightArm.pitch = -1.25f + vib; p.rightArm.yaw = 0.25f;
+        p.leftArm.pitch = -1.25f + press * 0.35f + vib; p.leftArm.yaw = -0.25f - press * 0.45f;   // reaching for the button
+        float look = t > 1.45f ? 0.35f * (float) Math.sin((t - 1.45f) * 0.7f) : 0;              // then looks around, pleased
+        p.head.yaw = -press * 0.35f + look; p.head.pitch = -0.1f + press * 0.35f;
     }),
     SUNBATHE("Sunbathe", true, 10f, Items.SUNFLOWER, (p, t) -> {
         recline(p, 0.95f, 7);
