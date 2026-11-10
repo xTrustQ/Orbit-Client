@@ -1,7 +1,7 @@
 {
   "name": "orbit-client",
   "productName": "Orbit",
-  "version": "1.4.2",
+  "version": "1.4.3",
   "description": "Orbit — an aesthetic, performance-focused Minecraft launcher",
   "main": "src/main/main.js",
   "orbit": {

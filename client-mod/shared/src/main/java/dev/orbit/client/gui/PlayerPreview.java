@@ -78,6 +78,10 @@ public final class PlayerPreview {
         flip.mul(tilt);
         // same model size and centre, bigger drawing area (the entity is clipped to this rectangle)
         int ex = expand ? Math.round(w * 0.75f) : 0, ey = expand ? Math.round(h * 0.12f) : 0;
-        c.addEntity(s, size, new Vector3f(0, focusY, 0), flip, tilt, x - ex, y - ey, x + w + ex, y + h + ey);
+        // 3D models ignore the 2D matrix, so map the box through it ourselves (Orbit's menu size, slide-in animations)
+        org.joml.Vector2f a = c.getMatrices().transformPosition(new org.joml.Vector2f(x - ex, y - ey));
+        org.joml.Vector2f b = c.getMatrices().transformPosition(new org.joml.Vector2f(x + w + ex, y + h + ey));
+        float k = (b.y - a.y) / Math.max(1, h + 2 * ey);
+        c.addEntity(s, size * k, new Vector3f(0, focusY, 0), flip, tilt, Math.round(a.x), Math.round(a.y), Math.round(b.x), Math.round(b.y));
     }
 }

@@ -28,6 +28,7 @@
     "MinecraftClientMixin",
     "MouseMixin",
     "SimpleOptionAccessor",
+    "ScreenScaleMixin",
     "SkyRenderingMixin"
   ],
   "injectors": { "defaultRequire": 1 }

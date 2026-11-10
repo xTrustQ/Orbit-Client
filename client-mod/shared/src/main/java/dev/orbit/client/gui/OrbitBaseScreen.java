@@ -9,6 +9,8 @@ import net.minecraft.text.Text;
  */
 public abstract class OrbitBaseScreen extends Screen {
     protected OrbitBaseScreen(Text title) { super(title); }
+    /** older versions: Orbit menus follow Minecraft's GUI scale */
+    public static float uiScale() { return 1f; }
 
     protected boolean onClick(double mx, double my, int button) { return false; }
     protected boolean onRelease(double mx, double my, int button) { return false; }

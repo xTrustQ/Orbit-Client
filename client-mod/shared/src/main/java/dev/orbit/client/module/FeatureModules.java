@@ -100,6 +100,9 @@ public final class FeatureModules {
         private static final int[] ACCENT_2 = {0xFF6FD8, 0x6D7DFF, 0xFF5E3A, 0x22D3EE, 0xFFA94D, 0x9CA3AF};
         public final Setting.Key menuKey = add(new Setting.Key("menuKey", "Open this menu", () -> OrbitClient.menuKey));
         public final Setting.Mode theme = add(new Setting.Mode("accent", "Theme", "Nebula", ACCENTS));
+        /** how big Orbit's own menus are, independent of Minecraft's GUI scale (never bigger than it) */
+        public final Setting.Mode menuSize = add(new Setting.Mode("menuSize", "Orbit menu size", "Normal (like GUI 3)", "Small (like GUI 2)", "Normal (like GUI 3)", "Large (like GUI 4)", "Same as Minecraft"));
+        public int menuScale() { return menuSize.is("Small (like GUI 2)") ? 2 : menuSize.is("Large (like GUI 4)") ? 4 : menuSize.is("Same as Minecraft") ? 0 : 3; }
         public final Setting.Bool spaceMenu = add(new Setting.Bool("spaceMenu", "Orbit main menu", true));
         public final Setting.Mode menuSky = add(new Setting.Mode("menuSky", "Main menu background", "Nebula", dev.orbit.client.gui.SpaceBackground.NAMES));
         public final Setting.Bool menuPlanet = add(new Setting.Bool("menuPlanet", "Planet in the main menu", true));

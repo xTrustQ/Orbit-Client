@@ -4384,7 +4384,7 @@
   "category": "CLIENT",
   "on": true,
   "toggle": false,
-  "settings": 16,
+  "settings": 17,
   "opts": [
    {
     "type": "mode",
@@ -4399,6 +4399,18 @@
      "Eclipse"
     ],
     "value": "Nebula"
+   },
+   {
+    "type": "mode",
+    "id": "menuSize",
+    "name": "Orbit menu size",
+    "options": [
+     "Small (like GUI 2)",
+     "Normal (like GUI 3)",
+     "Large (like GUI 4)",
+     "Same as Minecraft"
+    ],
+    "value": "Normal (like GUI 3)"
    },
    {
     "type": "bool",

@@ -25,6 +25,7 @@ public class OrbitVisualTest implements FabricClientGameTest {
         String cos = System.getenv("ORBIT_TEST_COSMETICS");
         if (cos != null) System.setProperty("orbit.cosmetics", cos);
         if ("cosmetics".equals(System.getenv("ORBIT_TEST_ONLY"))) { cosmeticsOnly(ctx); return; }
+        if ("menuscale".equals(System.getenv("ORBIT_TEST_ONLY"))) { menuScaleOnly(ctx); return; }
 
         ctx.waitTicks(16);
         ctx.takeScreenshot("00-intro-a");
@@ -479,6 +480,44 @@ public class OrbitVisualTest implements FabricClientGameTest {
             ctx.setScreen(() -> null);
             OrbitTitleScreen.allowVanillaOnce = true; // the harness requires ending on vanilla's title screen
         }
+    }
+
+    /** quick run (ORBIT_TEST_ONLY=menuscale): Orbit menus at 1080p with GUI scale 4, drawn like GUI 3 (and "Same as Minecraft") */
+    private static void menuScaleOnly(ClientGameTestContext ctx) {
+        ctx.waitTicks(90); // intro
+        ctx.runOnClient(c -> { c.getWindow().setWindowedSize(1920, 1080); c.options.getGuiScale().setValue(4); c.onResolutionChanged(); });
+        ctx.waitTicks(30);
+        for (String size : new String[]{"Normal (like GUI 3)", "Same as Minecraft"}) {
+            String tag = size.startsWith("Normal") ? "gui3" : "gui4";
+            ctx.runOnClient(c -> OrbitClient.modules().ui().menuSize.set(size));
+            ctx.setScreen(OrbitTitleScreen::new);
+            ctx.waitTicks(30);
+            ctx.takeScreenshot("m-" + tag + "-title");
+            ctx.setScreen(() -> OrbitTitleScreen.onTab("cosmetics"));
+            ctx.waitTicks(25);
+            ctx.takeScreenshot("m-" + tag + "-locker");
+            ctx.setScreen(() -> new OrbitScreen(null).tab(Module.Category.RENDER));
+            ctx.waitTicks(25);
+            ctx.takeScreenshot("m-" + tag + "-menu");
+        }
+        // mouse check at GUI-3 size: hover + click the 2nd tab ("Combat") using the real cursor
+        ctx.runOnClient(c -> OrbitClient.modules().ui().menuSize.set("Normal (like GUI 3)"));
+        ctx.setScreen(() -> new OrbitScreen(null).tab(Module.Category.RENDER));
+        ctx.waitTicks(20);
+        ctx.runOnClient(c -> OrbitClient.LOG.info("[TEST] menu scale {} screen {}x{} window scale {}", dev.orbit.client.gui.OrbitBaseScreen.uiScale(), c.currentScreen.width, c.currentScreen.height, c.getWindow().getScaleFactor()));
+        ctx.getInput().setCursorPos(825, 70); // the "Combat" tab in the 1920x1080 screenshot
+        ctx.waitTicks(2);
+        ctx.getInput().pressMouse(org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT);
+        ctx.waitTicks(15);
+        ctx.takeScreenshot("m-click-combat");
+        ctx.runOnClient(c -> OrbitClient.modules().ui().menuSize.set("Normal (like GUI 3)"));
+        ctx.setScreen(OrbitTitleScreen::new);
+        ctx.waitTicks(5);
+        ctx.runOnClient(c -> { c.options.getGuiScale().setValue(0); c.getWindow().setWindowedSize(854, 480); c.onResolutionChanged(); });
+        ctx.waitTicks(10);
+        ctx.runOnClient(c -> OrbitTitleScreen.allowVanillaOnce = true);
+        ctx.setScreen(net.minecraft.client.gui.screen.TitleScreen::new);
+        ctx.waitTicks(5);
     }
 
     /** quick run (ORBIT_TEST_ONLY=cosmetics): the Locker's cosmetics pages and every pet / new hat / wing / aura in a world */
