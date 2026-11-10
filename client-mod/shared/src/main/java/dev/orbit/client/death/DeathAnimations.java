@@ -36,12 +36,46 @@ import java.util.*;
 public final class DeathAnimations {
     private DeathAnimations() {}
 
-    public enum Style { SOUL, BLACK_HOLE, THUNDER, FIREWORK, SHATTER, TUNG }
-    public static final String[] NAMES = {"Soul Ascend", "Black Hole", "Thunder Strike", "Firework", "Shatter", "Tung Tung Bonk", "Random"};
+    public enum Style { SOUL, BLACK_HOLE, THUNDER, FIREWORK, SHATTER, TUNG, PIANO, BOWLING, UFO }
+    public static final String[] NAMES = {"Soul Ascend", "Black Hole", "Thunder Strike", "Firework", "Shatter", "Tung Tung Bonk", "Piano Drop", "Bowling Strike", "UFO Abduction", "Random"};
 
-    /** phi = direction (radians, world) from the victim to where the bat buddy stands: always on your left */
-    private record Anim(Style style, double x, double y, double z, float height, float phi, int[] tick) {}
+    /** phi = direction (radians, world) from the victim to where the bat buddy stands: always on your left; stage = id of the prop's stand-in entity (0 = none) */
+    private record Anim(Style style, double x, double y, double z, float height, float phi, int[] tick, int stage) {}
     private static final Map<Integer, Anim> ACTIVE = new HashMap<>();
+    /** stand-in entity id -> its animation: big props (piano, ball, saucer) are drawn when that entity is drawn, so they outlive the body */
+    private static final Map<Integer, Anim> STAGES = new HashMap<>();
+    private static int stageId = -6_000_000;
+    private static boolean staged(Style s) { return s == Style.PIANO || s == Style.BOWLING || s == Style.UFO; }
+    private static int endTick(Style s) { return staged(s) ? 52 : 40; }
+
+    /** an invisible, untouchable client-only entity at the victim's feet that keeps rendering after the body is gone */
+    private static int spawnStage(double x, double y, double z) {
+        var mc = MinecraftClient.getInstance();
+        try {
+            var stand = new net.minecraft.entity.decoration.ArmorStandEntity(EntityType.ARMOR_STAND, mc.world) {
+                @Override public boolean canHit() { return false; }
+                @Override public boolean isPushable() { return false; }
+                @Override public boolean shouldRender(double d) { return d < 96 * 96; }
+                @Override public boolean isInvisible() { return true; }
+            };
+            stand.setNoGravity(true);
+            stand.setId(stageId--);
+            stand.refreshPositionAfterTeleport(x, y, z);
+            mc.world.addEntity(stand);
+            return stand.getId();
+        } catch (Throwable t) { return 0; }
+    }
+    /** for the renderer: the stage key of this entity (0 = not a stage) */
+    public static int stageKey(Entity e) { return STAGES.containsKey(e.getId()) ? e.getId() : 0; }
+    /** draws the props of a stage */
+    public static void renderStage(int key, MatrixStack matrices, net.minecraft.client.render.command.OrderedRenderCommandQueue queue,
+                                   net.minecraft.client.render.state.CameraRenderState camera, double x, double y, double z, int light, double sqDist) {
+        Anim a = STAGES.get(key);
+        if (a == null) return;
+        float t = a.tick()[0] + MinecraftClient.getInstance().getRenderTickCounter().getTickProgress(false);
+        int kind = a.style() == Style.PIANO ? dev.orbit.client.cosmetics.DeathProps.PIANO : a.style() == Style.BOWLING ? dev.orbit.client.cosmetics.DeathProps.BOWLING : dev.orbit.client.cosmetics.DeathProps.UFO;
+        dev.orbit.client.cosmetics.DeathProps.render(kind, matrices, queue, camera, x, y, z, light, t, a.phi(), a.height(), sqDist);
+    }
     private static final Set<Integer> SEEN = new HashSet<>();
     private static final Random RNG = new Random();
     private static int boltId = -2_000_000;
@@ -70,7 +104,13 @@ public final class DeathAnimations {
         var mc = MinecraftClient.getInstance();
         if (mc.world == null) return;
         float phi = (float) Math.toRadians(mc.gameRenderer.getCamera().getYaw());
-        ACTIVE.put(effectId--, new Anim(s, x, y, z, height, phi, new int[]{0}));
+        add(effectId--, s, x, y, z, height, phi, 0);
+    }
+    private static void add(int key, Style s, double x, double y, double z, float height, float phi, int startTick) {
+        int stage = staged(s) ? spawnStage(x, y, z) : 0;
+        Anim a = new Anim(s, x, y, z, height, phi, new int[]{startTick}, stage);
+        ACTIVE.put(key, a);
+        if (stage != 0) STAGES.put(stage, a);
         start(s, x, y, z, height);
     }
 
@@ -78,7 +118,7 @@ public final class DeathAnimations {
     public static void tick() {
         var mc = MinecraftClient.getInstance();
         var m = module();
-        if (mc.world == null) { ACTIVE.clear(); SEEN.clear(); return; }
+        if (mc.world == null) { ACTIVE.clear(); SEEN.clear(); STAGES.clear(); return; }
         Set<Integer> alive = new HashSet<>();
         if (m != null) for (Entity e : mc.world.getEntities()) {
             if (!(e instanceof LivingEntity l)) continue;
@@ -89,8 +129,7 @@ public final class DeathAnimations {
                 Style s = pick < 0 || pick >= Style.values().length ? Style.values()[RNG.nextInt(Style.values().length)] : Style.values()[pick];
                 // the buddy stands to the camera's left of the victim, so you watch it from the side
                 float phi = (float) Math.toRadians(mc.gameRenderer.getCamera().getYaw());
-                ACTIVE.put(l.getId(), new Anim(s, l.getX(), l.getY(), l.getZ(), l.getHeight(), phi, new int[]{0}));
-                start(s, l.getX(), l.getY(), l.getZ(), l.getHeight());
+                add(l.getId(), s, l.getX(), l.getY(), l.getZ(), l.getHeight(), phi, Math.max(0, l.deathTime - 1)); // in step with the body
             }
         }
         SEEN.retainAll(alive);
@@ -99,7 +138,10 @@ public final class DeathAnimations {
             Anim a = it.next().getValue();
             int t = ++a.tick()[0];
             effects(a, t);
-            if (t > 40) it.remove();
+            if (t > endTick(a.style())) {
+                it.remove();
+                if (a.stage() != 0) { STAGES.remove(a.stage()); mc.world.removeEntity(a.stage(), Entity.RemovalReason.DISCARDED); }
+            }
         }
     }
 
@@ -131,6 +173,58 @@ public final class DeathAnimations {
             case FIREWORK -> sound(SoundEvents.ENTITY_FIREWORK_ROCKET_TWINKLE, x, y, z, 0.6f, 1.6f);
             case SHATTER -> sound(SoundEvents.BLOCK_AMETHYST_BLOCK_BREAK, x, y, z, 1f, 0.6f);
             case TUNG -> { }
+            case PIANO -> { }
+            case BOWLING -> sound(SoundEvents.ENTITY_MINECART_RIDING, x, y, z, 1.0f, 0.45f);   // a heavy ball rumbling in
+            case UFO -> { sound(SoundEvents.BLOCK_BEACON_ACTIVATE, x, y + 4, z, 1f, 1.7f); sound(SoundEvents.BLOCK_CONDUIT_AMBIENT, x, y + 4, z, 1f, 1.4f); }
+        }
+    }
+
+    /** the new cartoon deaths: sounds and particles in step with the props (DeathProps) */
+    private static void cartoon(Anim a, int t) {
+        double x = a.x(), y = a.y(), z = a.z();
+        float h = a.height();
+        switch (a.style()) {
+            case PIANO -> {
+                int hit = (int) dev.orbit.client.cosmetics.DeathProps.PIANO_HIT;
+                if (t < hit && t % 2 == 0) sound(SoundEvents.BLOCK_NOTE_BLOCK_FLUTE.value(), x, y + 3, z, 0.9f, 2.0f - t * 0.16f); // falling whistle
+                if (t == hit) {
+                    sound(SoundEvents.BLOCK_ANVIL_LAND, x, y, z, 1.0f, 0.7f);
+                    sound(SoundEvents.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR, x, y, z, 0.9f, 0.8f);
+                    for (float p : new float[]{0.5f, 0.63f, 0.71f, 0.94f, 1.19f}) sound(SoundEvents.BLOCK_NOTE_BLOCK_HARP.value(), x, y + 1, z, 0.8f, p); // the crash chord
+                    var wood = new BlockStateParticleEffect(ParticleTypes.BLOCK, Blocks.DARK_OAK_PLANKS.getDefaultState());
+                    var black = new BlockStateParticleEffect(ParticleTypes.BLOCK, Blocks.BLACK_CONCRETE.getDefaultState());
+                    for (int i = 0; i < 40; i++) {
+                        double ang = RNG.nextDouble() * Math.PI * 2, r = 0.4 + RNG.nextDouble() * 1.4;
+                        p(i % 2 == 0 ? wood : black, x + Math.cos(ang) * r, y + 0.4, z + Math.sin(ang) * r, Math.cos(ang) * 0.3, 0.3 + RNG.nextDouble() * 0.3, Math.sin(ang) * 0.3);
+                    }
+                    for (int i = 0; i < 24; i++) { double ang = i * Math.PI / 12; p(ParticleTypes.CLOUD, x + Math.cos(ang) * 1.3, y + 0.15, z + Math.sin(ang) * 1.3, Math.cos(ang) * 0.12, 0.01, Math.sin(ang) * 0.12); }
+                    for (int i = 0; i < 10; i++) p(ParticleTypes.NOTE, x + (RNG.nextDouble() - 0.5) * 2, y + 1.4 + RNG.nextDouble(), z + (RNG.nextDouble() - 0.5) * 2, RNG.nextDouble(), 0, 0);
+                }
+                if (t == hit + 5) sound(SoundEvents.BLOCK_NOTE_BLOCK_HARP.value(), x, y + 1, z, 0.7f, 1.8f);   // plink
+                if (t == hit + 11) sound(SoundEvents.BLOCK_NOTE_BLOCK_BASS.value(), x, y + 1, z, 0.9f, 0.5f);  // ...plonk
+                if (t > hit && t < hit + 20 && t % 4 == 0) p(ParticleTypes.NOTE, x + (RNG.nextDouble() - 0.5) * 1.5, y + 1.3, z + (RNG.nextDouble() - 0.5) * 1.5, RNG.nextDouble(), 0, 0);
+            }
+            case BOWLING -> {
+                int hit = (int) dev.orbit.client.cosmetics.DeathProps.BALL_HIT;
+                if (t == hit) {
+                    sound(SoundEvents.ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR, x, y, z, 1.0f, 1.25f);
+                    sound(SoundEvents.ENTITY_PLAYER_ATTACK_CRIT, x, y, z, 1.0f, 0.7f);
+                    for (int i = 0; i < 20; i++) p(ParticleTypes.CRIT, x, y + h * 0.4, z, (RNG.nextDouble() - 0.5) * 0.9, RNG.nextDouble() * 0.5, (RNG.nextDouble() - 0.5) * 0.9);
+                    p(ParticleTypes.EXPLOSION, x, y + h * 0.4, z, 0, 0, 0);
+                }
+                if (t == hit + 1 || t == hit + 2 || t == hit + 4) sound(SoundEvents.BLOCK_BAMBOO_WOOD_BREAK, x, y, z, 1.0f, 1.3f + RNG.nextFloat() * 0.3f); // pins clattering
+                if (t == hit + 6) { sound(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, x, y + 1, z, 0.6f, 1.2f); for (int i = 0; i < 16; i++) p(ParticleTypes.FIREWORK, x, y + h + 1, z, (RNG.nextDouble() - 0.5) * 0.3, RNG.nextDouble() * 0.2, (RNG.nextDouble() - 0.5) * 0.3); }
+                if (t > hit && t < hit + 14) { double[] o = flingOffset(t - hit, a.phi(), 1.2f); p(ParticleTypes.CLOUD, x + o[0], y + o[1] + h * 0.5, z + o[2], 0, 0, 0); }
+            }
+            case UFO -> {
+                int take = (int) dev.orbit.client.cosmetics.DeathProps.UFO_TAKE, gone = (int) dev.orbit.client.cosmetics.DeathProps.UFO_GONE;
+                if (t == take) sound(SoundEvents.BLOCK_BEACON_AMBIENT, x, y + 2, z, 1.2f, 1.5f);
+                if (t > take && t < gone && t % 3 == 0) sound(SoundEvents.BLOCK_AMETHYST_BLOCK_CHIME, x, y + 2, z, 0.9f, 0.8f + (t - take) * 0.08f);
+                if (t > take && t < 21) for (int i = 0; i < 2; i++) { double ang = RNG.nextDouble() * Math.PI * 2, r = RNG.nextDouble() * 0.9; p(ParticleTypes.END_ROD, x + Math.cos(ang) * r, y + RNG.nextDouble() * 0.5, z + Math.sin(ang) * r, 0, 0.12, 0); }
+                if (t == gone) { sound(SoundEvents.ENTITY_ENDERMAN_TELEPORT, x, y + h + 2, z, 1f, 1.6f); sound(SoundEvents.ENTITY_ITEM_PICKUP, x, y + h + 2, z, 1f, 0.6f); }
+                if (t == 24) sound(SoundEvents.ENTITY_FIREWORK_ROCKET_LAUNCH, x, y + h + 2, z, 1f, 0.5f);
+            }
+            default -> { }
         }
     }
 
@@ -138,6 +232,7 @@ public final class DeathAnimations {
         double x = a.x(), y = a.y(), z = a.z();
         float h = a.height();
         int accent = OrbitClient.modules().ui().accent() & 0xFFFFFF, accent2 = OrbitClient.modules().ui().accent2() & 0xFFFFFF;
+        if (staged(a.style())) { cartoon(a, t); return; }
         switch (a.style()) {
             case SOUL -> {
                 if (t > 26) return;
@@ -255,8 +350,43 @@ public final class DeathAnimations {
                 if (t < 0.22f) m.translate((float) Math.sin(deathTime * 11) * 0.03f, 0, (float) Math.cos(deathTime * 13) * 0.03f); // shiver
                 else scaleAround(m, height, 0.001f, 0.001f); // burst into shards
             }
+            case PIANO -> { // looks up... then flattened like a pancake under the piano
+                float hit = dev.orbit.client.cosmetics.DeathProps.PIANO_HIT;
+                if (deathTime >= hit) { float k = Math.min(1, (deathTime - hit) / 0.6f); m.scale(1 + 0.6f * k, 1 - 0.9f * k, 1 + 0.6f * k); }
+                else if (deathTime > hit - 3) { float k = (deathTime - (hit - 3)) / 3; m.scale(1 - 0.05f * k, 1 + 0.08f * k, 1 - 0.05f * k); } // flinch upward
+            }
+            case BOWLING -> { // knocked flying like a pin: the ball hits from your left
+                float hit = dev.orbit.client.cosmetics.DeathProps.BALL_HIT;
+                if (deathTime >= hit) fling(m, deathTime - hit, height, bodyYaw, phi, 1.2f);
+            }
+            case UFO -> { // lifted up the beam, spinning and shrinking into the saucer
+                float take = dev.orbit.client.cosmetics.DeathProps.UFO_TAKE, gone = dev.orbit.client.cosmetics.DeathProps.UFO_GONE;
+                if (deathTime < take) break;
+                float k = Math.min(1, (deathTime - take) / (gone - take)), e = k * k * (3 - 2 * k);
+                m.translate(0, e * (height + 1.25f), 0);
+                m.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(e * e * 900));
+                float s = deathTime > gone ? 0.001f : 1 - 0.65f * e;
+                scaleAround(m, height, s, s);
+            }
             default -> { }
         }
+    }
+
+    /** a body knocked away from your left (the same maths gives the particle trail): u = ticks since the hit */
+    private static void fling(MatrixStack m, float u, float height, float bodyYaw, float phi, float power) {
+        float lx = -(float) Math.cos(phi), lz = -(float) Math.sin(phi);
+        float dist = (u * 0.5f + u * u * 0.05f) * power, up = (u * 0.55f - u * u * 0.03f) * power;
+        float yawRot = 180 - bodyYaw;
+        m.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-yawRot));
+        m.translate(lx * dist, Math.max(-0.2f, up), lz * dist);
+        m.translate(0, height / 2, 0);
+        m.multiply(new org.joml.Quaternionf().rotateAxis(u * 0.9f, -lz, 0, lx));
+        m.translate(0, -height / 2, 0);
+        m.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(yawRot));
+    }
+    private static double[] flingOffset(float u, float phi, float power) {
+        double dist = (u * 0.5 + u * u * 0.05) * power, up = Math.max(-0.2, (u * 0.55 - u * u * 0.03) * power);
+        return new double[]{-Math.cos(phi) * dist, up, -Math.sin(phi) * dist};
     }
     private static void scaleAround(MatrixStack m, float height, float sxz, float sy) {
         m.translate(0, height / 2, 0);

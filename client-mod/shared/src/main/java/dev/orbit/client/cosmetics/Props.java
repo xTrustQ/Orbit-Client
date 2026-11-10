@@ -570,6 +570,7 @@ public final class Props extends FeatureRenderer<PlayerEntityRenderState, Player
         matrices.translate(x + bx, y - (1 - rise) * 3.1, z + bz);
         // face the victim: local -z points at it
         matrices.multiply(RotationAxis.POSITIVE_Y.rotation((float) Math.atan2(Math.cos(phi), Math.sin(phi))));
+        matrices.multiply(RotationAxis.POSITIVE_Y.rotation(-BONKER_TURN)); // turned towards the camera (3/4 view); the bat still aims at the victim
         // body language: idle bob, squash on each tap, twist back for the wind-up, lunge into the BONK
         float bob = (float) Math.sin(d * 0.9f) * 0.02f, twist = 0, lean = 0, squash = 0;
         for (float k : new float[]{4, 7, 10}) squash = Math.max(squash, 1 - Math.abs(d - k) * 2.2f);
@@ -582,7 +583,8 @@ public final class Props extends FeatureRenderer<PlayerEntityRenderState, Player
         matrices.multiply(RotationAxis.POSITIVE_X.rotation(-lean));
         matrices.scale(1 + 0.05f * squash, 1 - 0.1f * squash, 1 + 0.05f * squash);
         float swing = d;
-        queue.submitCustom(matrices, RenderLayers.entityTranslucent(tex), (en, vc) -> bonker(new CosmeticsFeature.Mesh(en, vc, light), swing, victimHeight));
+        queue.submitCustom(matrices, RenderLayers.entityTranslucent(tex), (en, vc) -> bonker(new CosmeticsFeature.Mesh(en, vc, Math.max(light, 0x00B000B0)), swing, victimHeight));
+        queue.submitCustom(matrices, RenderLayers.entityTranslucentEmissive(tex), (en, vc) -> bonkerRing(new CosmeticsFeature.Mesh(en, vc, CosmeticsFeature.FULL_BRIGHT), swing));
         // shouted words
         String word = d >= 4 && d < 5.6f || d >= 7 && d < 8.6f || d >= 10 && d < 11.4f ? "TUNG!" : d >= 12 && d < 16 ? "SAHUR!" : null;
         if (word != null) {
@@ -593,77 +595,109 @@ public final class Props extends FeatureRenderer<PlayerEntityRenderState, Player
         matrices.pop();
     }
 
-    /** the log buddy in pixels: tall and slim (~48 px), front = -z, the victim stands 23 px in front */
+    /**
+     * The bat buddy in pixels (~52 px tall), front = -z, the victim stands 23 px in front: a glossy orange-red
+     * figure with a tall rounded body, big heavy-lidded eyes, a smirk, long skinny legs, big feet and a matching bat.
+     */
+    private static final float BONKER_TURN = 0.6f;
+    private static final int TT_DARK = 0xFFB82E14, TT = 0xFFEE4F1E, TT_LIGHT = 0xFFFF8442, TT_SHINE = 0xFFFFC6A0, TT_LINE = 0xFF5E1206;
     private static void bonker(CosmeticsFeature.Mesh m, float d, float victimHeight) {
-        int woodLight = 0xFFE2A866, wood = 0xFFCF8E4E, woodDark = 0xFFA8693A, line = 0xFF5A3218;
         boolean shout = d >= 4 && d < 5.6f || d >= 7 && d < 8.6f || d >= 10 && d < 11.4f || d >= 12 && d < 16;
-        // skinny legs with little feet
-        for (float lx : new float[]{-2.2f, 2.2f}) {
-            m.box(lx - 1.4f, 0, -2.6f, lx + 1.4f, 1.1f, 1.2f, woodDark);
-            m.tube(List.of(new float[]{lx, 0.8f, 0}, new float[]{lx * 1.05f, 7.5f, -0.2f}, new float[]{lx * 0.9f, 15, 0}), new float[]{0.95f, 0.85f, 1.05f}, 8, woodDark, wood);
+        // big flat feet and long skinny legs with a bit of a knee
+        for (float lx : new float[]{-2.4f, 2.4f}) {
+            float foot = lx < 0 ? -0.25f : 0.25f;
+            m.box(lx - 1.9f, 0, -3.2f, lx + 1.9f, 1.3f, 1.8f, TT_DARK);
+            m.tube(List.of(new float[]{lx + foot, 0.65f, -3.2f}, new float[]{lx + foot * 2, 0.7f, -5.6f}), new float[]{1.25f, 1.05f}, 10, TT, TT_LIGHT); // rounded toes
+            m.tube(List.of(new float[]{lx, 1.0f, -0.4f}, new float[]{lx * 1.15f, 9, -1.3f}, new float[]{lx * 0.85f, 18, 0}), new float[]{0.85f, 0.75f, 1.0f}, 10, TT_DARK, TT);
+            m.ball(lx * 1.15f, 9, -1.3f, 0.95f, TT);                                          // knee
         }
-        // the trunk: tall, smooth, slightly wider at the top, with a rounded head
-        m.cylinder(0, 0, 14, 30, 4.6f, 5.0f, 14, woodDark, wood, true);
-        m.cylinder(0, 0, 30, 44, 5.0f, 5.2f, 14, wood, woodLight, true);
-        m.cylinder(0, 0, 44, 47, 5.2f, 4.2f, 14, woodLight, woodLight, true);
-        m.cylinder(0, 0, 47, 48.4f, 4.2f, 2.4f, 14, woodLight, woodLight, false);
-        m.disc(0, 14, 0, 4.6f, 14, woodDark);
-        for (int i = 0; i < 6; i++) { // faint wood grain on the back and sides
-            double a = Math.PI * 0.15 + i * Math.PI * 0.14;
-            float gx = (float) Math.cos(a) * 5.05f, gz = (float) Math.sin(a) * 5.05f;
-            m.line(new float[]{gx, 17 + i % 3, gz}, new float[]{gx * 0.99f, 40 - (i % 2) * 4, gz * 0.99f}, 0.12f, woodDark);
-        }
-        // big round staring eyes
+        // the body: a tall rounded pill, darker low, glossy on top
+        m.cylinder(0, 0, 17, 28, 4.0f, 5.0f, 18, TT_DARK, TT, true);
+        m.cylinder(0, 0, 28, 44, 5.0f, 5.4f, 18, TT, TT_LIGHT, true);
+        m.sphere(0, 44, 0, 5.4f, 6.2f, 5.4f, 18, TT_LIGHT, Math.PI);                         // rounded head
+        m.sphere(0, 17, 0, 4.0f, 2.0f, 4.0f, 14, TT_DARK, Math.PI);                          // rounded bottom
+        m.line(new float[]{-3.2f, 22, -4.0f}, new float[]{-3.9f, 46, -3.8f}, 0.35f, TT_SHINE); // gloss highlight
+        m.line(new float[]{-2.2f, 47.5f, -4.4f}, new float[]{-1.0f, 49, -3.6f}, 0.3f, TT_SHINE);
+        // big eyes with heavy, half-closed lids (that smug look), raised when he shouts
         float lookY = Math.max(-0.5f, Math.min(0.3f, (victimHeight * 16 - 36) / 24f));
-        for (float ex : new float[]{-2.2f, 2.2f}) {
-            vdisc(m, ex, 38.5f, -5.15f, 2.15f, 14, 0xFF3A2010);           // dark rim
-            vdisc(m, ex, 38.5f, -5.22f, 1.85f, 14, 0xFFF6F0E6);           // white
-            vdisc(m, ex, 38.4f + lookY, -5.3f, 1.05f, 12, 0xFF4A2A14);    // brown iris
-            vdisc(m, ex, 38.4f + lookY, -5.36f, 0.6f, 10, 0xFF0B0604);     // pupil
-            vdisc(m, ex + 0.45f, 38.9f + lookY, -5.4f, 0.22f, 6, 0xFFFFFFFF);
+        float lid = shout ? 0.15f : 0.55f;
+        for (float ex : new float[]{-2.3f, 2.3f}) {
+            vdisc(m, ex, 40.5f, -5.42f, 2.5f, 18, TT_LINE);                                 // outline
+            vdisc(m, ex, 40.5f, -5.5f, 2.2f, 18, 0xFFFBF6EE);                               // white
+            vdisc(m, ex, 40.1f + lookY, -5.58f, 1.25f, 14, 0xFF3A1E10);                     // iris
+            vdisc(m, ex, 40.1f + lookY, -5.64f, 0.7f, 12, 0xFF080404);                      // pupil
+            vdisc(m, ex + 0.5f, 40.6f + lookY, -5.7f, 0.28f, 6, 0xFFFFFFFF);                // shine
+            lidCap(m, ex, 40.5f, -5.76f, 2.55f, lid, TT);                                   // eyelid over the top
+            m.line(new float[]{ex - 2.4f, 40.5f + 2.5f * (1 - 2 * lid), -5.8f}, new float[]{ex + 2.4f, 40.5f + 2.5f * (1 - 2 * lid), -5.8f}, 0.22f, TT_LINE);
         }
-        // raised brows (higher still when shouting)
-        float brow = shout ? 0.8f : 0;
-        m.line(new float[]{-3.8f, 41.4f + brow, -5.1f}, new float[]{-0.9f, 41.8f + brow, -5.1f}, 0.3f, line);
-        m.line(new float[]{0.9f, 41.8f + brow, -5.1f}, new float[]{3.8f, 41.4f + brow, -5.1f}, 0.3f, line);
-        // nose: a small carved bump
-        m.box(-0.6f, 34.6f, -5.7f, 0.6f, 36.2f, -4.8f, wood);
-        m.line(new float[]{-0.7f, 34.5f, -5.75f}, new float[]{0.7f, 34.5f, -5.75f}, 0.12f, line);
-        // mouth: a wide carved grin, opening when he shouts
+        float brow = shout ? 1.2f : 0;
+        m.line(new float[]{-4.2f, 43.9f + brow, -5.3f}, new float[]{-0.9f, 44.4f + brow, -5.4f}, 0.32f, TT_DARK);
+        m.line(new float[]{0.9f, 44.6f + brow, -5.4f}, new float[]{4.2f, 44.3f + brow, -5.3f}, 0.32f, TT_DARK);
+        // a little round nose
+        m.ball(0.2f, 36.8f, -5.5f, 1.0f, TT_LIGHT);
+        // mouth: a lopsided smirk, wide open when shouting
         if (shout) {
             float[] prev = null;
             for (int i = 0; i <= 8; i++) {
-                float t = i / 8f, x = -3 + 6 * t, y = 31.6f - (float) Math.sin(t * Math.PI) * 1.2f;
-                if (prev != null) m.quad(new float[]{prev[0], prev[1], -5.12f}, new float[]{x, y, -5.12f}, new float[]{x, y - 1.6f - (float) Math.sin(t * Math.PI) * 0.8f, -5.12f}, new float[]{prev[0], prev[1] - 1.6f - (float) Math.sin((t - 0.125f) * Math.PI) * 0.8f, -5.12f}, 0xFF2A0E06);
-                prev = new float[]{x, y};
+                float t = i / 8f, x = -2.8f + 5.8f * t, y = 33.4f + t * 0.5f - (float) Math.sin(t * Math.PI) * 0.6f;
+                float depth = 1.8f + (float) Math.sin(t * Math.PI) * 1.1f;
+                if (prev != null) m.quad(new float[]{prev[0], prev[1], -5.45f}, new float[]{x, y, -5.45f}, new float[]{x, y - depth, -5.45f}, new float[]{prev[0], prev[1] - prev[2], -5.45f}, 0xFF3A0804);
+                prev = new float[]{x, y, depth};
             }
+            m.box(-1.2f, 31.4f, -5.5f, 1.4f, 32.2f, -5.46f, 0xFFE0606A);                    // tongue
         } else {
             float[] prev = null;
             for (int i = 0; i <= 10; i++) {
-                float t = i / 10f, x = -3.2f + 6.4f * t, y = 31.8f - (float) Math.sin(t * Math.PI) * 1.4f;
-                float[] p = {x, y, -5.12f};
-                if (prev != null) m.line(prev, p, 0.28f, line);
+                float t = i / 10f, x = -2.9f + 6.0f * t, y = 33.2f + t * t * 1.3f - (float) Math.sin(t * Math.PI) * 0.7f;
+                float[] p = {x, y, -5.45f};
+                if (prev != null) m.line(prev, p, 0.3f, TT_LINE);
                 prev = p;
             }
-            m.line(new float[]{-3.4f, 32.2f, -5.1f}, new float[]{-3.0f, 31.6f, -5.1f}, 0.2f, line); // smile dimples
-            m.line(new float[]{3.4f, 32.2f, -5.1f}, new float[]{3.0f, 31.6f, -5.1f}, 0.2f, line);
+            m.line(new float[]{3.1f, 34.5f, -5.4f}, new float[]{3.4f, 35.2f, -5.35f}, 0.22f, TT_LINE);   // the corner curls up
         }
-        // long thin arms: left hangs down to the knee, swaying
+        // long thin arms: left hangs down, swaying; mitten hands
         float sway = (float) Math.sin(d * 1.1f) * 0.8f;
-        float[] lsh = {-4.8f, 33, 0}, lel = {-6.4f, 25.5f, -0.3f + sway * 0.3f}, lha = {-6.2f, 17.5f, -0.8f + sway};
-        m.tube(List.of(lsh, lel, lha), new float[]{0.8f, 0.7f, 0.75f}, 8, wood, wood);
-        m.box(lha[0] - 0.9f, lha[1] - 1.6f, lha[2] - 0.8f, lha[0] + 0.9f, lha[1] + 0.2f, lha[2] + 0.8f, woodDark);
-        // right arm holding the bat
-        float[] dir = batDirection(d, victimHeight);
-        float[] sh = {4.8f, 33, 0};
+        float[] lsh = {-5.0f, 35, 0}, lel = {-6.8f, 27, -0.3f + sway * 0.3f}, lha = {-6.6f, 19, -0.8f + sway};
+        m.tube(List.of(lsh, lel, lha), new float[]{0.8f, 0.7f, 0.75f}, 10, TT, TT);
+        m.ball(lha[0], lha[1] - 0.6f, lha[2], 1.25f, TT_LIGHT);
+        // right arm holding the bat (same glossy colour, a big club); turned back so it still points at the victim
+        float[] dir0 = batDirection(d, victimHeight);
+        float ct = (float) Math.cos(BONKER_TURN), st = (float) Math.sin(BONKER_TURN);
+        float[] dir = {dir0[0] * ct + dir0[2] * st, dir0[1], -dir0[0] * st + dir0[2] * ct};
+        float[] sh = {5.0f, 35, 0};
         float[] el = {sh[0] + dir[0] * 5f + 1.2f, sh[1] + dir[1] * 5f - 1.5f, sh[2] + dir[2] * 5f};
         float[] hand = {sh[0] + dir[0] * 11f, sh[1] + dir[1] * 11f, sh[2] + dir[2] * 11f};
-        m.tube(List.of(sh, el, hand), new float[]{0.8f, 0.7f, 0.75f}, 8, wood, wood);
-        m.box(hand[0] - 1, hand[1] - 1, hand[2] - 1, hand[0] + 1, hand[1] + 1, hand[2] + 1, woodDark);
-        // the bat: light wood, knob, slim handle, long barrel
-        float[] knob = add(hand, dir, -1.4f), g1 = add(hand, dir, 3), t1 = add(hand, dir, 10), b1 = add(hand, dir, 17), tip = add(hand, dir, 23);
-        m.tube(List.of(knob, add(hand, dir, -0.8f)), new float[]{1.1f, 1.1f}, 8, 0xFFB98A55, 0xFFB98A55);
-        m.tube(List.of(add(hand, dir, -0.8f), g1, t1, b1, add(hand, dir, 21.5f), tip), new float[]{0.65f, 0.75f, 1.1f, 1.75f, 1.8f, 1.1f}, 10, 0xFFC99A64, 0xFFE8C48C);
+        m.tube(List.of(sh, el, hand), new float[]{0.8f, 0.7f, 0.75f}, 10, TT, TT);
+        m.ball(hand[0], hand[1], hand[2], 1.35f, TT_LIGHT);
+        float[] knob = add(hand, dir, -1.6f), g1 = add(hand, dir, 3), t1 = add(hand, dir, 10), b1 = add(hand, dir, 17), tip = add(hand, dir, 24);
+        m.tube(List.of(knob, add(hand, dir, -0.8f)), new float[]{1.2f, 1.2f}, 10, TT_DARK, TT_DARK);
+        m.tube(List.of(add(hand, dir, -0.8f), g1, t1, b1, add(hand, dir, 22), tip), new float[]{0.7f, 0.85f, 1.4f, 2.2f, 2.3f, 1.4f}, 12, TT, TT_LIGHT);
+        float[] s0 = add(add(hand, dir, 8), new float[]{-0.6f, 0.4f, -0.6f}, 1), s1 = add(add(hand, dir, 20), new float[]{-0.6f, 0.4f, -0.6f}, 1.6f);
+        m.line(s0, s1, 0.25f, TT_SHINE);                                                     // shine along the bat
+    }
+    /** the top part of an eye covered by a lid: everything above `cut` (0 = middle, 1 = top) */
+    private static void lidCap(CosmeticsFeature.Mesh m, float cx, float cy, float z, float r, float lid, int col) {
+        float yCut = cy + r * (1 - 2 * lid);
+        int n = 18;
+        for (int i = 0; i < n; i++) {
+            double a0 = i * Math.PI / n, a1 = (i + 1) * Math.PI / n;
+            float x0 = cx + (float) Math.cos(a0) * r, y0 = cy + (float) Math.sin(a0) * r, x1 = cx + (float) Math.cos(a1) * r, y1 = cy + (float) Math.sin(a1) * r;
+            if (y0 < yCut && y1 < yCut) continue;
+            m.quad(new float[]{x0, Math.max(y0, yCut), z}, new float[]{x1, Math.max(y1, yCut), z}, new float[]{x1, yCut, z}, new float[]{x0, yCut, z}, col);
+        }
+    }
+    /** the glowing magic circle under his feet */
+    private static void bonkerRing(CosmeticsFeature.Mesh m, float d) {
+        float a = Math.min(1, d / 3f) * (d > 17 ? Math.max(0, (20 - d) / 3f) : 1);
+        if (a <= 0) return;
+        int c = ((int) (a * 220) << 24) | 0xEAF6FF;
+        m.torus(0, 0.25f, 0, 11, 0.22f, 48, 4, 0, c);
+        m.torus(0, 0.25f, 0, 8.5f, 0.15f, 40, 4, 0, ((int) (a * 150) << 24) | 0xB8E0FF);
+        for (int i = 0; i < 12; i++) { // little runes turning around the circle
+            double ang = i * Math.PI / 6 + d * 0.12;
+            float x = (float) Math.cos(ang) * 9.8f, zz = (float) Math.sin(ang) * 9.8f;
+            m.box(x - 0.35f, 0.2f, zz - 0.35f, x + 0.35f, 0.32f, zz + 0.35f, c);
+        }
     }
     private static float[] add(float[] p, float[] d, float k) { return new float[]{p[0] + d[0] * k, p[1] + d[1] * k, p[2] + d[2] * k}; }
     /** a flat disc facing -z (for eyes) */

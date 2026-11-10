@@ -12,4 +12,7 @@ public interface TrollState {
     void orbit$setDeathStyle(int style);
     float orbit$deathPhi();
     void orbit$setDeathPhi(float phi);
+    /** Death Animations stand-in entity (draws the piano / bowling ball / saucer), 0 = none */
+    int orbit$stage();
+    void orbit$setStage(int key);
 }

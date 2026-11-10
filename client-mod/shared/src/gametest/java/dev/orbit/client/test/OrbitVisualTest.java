@@ -26,6 +26,7 @@ public class OrbitVisualTest implements FabricClientGameTest {
         if (cos != null) System.setProperty("orbit.cosmetics", cos);
         if ("cosmetics".equals(System.getenv("ORBIT_TEST_ONLY"))) { cosmeticsOnly(ctx); return; }
         if ("menuscale".equals(System.getenv("ORBIT_TEST_ONLY"))) { menuScaleOnly(ctx); return; }
+        if ("death".equals(System.getenv("ORBIT_TEST_ONLY"))) { deathOnly(ctx); return; }
 
         ctx.waitTicks(16);
         ctx.takeScreenshot("00-intro-a");
@@ -479,6 +480,31 @@ public class OrbitVisualTest implements FabricClientGameTest {
             ctx.takeScreenshot("13-hud-editor");
             ctx.setScreen(() -> null);
             OrbitTitleScreen.allowVanillaOnce = true; // the harness requires ending on vanilla's title screen
+        }
+    }
+
+    /** quick run (ORBIT_TEST_ONLY=death): the cartoon death animations on zombies, several frames each */
+    private static void deathOnly(ClientGameTestContext ctx) {
+        ctx.waitTicks(40);
+        try (TestSingleplayerContext sp = ctx.worldBuilder().create()) {
+            sp.getClientWorld().waitForChunksRender();
+            sp.getServer().runCommand("time set 1000");
+            sp.getServer().runCommand("weather clear");
+            ctx.runOnClient(c -> { OrbitClient.modules().get("deathanim").setEnabled(true); c.player.setPitch(8); });
+            ctx.waitTicks(10);
+            String[] styles = {"Piano Drop", "Bowling Strike", "UFO Abduction", "Tung Tung Bonk"};
+            int[][] shots = {{5, 9, 12, 22, 34}, {4, 8, 11, 16, 26}, {3, 8, 13, 18, 26}, {3, 8, 12, 14, 17}};
+            for (int i = 0; i < styles.length; i++) {
+                String st = styles[i];
+                ctx.runOnClient(c -> ((NewModules.DeathAnimationsModule) OrbitClient.modules().get("deathanim")).style.set(st));
+                sp.getServer().runCommand("execute as @p at @s run summon minecraft:zombie ^ ^ ^3.5 {NoAI:1b,Tags:[\"victim\"],equipment:{head:{id:\"minecraft:leather_helmet\",count:1}}}");
+                ctx.waitTicks(8);
+                sp.getServer().runCommand("kill @e[type=minecraft:zombie,tag=victim]");
+                int last = 0;
+                for (int k : shots[i]) { ctx.waitTicks(k - last); last = k; ctx.takeScreenshot("d-" + i + "-" + st.replace(" ", "") + "-t" + k); }
+                ctx.waitTicks(40);
+            }
+            OrbitTitleScreen.allowVanillaOnce = true;
         }
     }
 

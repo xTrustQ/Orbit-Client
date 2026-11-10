@@ -3515,7 +3515,7 @@
  {
   "id": "deathanim",
   "name": "Death Animations",
-  "desc": "Cool custom deaths: souls rising, black holes, lightning, fireworks, shattering ice — only you see them",
+  "desc": "Cool custom deaths: a piano drops, a bowling strike, a UFO abduction, Tung Tung, black holes and more — only you see them",
   "category": "RENDER",
   "on": false,
   "toggle": true,

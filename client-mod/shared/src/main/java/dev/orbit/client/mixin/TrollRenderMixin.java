@@ -25,6 +25,7 @@ public abstract class TrollRenderMixin {
     @WrapMethod(method = "getAndUpdateRenderState")
     private EntityRenderState orbit$troll(Entity entity, float tickProgress, Operation<EntityRenderState> original) {
         EntityRenderState s = orbit$state(entity, tickProgress, original);
+        ((TrollState) s).orbit$setStage(DeathAnimations.stageKey(entity));
         if (entity instanceof LivingEntity l && l.deathTime > 0) { ((TrollState) s).orbit$setDeathStyle(DeathAnimations.styleFor(entity)); ((TrollState) s).orbit$setDeathPhi(DeathAnimations.phiFor(entity)); }
         return s;
     }
@@ -91,6 +92,10 @@ public abstract class TrollRenderMixin {
                                     OrderedRenderCommandQueue queue, Operation<Void> original) {
         TrollState ts = (TrollState) state;
         if (ts.orbit$hidden()) return; // hidden: draw nothing at all (no body, items, shadow or name tag)
+        if (ts.orbit$stage() != 0) { // Death Animations prop stand-in: only the prop, never the armor stand itself
+            DeathAnimations.renderStage(ts.orbit$stage(), matrices, queue, camera, x, y, z, state.light, state.squaredDistanceToCamera);
+            return;
+        }
         if (DeathAnimations.isBonk(ts.orbit$deathStyle()) && state instanceof net.minecraft.client.render.entity.state.LivingEntityRenderState ls)
             dev.orbit.client.cosmetics.Props.renderBonker(matrices, queue, camera, x, y, z, state.light, ls.deathTime, ts.orbit$deathPhi(), state.height, state.squaredDistanceToCamera);
         dev.orbit.client.cosmetics.Props.renderHitbox(matrices, queue, state, x, y, z); // Hitboxes module

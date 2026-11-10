@@ -19,4 +19,7 @@ public abstract class EntityRenderStateMixin implements TrollState {
     @Unique private float orbit$deathPhi;
     @Override public float orbit$deathPhi() { return orbit$deathPhi; }
     @Override public void orbit$setDeathPhi(float phi) { orbit$deathPhi = phi; }
+    @Unique private int orbit$stage;
+    @Override public int orbit$stage() { return orbit$stage; }
+    @Override public void orbit$setStage(int key) { orbit$stage = key; }
 }
