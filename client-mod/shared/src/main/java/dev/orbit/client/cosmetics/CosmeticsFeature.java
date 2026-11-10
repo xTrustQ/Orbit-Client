@@ -111,6 +111,8 @@ public final class CosmeticsFeature extends FeatureRenderer<PlayerEntityRenderSt
             getContextModel().body.applyTransform(matrices);
             matrices.translate(at[0] / 16f, at[1] / 16f, at[2] / 16f);
             matrices.multiply(net.minecraft.util.math.RotationAxis.POSITIVE_Y.rotation(at[3]));
+            float size = Pets.flies(pet) ? 1.15f : 1.2f, breathe = Pets.flies(pet) ? 1 : 1 + 0.035f * (float) Math.sin(pt * 2.6f);
+            matrices.scale(size, size * breathe, size); // a bit bigger than before; shoulder pets breathe
             queue.submitCustom(matrices, lit, (e, vc) -> Pets.lit(new Mesh(e, vc, light), pet, pt));
             queue.submitCustom(matrices, glow, (e, vc) -> Pets.glow(new Mesh(e, vc, FULL_BRIGHT), pet, pt));
             matrices.pop();

@@ -139,7 +139,7 @@ public final class Props extends FeatureRenderer<PlayerEntityRenderState, Player
     }
 
     /** sport wheel: tyre, 5-spoke chrome rim, red brake caliper (axis X) */
-    private static void sportWheel(CosmeticsFeature.Mesh m, float cx, float cy, float cz, float r, float w, float spin, boolean left) {
+    private static void sportWheel(CosmeticsFeature.Mesh m, float cx, float cy, float cz, float r, float w, float spin, boolean left, int rim, int spokes) {
         int n = 16;
         for (int i = 0; i < n; i++) { // tyre tread
             double a0 = spin + i * Math.PI * 2 / n, a1 = spin + (i + 1) * Math.PI * 2 / n;
@@ -164,125 +164,136 @@ public final class Props extends FeatureRenderer<PlayerEntityRenderState, Player
         }
         float bx = face + (left ? 0.4f : -0.4f);
         m.box(bx - 0.25f, cy - r * 0.55f, cz + r * 0.1f, bx + 0.25f, cy - r * 0.15f, cz + r * 0.5f, CALIPER);
-        for (int k = 0; k < 5; k++) { // spokes
-            double a = spin + k * Math.PI * 2 / 5;
-            m.line(new float[]{rimX, cy, cz}, new float[]{rimX, cy + (float) Math.sin(a) * rr, cz + (float) Math.cos(a) * rr}, 0.55f, CHROME);
+        for (int k = 0; k < spokes; k++) { // spokes
+            double a = spin + k * Math.PI * 2 / spokes;
+            m.line(new float[]{rimX, cy, cz}, new float[]{rimX, cy + (float) Math.sin(a) * rr, cz + (float) Math.cos(a) * rr}, spokes > 6 ? 0.38f : 0.55f, rim);
         }
         for (int i = 0; i < n; i++) { // rim lip
             double a0 = i * Math.PI * 2 / n, a1 = (i + 1) * Math.PI * 2 / n;
-            m.line(new float[]{rimX, cy + (float) Math.sin(a0) * rr, cz + (float) Math.cos(a0) * rr}, new float[]{rimX, cy + (float) Math.sin(a1) * rr, cz + (float) Math.cos(a1) * rr}, 0.3f, CHROME);
+            m.line(new float[]{rimX, cy + (float) Math.sin(a0) * rr, cz + (float) Math.cos(a0) * rr}, new float[]{rimX, cy + (float) Math.sin(a1) * rr, cz + (float) Math.cos(a1) * rr}, 0.3f, rim);
         }
         m.box(rimX - 0.2f, cy - 0.7f, cz - 0.7f, rimX + 0.2f, cy + 0.7f, cz + 0.7f, 0xFF9AA0AC); // hub
     }
 
+    // Joyride car: a big black luxury saloon (two-tone: black on top, grey lower sides), glass cabin over the driver.
+    // Driver at x = 0, body centre x = 6, 33 px wide, 80 px long (nose z = -47, tail z = 33), belt line y ~ 9.8.
+    private static final int GREY = 0xFF7E828A, GREY_DARK = 0xFF5E6168, TINT = 0x5E3C4E5E, PILLAR = 0xFF0C0C0F;
+    private static final float WHEEL_R = 6.3f, WHEEL_Y = 17.7f;
+
     private static void carLit(CosmeticsFeature.Mesh m, float t) {
-        // driver at x = 0; body centre x = 6, 32 px wide, 70 px long (nose z = -44, tail z = 26)
         float[][] body = {
-                {-44, 6, 12.5f, 18.2f, 21.2f},
-                {-40, 6, 15f, 16.6f, 21.6f},
-                {-30, 6, 16f, 15.2f, 21.8f},
-                {-18, 6, 16.2f, 14.2f, 21.8f},
-                {-11, 6, 16.4f, 13.8f, 21.8f},
-                {0, 6, 16.6f, 13.6f, 21.8f},
-                {11, 6, 16.6f, 13.4f, 21.8f},
-                {19, 6, 16.4f, 13.2f, 21.6f},
-                {24, 6, 15.4f, 13.8f, 21.2f},
-                {27, 6, 13.5f, 15.4f, 20.6f}};
-        hull(m, body, -11, 11);
-        float spin = carSpin(t);
-        for (float wz : new float[]{-29, 14}) { sportWheel(m, -11.2f, 18.6f, wz, 5.6f, 3.8f, spin, true); sportWheel(m, 23.2f, 18.6f, wz, 5.6f, 3.8f, spin, false); }
-        // wheel arches (dark lips around the wheels)
-        for (float wz : new float[]{-29, 14}) for (float ax : new float[]{-10.1f, 22.1f}) {
-            for (int i = 0; i <= 8; i++) {
-                double a0 = Math.PI + i * Math.PI / 9, a1 = Math.PI + (i + 1) * Math.PI / 9;
-                m.line(new float[]{ax, 18.6f + (float) Math.sin(a0) * 6.6f, wz + (float) Math.cos(a0) * 6.6f}, new float[]{ax, 18.6f + (float) Math.sin(a1) * 6.6f, wz + (float) Math.cos(a1) * 6.6f}, 0.45f, TRIM);
+                {-47, 6, 13.2f, 11.8f, 21.0f},
+                {-45, 6, 15.6f, 11.2f, 21.6f},
+                {-38, 6, 16.3f, 10.7f, 21.8f},
+                {-26, 6, 16.5f, 10.2f, 21.8f},
+                {-15, 6, 16.6f, 9.8f, 21.8f},
+                {0, 6, 16.7f, 9.6f, 21.8f},
+                {14, 6, 16.7f, 9.6f, 21.8f},
+                {24, 6, 16.5f, 9.8f, 21.6f},
+                {30, 6, 15.8f, 10.2f, 21.2f},
+                {33, 6, 14.0f, 11.2f, 20.6f}};
+        hull(m, body, 99, 99); // closed body
+        // two-tone: grey lower sides with a thin chrome line on top
+        for (int i = 0; i < body.length - 1; i++) {
+            float[] a = body[i], b = body[i + 1];
+            for (int s = -1; s <= 1; s += 2) {
+                float xa = a[1] + s * (a[2] + 0.07f), xb = b[1] + s * (b[2] + 0.07f);
+                float ya = a[4] - 2.4f, yb = b[4] - 2.4f;
+                m.quad(new float[]{xa, 15.0f, a[0]}, new float[]{xb, 15.0f, b[0]}, new float[]{xb, yb, b[0]}, new float[]{xa, ya, a[0]}, i % 2 == 0 ? GREY : 0xFF80848C);
+                m.line(new float[]{xa + s * 0.02f, 15.0f, a[0]}, new float[]{xb + s * 0.02f, 15.0f, b[0]}, 0.12f, CHROME);
             }
         }
-        // cockpit: floor, seats with headrests, dashboard, steering wheel
-        m.box(-8, 19.4f, -11, 20, 19.9f, 11, 0xFF1D1D23);
+        // wheels: big, dark multi-spoke rims
+        for (float wz : new float[]{-32, 19}) {
+            sportWheel(m, -11.2f, WHEEL_Y, wz, WHEEL_R, 3.9f, carSpin(t), true, 0xFF4A4D55, 10);
+            sportWheel(m, 23.2f, WHEEL_Y, wz, WHEEL_R, 3.9f, carSpin(t), false, 0xFF4A4D55, 10);
+            for (float ax : new float[]{-10.75f, 22.75f}) for (int i = 0; i <= 8; i++) { // dark arch lips
+                double a0 = Math.PI + i * Math.PI / 9, a1 = Math.PI + (i + 1) * Math.PI / 9;
+                m.line(new float[]{ax, WHEEL_Y + (float) Math.sin(a0) * 7.2f, wz + (float) Math.cos(a0) * 7.2f}, new float[]{ax, WHEEL_Y + (float) Math.sin(a1) * 7.2f, wz + (float) Math.cos(a1) * 7.2f}, 0.4f, TRIM);
+            }
+        }
+        // interior seen through the glass: floor, seats, dashboard, wheel
+        m.box(-8, 19.6f, -14, 20, 20.1f, 22, 0xFF1D1D23);
         for (float sx : new float[]{0, 12}) {
-            m.box(sx - 4.6f, 16.6f, -5, sx + 4.6f, 18.6f, 4, 0xFF5A2E22);        // cushion (cognac leather)
-            m.box(sx - 4.6f, 8.4f, 3.4f, sx + 4.6f, 18.6f, 6.4f, 0xFF5A2E22);    // back
-            m.box(sx - 4.6f, 9, 3.2f, sx + 4.6f, 10, 3.5f, 0xFF1E5BD8);          // M stripes: light blue, dark blue, red
-            m.box(sx - 4.6f, 10, 3.2f, sx + 4.6f, 10.6f, 3.5f, 0xFF16206B);
-            m.box(sx - 4.6f, 10.6f, 3.2f, sx + 4.6f, 11.2f, 3.5f, 0xFFE0242F);
-            m.box(sx - 2.6f, 5.6f, 4.2f, sx + 2.6f, 8.4f, 6.2f, 0xFF5A2E22);    // headrest
+            m.box(sx - 4.4f, 17.6f, -5, sx + 4.4f, 19.6f, 4, 0xFF4A2A20);
+            m.box(sx - 4.4f, 6.4f, 3.4f, sx + 4.4f, 19.6f, 6.2f, 0xFF4A2A20);
+            m.box(sx - 2.5f, 3.4f, 4.0f, sx + 2.5f, 6.4f, 6.0f, 0xFF4A2A20);
         }
-        m.box(3.2f, 12.9f, -10.6f, 4.4f, 13.05f, -9.6f, 0xFF2A2A30);            // engine start button (right of the wheel)
-        m.box(-8, 13.2f, -12, 20, 15.6f, -7.5f, 0xFF202027);                    // dashboard
-        m.box(-1.2f, 13, -10.8f, 13.2f, 13.3f, -7.7f, 0xFF34343E);               // dash trim
-        float steer = 0; // parked
-        float[] u = {(float) Math.cos(steer), (float) Math.sin(steer) * 0.5f, 0}, v = {0, 0.75f, 0.66f};
-        ringIn(m, 0, 11.4f, -8.2f, u, v, 3.3f, 0.5f, 14, 0xFF141417);
-        m.line(new float[]{0, 11.4f, -8.2f}, new float[]{0, 14, -11}, 0.5f, 0xFF141417);
-        // windshield: glass + frame
-        float[] w0 = {-8.4f, 13.6f, -11.2f}, w1 = {20.4f, 13.6f, -11.2f}, w2 = {19.6f, 6.4f, -6.2f}, w3 = {-7.6f, 6.4f, -6.2f};
-        m.quad(w0, w1, w2, w3, GLASS);
-        m.line(w0, w3, 0.55f, TRIM); m.line(w1, w2, 0.55f, TRIM); m.line(w3, w2, 0.55f, TRIM);
-        // roll hoops behind the seats
-        for (float sx : new float[]{0, 12}) { m.line(new float[]{sx - 3.5f, 13.4f, 8.5f}, new float[]{sx - 2.5f, 6.5f, 9}, 0.5f, CHROME); m.line(new float[]{sx + 3.5f, 13.4f, 8.5f}, new float[]{sx + 2.5f, 6.5f, 9}, 0.5f, CHROME); m.line(new float[]{sx - 2.5f, 6.5f, 9}, new float[]{sx + 2.5f, 6.5f, 9}, 0.5f, CHROME); }
-        // front: the twin kidney grille (chrome surround, black slats), big lower intake, splitter
-        for (float kx : new float[]{3.3f, 8.7f}) { // the nose face runs from y 18.2 (top) to 21.2
-            m.box(kx - 2.3f, 17.7f, -44.75f, kx + 2.3f, 20.4f, -43.6f, CHROME);
-            m.box(kx - 1.9f, 18.0f, -44.85f, kx + 1.9f, 20.1f, -44.7f, 0xFF08080A);
-            for (int i = 0; i < 5; i++) m.box(kx - 1.75f + i * 0.85f, 18.05f, -44.95f, kx - 1.45f + i * 0.85f, 20.05f, -44.8f, 0xFF3A3A42);
+        m.box(-7.6f, 8.0f, 12, 19.6f, 19.6f, 16, 0xFF4A2A20);                    // rear bench
+        m.box(-8, 9.6f, -15, 20, 12.5f, -10.2f, 0xFF202027);                     // dashboard
+        m.box(3.2f, 9.4f, -11.4f, 4.4f, 9.55f, -10.4f, 0xFF2A2A30);              // start button
+        float[] u = {1, 0, 0}, v = {0, 0.75f, 0.66f};
+        ringIn(m, 0, 8.4f, -9.4f, u, v, 3.1f, 0.5f, 14, 0xFF141417);             // steering wheel
+        m.line(new float[]{0, 8.4f, -9.4f}, new float[]{0, 10.6f, -12}, 0.5f, 0xFF141417);
+        // the glass cabin: windscreen, roof, rear window, side windows with pillars
+        float bz0 = -15.5f, rz0 = -5.5f, rz1 = 8.5f, bz1 = 21f, belt = 9.7f, roof = -1.6f;
+        float xbL = -8.6f, xbR = 20.6f, xrL = -7.0f, xrR = 19.0f;               // tumblehome: narrower at the roof
+        m.quad(new float[]{xbL, belt, bz0}, new float[]{xbR, belt, bz0}, new float[]{xrR, roof, rz0}, new float[]{xrL, roof, rz0}, TINT);   // windscreen
+        m.quad(new float[]{xrL, roof, rz1}, new float[]{xrR, roof, rz1}, new float[]{xbR, belt, bz1}, new float[]{xbL, belt, bz1}, TINT);   // rear window
+        m.quad(new float[]{xrL, roof - 0.35f, rz0 - 0.3f}, new float[]{xrR, roof - 0.35f, rz0 - 0.3f}, new float[]{xrR, roof - 0.35f, rz1 + 0.3f}, new float[]{xrL, roof - 0.35f, rz1 + 0.3f}, PAINT); // roof
+        m.quad(new float[]{xrL, roof - 0.34f, rz0 - 0.3f}, new float[]{xrR, roof - 0.34f, rz0 - 0.3f}, new float[]{xrR, roof - 0.34f, rz1 + 0.3f}, new float[]{xrL, roof - 0.34f, rz1 + 0.3f}, PAINT_TOP);
+        for (int s = -1; s <= 1; s += 2) {
+            float xb = s < 0 ? xbL : xbR, xr = s < 0 ? xrL : xrR;
+            float[] A = {xb, belt, bz0}, B = {xr, roof, rz0}, C = {xr, roof, rz1}, D = {xb, belt, bz1};
+            m.quad(A, B, C, D, TINT);                                             // side glass
+            m.line(A, B, 0.55f, PILLAR); m.line(C, D, 1.1f, PILLAR);              // A and C pillars
+            m.line(new float[]{xb + (xr - xb) * 0.5f, belt, 3.2f}, new float[]{xr, roof, 3.2f}, 0.6f, PILLAR);   // B pillar
+            m.line(B, C, 0.25f, CHROME); m.line(A, D, 0.2f, CHROME);              // chrome window line
+            m.line(new float[]{xb, belt, bz1 - 3}, new float[]{xr + (xb - xr) * 0.35f, belt - 3.8f, bz1 - 4.2f}, 0.2f, CHROME); // kink at the back
+            // mirrors, door lines, handles
+            m.box(s < 0 ? -12.6f : 22.4f, 8.2f, -14.4f, s < 0 ? -10.4f : 24.6f, 9.9f, -12.2f, PAINT);
+            float sx = s < 0 ? -10.7f : 22.7f;
+            for (float dz : new float[]{-15.5f, 3.2f, 20.5f}) m.line(new float[]{sx, 10.4f, dz}, new float[]{sx, 19.2f, dz}, 0.1f, PILLAR);
+            for (float hz : new float[]{-3.5f, 14f}) m.box(sx - 0.15f, 11.6f, hz, sx + 0.15f, 12.1f, hz + 2.2f, CHROME);
         }
-        m.box(-5, 20.5f, -44.25f, 17, 21.1f, -43.9f, TRIM);                    // lower intake
-        for (int i = 0; i < 6; i++) if (i != 2 && i != 3) m.box(-4.5f + i * 3.6f, 18.4f, -44.4f, -3.9f + i * 3.6f, 20.3f, -44.2f, 0xFF2C2C33);
-        m.box(-7, 21.2f, -45.2f, 19, 21.7f, -41, TRIM);
-        // round badge at the front of the bonnet (plain colours — no real logo)
-        m.box(5.0f, 16.35f, -40.6f, 7.0f, 16.5f, -38.8f, CHROME);
-        m.box(5.3f, 16.25f, -40.3f, 6.0f, 16.38f, -39.7f, 0xFF2E86E6); m.box(6.0f, 16.25f, -39.7f, 6.7f, 16.38f, -39.1f, 0xFF2E86E6);
-        m.box(6.0f, 16.25f, -40.3f, 6.7f, 16.38f, -39.7f, 0xFFF2F2F2); m.box(5.3f, 16.25f, -39.7f, 6.0f, 16.38f, -39.1f, 0xFFF2F2F2);
-        // hood vents + centre crease
-        for (float hx : new float[]{1.5f, 10.5f}) m.box(hx - 1.6f, 14.6f, -32, hx + 1.6f, 14.75f, -24, TRIM);
-        m.line(new float[]{6, 14.3f, -40}, new float[]{6, 13.85f, -12}, 0.18f, PAINT_TOP);
-        // side: door line, side intake, mirrors
-        for (float sx : new float[]{-10.05f, 22.05f}) {
-            m.line(new float[]{sx, 14.4f, -10}, new float[]{sx, 20.4f, -10}, 0.15f, PAINT_LOW);
-            m.line(new float[]{sx, 14.2f, 9}, new float[]{sx, 20.4f, 9}, 0.15f, PAINT_LOW);
-            m.box(sx - 0.15f, 16.8f, 10, sx + 0.15f, 19.2f, 13, TRIM);
+        // nose: the big kidney grille (chrome frame, black vertical slats), split headlight housings, lower intakes
+        for (float kx : new float[]{3.0f, 9.0f}) {
+            m.box(kx - 2.75f, 12.2f, -47.55f, kx + 2.75f, 20.4f, -46.7f, CHROME);
+            m.box(kx - 2.35f, 12.6f, -47.65f, kx + 2.35f, 20.0f, -47.5f, 0xFF060607);
+            for (int i = 0; i < 7; i++) m.box(kx - 2.2f + i * 0.72f, 12.7f, -47.8f, kx - 1.95f + i * 0.72f, 19.9f, -47.6f, 0xFF35363D);
         }
-        m.box(-12.4f, 11.6f, -9.6f, -10, 13.2f, -7.4f, PAINT); m.box(22, 11.6f, -9.6f, 24.4f, 13.2f, -7.4f, PAINT);
-        // rear: ducktail spoiler, diffuser with fins, quad exhausts
-        m.quad(new float[]{-7, 13.2f, 23.5f}, new float[]{19, 13.2f, 23.5f}, new float[]{19, 12.2f, 27.4f}, new float[]{-7, 12.2f, 27.4f}, PAINT_TOP);
-        m.box(-5, 19.8f, 26.4f, 17, 21.2f, 27.6f, TRIM);
-        for (int i = 0; i < 5; i++) m.box(-3 + i * 4.5f, 20.2f, 27.6f, -2.6f + i * 4.5f, 21.2f, 29, 0xFF26262C);
-        for (float ex : new float[]{-3.4f, -0.6f, 12.6f, 15.4f}) m.cylinder(ex, 27.8f, 19.1f, 19.1f + 0.01f, 1.05f, 1.05f, 8, CHROME, CHROME, false);
-        for (float ex : new float[]{-3.4f, -0.6f, 12.6f, 15.4f}) m.box(ex - 1, 18.3f, 26.8f, ex + 1, 20f, 28.6f, CHROME);
+        for (int s = -1; s <= 1; s += 2) {
+            float x0 = s < 0 ? -6.4f : 12.8f, x1 = s < 0 ? -0.6f : 18.6f;
+            m.box(x0, 12.3f, -47.35f, x1, 13.2f, -46.9f, 0xFF15161A);              // slim upper light strip housing
+            m.box(x0 + 0.6f, 15.3f, -47.35f, x1 - 0.6f, 17.6f, -46.9f, 0xFF101114); // main lamp housing below
+        }
+        m.box(-5.5f, 20.5f, -47.3f, 17.5f, 21.3f, -46.8f, TRIM);                  // lower intake
+        m.box(-7.5f, 21.3f, -48.0f, 19.5f, 21.7f, -44.0f, GREY_DARK);             // grey splitter
+        m.line(new float[]{2, 11.7f, -44}, new float[]{2, 10.3f, -18}, 0.15f, PAINT_TOP);   // bonnet creases
+        m.line(new float[]{10, 11.7f, -44}, new float[]{10, 10.3f, -18}, 0.15f, PAINT_TOP);
+        // tail: dark light-bar housing across the boot, chrome strip, grey diffuser
+        m.box(-6.5f, 12.4f, 33.0f, 18.5f, 13.6f, 33.35f, 0xFF2A0A0E);
+        m.box(-4f, 17.6f, 33.2f, 16f, 17.9f, 33.4f, CHROME);
+        m.box(-6f, 19.6f, 32.4f, 18f, 20.8f, 33.4f, GREY_DARK);
     }
     private static void carGlow(CosmeticsFeature.Mesh m, float t) {
-        float press = t >= START_PRESS && t < ENGINE_ON ? 1 : 0;
-        m.box(3.35f, 12.85f, -10.45f, 4.25f, 12.9f, -9.75f, press > 0 || engineOn(t) ? 0xFFFF3B3B : 0x60FF3B3B); // start button lights up
-        if (t < START_PRESS) return; // everything else is dark until you press start
-        // the lights wake up: dashboard first, headlights when the engine catches
+        boolean pressed = t >= START_PRESS;
+        m.box(3.35f, 9.35f, -11.25f, 4.25f, 9.4f, -10.55f, pressed ? 0xFFFF3B3B : 0x60FF3B3B);
+        if (!pressed) return;
         float wake = Math.min(1, (t - START_PRESS) / 0.5f);
         int dashA = (int) (255 * wake) << 24;
-        m.box(-3, 13.05f, -10.9f, 3, 13.15f, -8.6f, dashA | 0x59D2FF);
-        m.box(7, 13.05f, -10.9f, 12, 13.15f, -8.6f, dashA | 0xFF9A3C);
+        m.box(-3, 9.5f, -12.4f, 3, 9.6f, -10.3f, dashA | 0x59D2FF);              // driver display
+        m.box(6, 9.5f, -12.4f, 12, 9.6f, -10.3f, dashA | 0x8FB8FF);              // centre screen
         if (t < CRANK_FROM) return;
-        // "angel eye" headlights: two glowing rings per side, plus the light inside
-        float on = engineOn(t) ? 1 : 0.35f + 0.25f * (float) Math.abs(Math.sin(t * 30)); // flicker while cranking
-        int ring = ((int) (255 * on) << 24) | 0xEAF4FF;
-        float[] u = {1, 0, 0}, v = {0, -0.37f, 0.93f}; // lying on the sloped front of the bonnet
-        for (float rx : new float[]{-5.9f, -2.6f, 14.6f, 17.9f}) {
-            ringIn(m, rx, 17.35f, -42.5f, u, v, 1.25f, 0.22f, 12, ring);
-            m.box(rx - 0.45f, 17.2f, -42.8f, rx + 0.45f, 17.45f, -42.2f, ring);
+        float on = engineOn(t) ? 1 : 0.3f + 0.3f * (float) Math.abs(Math.sin(t * 30)); // flicker while cranking
+        int white = ((int) (255 * on) << 24) | 0xF2F7FF;
+        // slim daytime-running strip on top, main lamps below
+        for (int s = -1; s <= 1; s += 2) {
+            float x0 = s < 0 ? -6.2f : 13.0f, x1 = s < 0 ? -0.8f : 18.4f;
+            m.box(x0, 12.5f, -47.5f, x1, 13.0f, -47.35f, white);
+            for (int k = 0; k < 3; k++) { float cx = x0 + 1.4f + k * 1.5f; m.box(cx - 0.45f, 16.0f, -47.5f, cx + 0.45f, 16.9f, -47.35f, ((int) (220 * on) << 24) | 0xDDEBFF); }
         }
         if (!engineOn(t)) return;
-        // L-shaped LED tail lights
-        for (float sx : new float[]{-1, 1}) {
-            float x0 = sx < 0 ? -8 : 13, x1 = sx < 0 ? -1 : 20;
-            m.box(x0, 14.8f, 27.05f, x1, 15.6f, 27.35f, 0xFFFF2236);
-            float xv = sx < 0 ? -8 : 19.2f;
-            m.box(xv, 14.8f, 26.4f, xv + 0.8f, 17.2f, 27.35f, 0xFFFF2236);
+        // the grille outline lights up
+        int glow = 0xFFE8F2FF;
+        for (float kx : new float[]{3.0f, 9.0f}) {
+            float x0 = kx - 2.8f, x1 = kx + 2.8f, y0 = 12.15f, y1 = 20.45f, z = -47.62f;
+            m.line(new float[]{x0, y0, z}, new float[]{x1, y0, z}, 0.13f, glow); m.line(new float[]{x0, y1, z}, new float[]{x1, y1, z}, 0.13f, glow);
+            m.line(new float[]{x0, y0, z}, new float[]{x0, y1, z}, 0.13f, glow); m.line(new float[]{x1, y0, z}, new float[]{x1, y1, z}, 0.13f, glow);
         }
-        // exhaust flames now and then (pops on the throttle)
-        if ((t % 2.6f) > 2.2f) for (float ex : new float[]{-3.4f, -0.6f, 12.6f, 15.4f}) {
-            float len = 3 + (float) Math.sin(t * 40 + ex) * 1.2f;
-            m.tri(new float[]{ex - 0.8f, 19.1f, 28.7f}, new float[]{ex + 0.8f, 19.1f, 28.7f}, new float[]{ex, 19.1f, 28.7f + len}, 0xFFFF8A2B);
-            m.tri(new float[]{ex, 18.3f, 28.7f}, new float[]{ex, 19.9f, 28.7f}, new float[]{ex, 19.1f, 28.7f + len}, 0xFF5BB8FF);
-        }
+        // thin red light bar across the tail
+        m.box(-6.2f, 12.7f, 33.36f, 18.2f, 13.3f, 33.5f, 0xFFFF2236);
+        m.box(-7.6f, 12.5f, 31.8f, -6.2f, 14.6f, 33.5f, 0xFFFF2236); m.box(18.2f, 12.5f, 31.8f, 19.6f, 14.6f, 33.5f, 0xFFFF2236);
     }
 
     // ================================================================== Money Flex: cash stack, bill fan, money rain, gold chain
@@ -510,12 +521,10 @@ public final class Props extends FeatureRenderer<PlayerEntityRenderState, Player
                         mc.world.playSoundClient(x, y, z, SoundEvents.ENTITY_BLAZE_SHOOT, SoundCategory.PLAYERS, 0.35f, 0.5f, false);
                     }
                     if (tick > on && (tick - on) % 36 == 4) mc.world.playSoundClient(x, y, z, SoundEvents.ENTITY_MINECART_RIDING, SoundCategory.PLAYERS, 0.35f, 0.5f, false); // idle rumble
-                    boolean backfire = engineOn(t) && (int) ((t % 2.6f) * 20) == 44;
-                    if (backfire) mc.world.playSoundClient(x, y, z, SoundEvents.ITEM_FIRECHARGE_USE, SoundCategory.PLAYERS, 0.3f, 1.6f, false);
-                    // exhaust smoke from the two pipe pairs at the back of the car (x 0 and 14 px to your left, 29 px behind)
+                    // exhaust smoke under the back of the car (x 0 and 12 px to your left, 34 px behind)
                     double lx = Math.cos(yawRad), lz = Math.sin(yawRad);
-                    for (double side : new double[]{-2 / 16.0, 14 / 16.0}) {
-                        double ex = x + lx * side - fx * (29 / 16.0), ez = z + lz * side - fz * (29 / 16.0), ey = y + 0.3;
+                    for (double side : new double[]{0, 12 / 16.0}) {
+                        double ex = x + lx * side - fx * (34 / 16.0), ez = z + lz * side - fz * (34 / 16.0), ey = y + 0.2;
                         if (tick >= crank && tick < on && tick % 3 == 0) mc.world.addParticleClient(ParticleTypes.SMOKE, ex, ey, ez, -fx * 0.02, 0.01, -fz * 0.02);
                         if (tick >= on && tick < on + 8) mc.world.addParticleClient(ParticleTypes.LARGE_SMOKE, ex, ey, ez, -fx * 0.08, 0.02, -fz * 0.08);
                         else if (engineOn(t) && tick % 9 == 0) mc.world.addParticleClient(ParticleTypes.SMOKE, ex, ey, ez, -fx * 0.03, 0.005, -fz * 0.03);

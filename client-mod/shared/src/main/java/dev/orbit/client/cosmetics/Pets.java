@@ -17,9 +17,10 @@ final class Pets {
 
     /** where the pet is in body space: {x, y, z, yaw} */
     static float[] place(String pet, float t) {
-        if (!flies(pet)) {
+        if (!flies(pet)) { // sits on the shoulder and slowly turns to look around
             float hop = pet.equals("Frog") ? hop(t) : 0;
-            return new float[]{6.1f, -hop, 0.2f, 0};
+            float look = (float) (Math.sin(t * 0.35f) * 0.35f + Math.sin(t * 0.9f) * 0.08f);
+            return new float[]{6.3f, -hop, 0.2f, look};
         }
         float slow = pet.equals("Ghost") || pet.equals("Jellyfish") || pet.equals("UFO") ? 0.7f : 1f;
         float x = 10.5f + (float) Math.sin(t * 0.55f) * 1.4f;
@@ -77,7 +78,20 @@ final class Pets {
             if (shut) { m.box(x - size / 2, y0 + size * 0.45f, z - 0.06f, x + size / 2, y0 + size * 0.6f, z, 0xFF1A1A1A); continue; }
             m.box(x - size / 2, y0, z - 0.05f, x + size / 2, y0 + size, z, iris);
             if (pupil != 0) m.box(x - size * 0.22f, y0 + size * 0.15f, z - 0.09f, x + size * 0.22f, y0 + size * 0.85f, z - 0.04f, pupil);
+            sparkle(m, x - size * 0.18f, y0 + size * 0.12f, z - 0.12f, size * 0.32f);
         }
+    }
+    /** the little white shine that makes eyes look alive */
+    private static void sparkle(Mesh m, float x, float y, float z, float s) { m.box(x - s / 2, y, z - 0.03f, x + s / 2, y + s, z, 0xFFFFFFFF); }
+    /** soft pink cheeks */
+    private static void blush(Mesh m, float dx, float y, float z, float w) {
+        for (int s = -1; s <= 1; s += 2) m.box(s * dx - w / 2, y, z - 0.07f, s * dx + w / 2, y + w * 0.45f, z - 0.02f, 0x99FF8FA8);
+    }
+    /** a paw seen from the front with pale toe beans */
+    private static void paw(Mesh m, float x0, float x1, float z, int fur, int bean) {
+        m.box(x0, -1.3f, z - 0.9f, x1, 0, z, fur);
+        float w = (x1 - x0) / 3;
+        for (int k = 0; k < 3; k++) m.box(x0 + k * w + w * 0.2f, -0.35f, z - 0.98f, x0 + (k + 1) * w - w * 0.2f, -0.12f, z - 0.88f, bean);
     }
     /** a flapping wing (box) on one side: pivot at the body's edge, sweeping up and down around Z */
     private static void wing(Mesh m, int side, float px, float py, float pz, float angle, float len, float h, float z0, float z1, int col) {
@@ -91,9 +105,14 @@ final class Pets {
     private static void cat(Mesh m, float t, int fur, int light, int dark, int eye, boolean fox) {
         m.box(-1.4f, -3.2f, -0.6f, 1.4f, 0, 2.2f, fur);                       // body (sitting)
         m.box(-0.9f, -2.8f, -0.75f, 0.9f, -0.4f, -0.55f, light);             // chest
-        m.box(-1.2f, -1.3f, -1.3f, -0.35f, 0, -0.4f, fur); m.box(0.35f, -1.3f, -1.3f, 1.2f, 0, -0.4f, fur); // front paws
-        m.box(-1.2f, -0.35f, -1.35f, -0.35f, 0, -1.25f, light); m.box(0.35f, -0.35f, -1.35f, 1.2f, 0, -1.25f, light);
+        for (int k = 0; k < 3; k++) m.box(-1.45f, -2.9f + k * 0.9f, 0.4f + k * 0.4f, 1.45f, -2.55f + k * 0.9f, 1.0f + k * 0.4f, dark); // back stripes
+        m.box(-1.6f, -1.6f, 0.4f, -1.4f, -0.2f, 2.0f, fur); m.box(1.4f, -1.6f, 0.4f, 1.6f, -0.2f, 2.0f, fur);                          // haunches
+        paw(m, -1.2f, -0.35f, -0.4f, fur, 0xFFFFB3C2); paw(m, 0.35f, 1.2f, -0.4f, fur, 0xFFFFB3C2);                                 // front paws
         float tilt = (float) Math.sin(t * 0.7f) * 0.12f;
+        m.boxR(0, -3.0f, 0, 0, 0, tilt, -1.0f, -1.6f, -1.97f, -0.4f, -1.3f, -1.9f, 0x99FF8FA8);   // blush
+        m.boxR(0, -3.0f, 0, 0, 0, tilt, 0.4f, -1.6f, -1.97f, 1.0f, -1.3f, -1.9f, 0x99FF8FA8);
+        for (int s = -1; s <= 1; s += 2) for (int k = 0; k < 2; k++)                         // whiskers
+            m.boxR(0, -3.0f, 0, 0, 0, tilt, s > 0 ? 0.8f : -2.6f, -0.9f + k * 0.35f, -2.0f, s > 0 ? 2.6f : -0.8f, -0.82f + k * 0.35f, -1.96f, 0xFFF4F0EA);
         m.boxR(0, -3.0f, 0, 0, 0, tilt, -1.8f, -3.0f, -1.9f, 1.8f, 0, 0.9f, fur);   // head
         m.boxR(0, -3.0f, 0, 0, 0, tilt, -0.8f, -1.2f, -2.2f, 0.8f, -0.2f, -1.85f, light);  // muzzle
         m.boxR(0, -3.0f, 0, 0, 0, tilt, -0.25f, -1.3f, -2.3f, 0.25f, -0.95f, -2.15f, 0xFFFF8FA8); // nose
@@ -104,8 +123,9 @@ final class Pets {
             boolean shut = blink(t, 0);
             if (shut) m.boxR(0, -3.0f, 0, 0, 0, tilt, s * 0.9f - 0.35f, -1.9f, -1.97f, s * 0.9f + 0.35f, -1.75f, -1.9f, 0xFF1A1A1A);
             else {
-                m.boxR(0, -3.0f, 0, 0, 0, tilt, s * 0.9f - 0.35f, -2.2f, -1.96f, s * 0.9f + 0.35f, -1.5f, -1.9f, eye);
-                m.boxR(0, -3.0f, 0, 0, 0, tilt, s * 0.9f - 0.12f, -2.15f, -2.0f, s * 0.9f + 0.12f, -1.55f, -1.95f, 0xFF141414);
+                m.boxR(0, -3.0f, 0, 0, 0, tilt, s * 0.9f - 0.4f, -2.3f, -1.96f, s * 0.9f + 0.4f, -1.45f, -1.9f, eye);
+                m.boxR(0, -3.0f, 0, 0, 0, tilt, s * 0.9f - 0.13f, -2.25f, -2.0f, s * 0.9f + 0.13f, -1.5f, -1.95f, 0xFF141414);
+                m.boxR(0, -3.0f, 0, 0, 0, tilt, s * 0.9f - 0.35f, -2.25f, -2.04f, s * 0.9f - 0.12f, -2.0f, -1.99f, 0xFFFFFFFF); // shine
             }
         }
         float sway = (float) Math.sin(t * 1.8f) * 0.9f;
@@ -125,7 +145,8 @@ final class Pets {
             m.box(s > 0 ? 0.6f : -1.8f, -7.2f, -0.5f, s > 0 ? 1.8f : -0.6f, -6.0f, 0.3f, fur);
             m.box(s > 0 ? 0.85f : -1.55f, -7.8f, -0.4f, s > 0 ? 1.55f : -0.85f, -7.2f, 0.2f, black);
         }
-        eyes(m, 0.95f, -5.2f, -1.72f, 0.6f, 0xFF1A1A1A, 0, t);
+        eyes(m, 0.95f, -5.3f, -1.72f, 0.7f, 0xFF3A2410, 0xFF141414, t);
+        m.box(-1.3f, -1.1f, -1.35f, -0.4f, 0, -0.45f, 0xFF2A1E18); m.box(0.4f, -1.1f, -1.35f, 1.3f, 0, -0.45f, 0xFF2A1E18); // dark socks
         float sway = (float) Math.sin(t * 1.5f) * 1.1f;
         tail(m, new float[][]{{0, -0.6f, 2.2f}, {0.5f, -0.8f, 3.8f}, {sway, -1.6f, 5.0f}, {sway * 1.2f, -2.8f, 5.6f}, {sway * 1.3f, -3.6f, 5.5f}},
                 new float[]{0.6f, 1.05f, 1.15f, 0.9f, 0.15f}, fur, white);
@@ -147,8 +168,14 @@ final class Pets {
             m.boxR(s * 1.8f, -5.8f, -0.4f, 0, 0, s * flop, s > 0 ? 0 : -0.45f, 0, -0.65f, s > 0 ? 0.45f : 0, 2.8f, 0.65f, dark);
             boolean shut = blink(t, 1.3f);
             if (shut) m.boxR(0, -3.0f, 0, 0, 0, tilt, s * 0.85f - 0.3f, -2.0f, -1.86f, s * 0.85f + 0.3f, -1.85f, -1.8f, 0xFF1A1A1A);
-            else m.boxR(0, -3.0f, 0, 0, 0, tilt, s * 0.85f - 0.3f, -2.3f, -1.86f, s * 0.85f + 0.3f, -1.6f, -1.8f, 0xFF1A1A1A);
+            else {
+                m.boxR(0, -3.0f, 0, 0, 0, tilt, s * 0.85f - 0.35f, -2.35f, -1.86f, s * 0.85f + 0.35f, -1.5f, -1.8f, 0xFF1A1A1A);
+                m.boxR(0, -3.0f, 0, 0, 0, tilt, s * 0.85f - 0.28f, -2.3f, -1.9f, s * 0.85f - 0.05f, -2.05f, -1.85f, 0xFFFFFFFF);
+            }
+            m.boxR(0, -3.0f, 0, 0, 0, tilt, s * 1.25f - 0.3f, -1.5f, -1.86f, s * 1.25f + 0.3f, -1.2f, -1.8f, 0x99FF8FA8);   // blush
         }
+        m.box(0.4f, -2.6f, 0.4f, 1.55f, -1.2f, 2.0f, dark);                  // a darker patch on the back
+        paw(m, -1.25f, -0.4f, -0.4f, light, 0xFF8A5A34); paw(m, 0.4f, 1.25f, -0.4f, light, 0xFF8A5A34);
         float wag = (float) Math.sin(t * 9) * 0.9f;
         tail(m, new float[][]{{0, -1.0f, 2.3f}, {wag * 0.5f, -1.9f, 3.1f}, {wag, -2.9f, 3.4f}}, new float[]{0.45f, 0.4f, 0.25f}, fur, dark);
     }
@@ -160,7 +187,9 @@ final class Pets {
         m.box(-1.45f, -5.2f, -1.6f, 1.45f, -2.6f, 0.8f, fur);
         float twitch = (float) Math.sin(t * 14) * 0.04f;
         m.box(-0.3f, -3.8f + twitch, -1.75f, 0.3f, -3.4f + twitch, -1.6f, pink);
-        eyes(m, 0.8f, -4.5f, -1.62f, 0.55f, 0xFF1A1A1A, 0, t);
+        eyes(m, 0.8f, -4.6f, -1.62f, 0.65f, 0xFF1A1A1A, 0, t);
+        blush(m, 1.0f, -3.7f, -1.6f, 0.6f);
+        m.box(-0.9f, -2.4f, -0.75f, 0.9f, -0.5f, -0.55f, 0xFFFFFFFF);         // fluffy chest
         for (int s = -1; s <= 1; s += 2) {
             float lean = s * 0.18f + (float) Math.sin(t * 1.3f + s) * 0.08f;
             m.boxR(s * 0.75f, -5.2f, -0.3f, 0, 0, lean, -0.45f, -4.2f, -0.25f, 0.45f, 0, 0.3f, fur);
@@ -180,7 +209,11 @@ final class Pets {
         for (int s = -1; s <= 1; s += 2) {
             m.boxR(0, -3.0f, 0, nod, 0, 0, s > 0 ? 0.9f : -1.9f, -4.0f, -0.5f, s > 0 ? 1.9f : -0.9f, -3.1f, 0.4f, black);   // ears
             m.boxR(0, -3.0f, 0, nod, 0, 0, s > 0 ? 0.35f : -1.45f, -2.3f, -1.96f, s > 0 ? 1.45f : -0.35f, -1.3f, -1.9f, black); // eye patches
-            if (!blink(t, 2)) m.boxR(0, -3.0f, 0, nod, 0, 0, s * 0.85f - 0.15f, -2.0f, -2.0f, s * 0.85f + 0.15f, -1.6f, -1.95f, 0xFFFFFFFF);
+            if (!blink(t, 2)) {
+                m.boxR(0, -3.0f, 0, nod, 0, 0, s * 0.85f - 0.28f, -2.1f, -1.98f, s * 0.85f + 0.28f, -1.5f, -1.93f, 0xFF2A2A30);
+                m.boxR(0, -3.0f, 0, nod, 0, 0, s * 0.85f - 0.22f, -2.05f, -2.02f, s * 0.85f - 0.02f, -1.85f, -1.97f, 0xFFFFFFFF);
+            }
+            m.boxR(0, -3.0f, 0, nod, 0, 0, s * 1.5f - 0.3f, -1.2f, -1.98f, s * 1.5f + 0.3f, -0.95f, -1.92f, 0x99FF8FA8);
         }
     }
 
@@ -220,7 +253,8 @@ final class Pets {
         m.box(-0.9f, -0.3f, -0.6f, 0.9f, 0.02f, 2.3f, belly);
         m.box(-1.7f, -3.1f, -2.4f, 1.7f, -0.5f, -0.4f, pink);                  // head
         m.box(-0.7f, -1.3f, -2.47f, 0.7f, -1.15f, -2.4f, 0xFFB0507A);          // smile
-        eyes(m, 1.05f, -2.4f, -2.42f, 0.45f, 0xFF1A1A1A, 0, t);
+        eyes(m, 1.05f, -2.5f, -2.42f, 0.55f, 0xFF1A1A1A, 0, t);
+        blush(m, 1.3f, -1.75f, -2.4f, 0.45f);
         for (int s = -1; s <= 1; s += 2) for (int g = 0; g < 3; g++) {         // frilly gills
             float wave = (float) Math.sin(t * 3 + g + s) * 0.12f;
             m.boxR(s * 1.7f, -2.6f + g * 0.7f, -1.2f, 0, 0, s * (0.5f - g * 0.4f + wave), s > 0 ? 0 : -1.3f, -0.18f, -0.25f, s > 0 ? 1.3f : 0, 0.18f, 0.25f, gill);
@@ -237,7 +271,9 @@ final class Pets {
         float bob = (float) Math.sin(t * 2.6f) * 0.15f;
         m.box(-1.0f, -4.4f + bob, -1.6f, 1.0f, -2.2f + bob, 0.4f, yellow);
         m.box(-0.6f, -3.3f + bob, -2.4f, 0.6f, -2.8f + bob, -1.5f, orange);    // beak
-        eyes(m, 0.6f, -3.9f + bob, -1.62f, 0.4f, 0xFF1A1A1A, 0, t);
+        eyes(m, 0.6f, -4.0f + bob, -1.62f, 0.5f, 0xFF1A1A1A, 0, t);
+        blush(m, 0.8f, -3.25f + bob, -1.6f, 0.4f);
+        m.box(-0.2f, -4.9f + bob, -0.6f, 0.2f, -4.4f + bob, 0.2f, 0xFFFFE680);  // little tuft
         for (int s = -1; s <= 1; s += 2) {
             float flap = 0.1f + (float) Math.max(0, Math.sin(t * 5)) * 0.35f;
             m.boxR(s * 1.3f, -1.9f, 0.1f, 0, 0, s * flap, s > 0 ? 0 : -0.3f, 0, -0.8f, s > 0 ? 0.3f : 0, 1.5f, 1.2f, 0xFFF2C53A);
@@ -254,7 +290,8 @@ final class Pets {
         m.box(-0.4f, -2.0f, -2.2f, 0.4f, -1.5f, -1.9f, 0xFF3A3A40);
         for (int s = -1; s <= 1; s += 2) {
             m.box(s * 0.7f - 0.35f, -3.0f, -1.36f, s * 0.7f + 0.35f, -2.3f, -1.3f, 0xFFFFFFFF);
-            if (!blink(t, 0.5f)) m.box(s * 0.7f - 0.15f, -2.85f, -1.4f, s * 0.7f + 0.15f, -2.45f, -1.35f, 0xFF141414);
+            if (!blink(t, 0.5f)) { m.box(s * 0.7f - 0.17f, -2.88f, -1.4f, s * 0.7f + 0.17f, -2.42f, -1.35f, 0xFF141414); sparkle(m, s * 0.7f - 0.07f, -2.85f, -1.42f, 0.12f); }
+            m.box(s * 0.7f - 0.4f, -2.2f, -1.36f, s * 0.7f + 0.4f, -1.95f, -1.3f, 0xFFFFE07A);   // yellow cheek
             float a = 0.2f + (float) Math.sin(t * 14) * 0.75f;
             wing(m, s, 1.2f, -1.0f, 0.2f, a, 3.6f, 2.6f, -0.8f, 1.3f, blue);
             m.boxR(s * 1.2f, -1.0f, 0.2f, 0, 0, -s * a, s > 0 ? 2.4f : -3.6f, -0.18f, -0.7f, s > 0 ? 3.6f : -2.4f, 0.18f, 1.2f, yellow);
@@ -272,7 +309,7 @@ final class Pets {
         m.box(-0.15f, -0.15f, 2.1f, 0.15f, 0.15f, 2.7f, black);                // stinger
         for (int s = -1; s <= 1; s += 2) {
             m.box(s * 0.55f - 0.3f, -0.6f, -2.46f, s * 0.55f + 0.3f, 0.1f, -2.4f, 0xFFFFFFFF);
-            if (!blink(t, 0.2f)) m.box(s * 0.55f - 0.12f, -0.45f, -2.5f, s * 0.55f + 0.12f, -0.05f, -2.45f, 0xFF000000);
+            if (!blink(t, 0.2f)) { m.box(s * 0.55f - 0.14f, -0.48f, -2.5f, s * 0.55f + 0.14f, -0.02f, -2.45f, 0xFF000000); sparkle(m, s * 0.55f - 0.06f, -0.45f, -2.52f, 0.1f); }
             m.line(new float[]{s * 0.4f, -1.0f, -2.2f}, new float[]{s * 0.9f, -2.3f, -2.9f}, 0.1f, black);   // antennae
             for (int k = 0; k < 3; k++) m.box(s * 0.7f - 0.12f, 1.2f, -0.8f + k * 0.8f, s * 0.7f + 0.12f, 1.8f, -0.6f + k * 0.8f, black);
         }
@@ -294,7 +331,10 @@ final class Pets {
         m.boxR(0, -2.0f, 0, 0, turn, 0, -1.4f, -2.4f, -1.5f, 1.4f, -0.3f, -1.4f, light);   // face
         for (int s = -1; s <= 1; s += 2) {
             m.boxR(0, -2.0f, 0, 0, turn, 0, s * 0.72f - 0.55f, -2.0f, -1.58f, s * 0.72f + 0.55f, -0.9f, -1.5f, 0xFFFFB02E);
-            if (!blink(t, 3)) m.boxR(0, -2.0f, 0, 0, turn, 0, s * 0.72f - 0.28f, -1.75f, -1.63f, s * 0.72f + 0.28f, -1.15f, -1.56f, 0xFF141414);
+            if (!blink(t, 3)) {
+                m.boxR(0, -2.0f, 0, 0, turn, 0, s * 0.72f - 0.28f, -1.75f, -1.63f, s * 0.72f + 0.28f, -1.15f, -1.56f, 0xFF141414);
+                m.boxR(0, -2.0f, 0, 0, turn, 0, s * 0.72f - 0.22f, -1.72f, -1.67f, s * 0.72f - 0.04f, -1.54f, -1.62f, 0xFFFFFFFF);
+            }
             m.boxR(0, -2.0f, 0, 0, turn, 0, s > 0 ? 0.7f : -1.6f, -3.6f, -0.6f, s > 0 ? 1.6f : -0.7f, -2.7f, 0.2f, dark);   // ear tufts
             float a = 0.1f + (float) Math.sin(t * 7) * 0.6f;
             wing(m, s, 1.6f, -1.2f, 0, a, 3.4f, 2.8f, -0.9f, 1.2f, dark);

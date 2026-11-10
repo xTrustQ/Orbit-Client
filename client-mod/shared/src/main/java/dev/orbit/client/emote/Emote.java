@@ -27,7 +27,7 @@ public enum Emote {
         float press = Math.max(0, Math.min(1, Math.min((t - 0.05f) / 0.25f, (1.2f - t) / 0.3f)));
         float on = t > 1.45f ? 1 : 0;
         float vib = on * 0.015f * (float) Math.sin(t * 55);
-        recline(p, 0.22f, 7);
+        recline(p, 0.18f, 9); // sits low, under the roof
         p.rightLeg.pitch = -1.45f; p.leftLeg.pitch = -1.45f; p.rightLeg.yaw = 0.06f; p.leftLeg.yaw = -0.06f;
         p.rightArm.pitch = -1.25f + vib; p.rightArm.yaw = 0.25f;
         p.leftArm.pitch = -1.25f + press * 0.35f + vib; p.leftArm.yaw = -0.25f - press * 0.45f;   // reaching for the button
