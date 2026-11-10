@@ -72,6 +72,14 @@ h1 span, .final h2 { background: linear-gradient(90deg, var(--accent), var(--acc
 .hero-shot:hover img { transform: perspective(1400px) rotateY(0) rotateX(0); }
 .glow { position: absolute; inset: 10% 6%; background: radial-gradient(closest-side, rgba(46, 230, 166, .35), transparent); filter: blur(40px); z-index: -1; }
 
+/* ---------- live statistics */
+.live { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px 36px; margin: -8px 0 28px; color: var(--muted); font-size: 15px; }
+.live .stat { display: flex; align-items: baseline; gap: 8px; }
+.live b { color: var(--text); font-size: 22px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.live .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); align-self: center; box-shadow: 0 0 0 0 rgba(46, 230, 166, .6); animation: pulse 2s infinite; }
+@keyframes pulse { 70% { box-shadow: 0 0 0 9px rgba(46, 230, 166, 0); } 100% { box-shadow: 0 0 0 0 rgba(46, 230, 166, 0); } }
+@media (prefers-reduced-motion: reduce) { .live .dot { animation: none; } }
+
 /* ---------- strip */
 .strip { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--line); border-radius: var(--r); background: var(--card); margin-bottom: 110px; }
 .strip div { padding: 22px 20px; text-align: center; border-left: 1px solid var(--line); }

@@ -124,6 +124,19 @@ public final class CosmeticsApi {
         } finally { busy = false; }
     }
 
+    /** a valid login for the Orbit API (signs in with Mojang if needed); null for offline accounts. Not on the render thread. */
+    public static String bearer() throws Exception {
+        UUID me = MinecraftClient.getInstance().getSession().getUuidOrNull();
+        if (me == null || !enabled() || offline) return null;
+        String t = token(me);
+        return t != null ? t : signIn(me);
+    }
+    /** the server didn't accept our login any more: sign in again next time */
+    public static void dropLogin() {
+        UUID me = MinecraftClient.getInstance().getSession().getUuidOrNull();
+        if (me != null) saveToken(me, null);
+    }
+
     /** proves to the server that this is really your account, the same way joining a Minecraft server does */
     private static String signIn(UUID me) throws Exception {
         var mc = MinecraftClient.getInstance();

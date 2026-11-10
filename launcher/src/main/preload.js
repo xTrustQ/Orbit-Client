@@ -12,7 +12,7 @@ const groups = {
   app: ['info', 'openPath', 'openExternal'],
   settings: ['get', 'set', 'pickJava'],
   accounts: ['list', 'addMicrosoft', 'addOffline', 'remove', 'select'],
-  instances: ['list', 'get', 'versions', 'loaderVersions', 'create', 'update', 'remove', 'duplicate', 'openFolder', 'contents', 'toggleContent', 'removeContent', 'performancePack', 'repair', 'addLocalFiles', 'settingsSources', 'importSettings'],
+  instances: ['list', 'get', 'versions', 'loaderVersions', 'create', 'update', 'remove', 'duplicate', 'openFolder', 'contents', 'toggleContent', 'removeContent', 'performancePack', 'performanceProfile', 'repair', 'addLocalFiles', 'settingsSources', 'importSettings'],
   content: ['search', 'categories', 'install', 'installModpack'],
   game: ['launch', 'stop', 'running'],
   skins: ['current', 'list','pickFile', 'save', 'update', 'delete', 'importUsername', 'apply'],

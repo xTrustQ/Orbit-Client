@@ -160,6 +160,9 @@ function instanceSettings(id) {
     <div class="form-grid">
       <div class="full"><label class="lbl">Name</label><input class="input" data-name value="${esc(inst.name)}"></div>
       <div class="full"><label class="lbl">Memory — <span data-memv>${(mem / 1024).toFixed(1)} GB</span></label><input type="range" min="1024" max="${Math.max(2048, total - 1024)}" step="256" value="${mem}" data-mem></div>
+      <div class="full"><label class="lbl">Performance profile — one click sets video options, Sodium and shaders</label>
+        <div class="perf-presets">${[['fps', 'Max FPS', 'Short view, no effects, no shaders'], ['balanced', 'Balanced', 'Good looks, smooth play'], ['beautiful', 'Beautiful', 'Far view, every effect, shaders on']]
+          .map(([k, t, d]) => `<button type="button" class="perf-preset ${inst.performanceProfile === k ? 'sel' : ''}" data-preset="${k}"><b>${t}</b><span>${d}</span></button>`).join('')}</div></div>
       <div class="full"><label class="lbl">Extra JVM arguments</label><input class="input" data-jvm value="${esc(inst.jvmArgs || '')}" placeholder="-Dsome.flag=true"></div>
       <div class="full"><label class="lbl">Icon</label><div class="icon-picker">${BLOCK_NAMES.map((b) => `<div class="icon-pick ${inst.icon === 'blk:' + b ? 'sel' : ''}" data-icon="blk:${b}" style="background-image:url(${blockIcon(b)})"></div>`).join('')}</div></div>
       <div class="full row" style="flex-wrap:wrap">
@@ -183,6 +186,14 @@ function instanceSettings(id) {
   $('[data-dup]', E).onclick = (e) => busy(e.currentTarget, async () => { await nova.instances.duplicate(id); await refreshInstances(); m.close(); toast('Profile duplicated'); });
   $('[data-perf]', E)?.addEventListener('click', (e) => busy(e.currentTarget, async () => { const got = await nova.instances.performancePack(id); toast('FPS pack installed', got.join(', ') || 'Everything was already installed'); }));
   $('[data-import]', E).onclick = () => { m.close(); importSettingsDialog(id); };
+  $$('[data-preset]', E).forEach((b) => (b.onclick = () => busy(b, async () => {
+    const r = await nova.instances.performanceProfile(id, b.dataset.preset);
+    $$('[data-preset]', E).forEach((x) => x.classList.toggle('sel', x === b));
+    const name = b.querySelector('b').textContent;
+    const sh = r.shaders === 'none' ? 'No shader pack installed — get one under Mods → Shaders.' : r.shaders === 'off' ? 'Shaders off.' : `Shaders on (${r.shaders}).`;
+    toast(`${name} applied`, `Video settings and Sodium set. ${sh}`, r.shaders === 'none' ? 'info' : 'ok', 6000);
+    await refreshInstances();
+  })));
   $('[data-repair]', E)?.addEventListener('click', (e) => busy(e.currentTarget, async () => { const fixed = await nova.instances.repair(id); toast(fixed.length ? 'Mods repaired' : 'All mods are healthy', fixed.join(', ')); }));
   $('[data-del]', E).onclick = async () => {
     if (!(await confirmDialog('Delete profile?', `"${inst.name}" and all its worlds, mods and settings will be permanently deleted.`, { okLabel: 'Delete', danger: true }))) return;

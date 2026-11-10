@@ -68,7 +68,10 @@ public final class HudEditorScreen extends OrbitBaseScreen {
         return List.of(new Toggle("Background", h.background), new Toggle("Rounded", h.rounded), new Toggle("Border", h.border), new Toggle("Shadow", h.shadow), new Toggle("Rainbow", h.chroma));
     }
     private int barY() { return height - 28; }
-    private int barW(HudModule h) { int w = 12; for (Toggle t : toggles(h)) w += width(t.label()) + 16 + 4; return w + 140; }
+    /** "Theme: Glass" button at the start of the style bar — click to cycle through the looks */
+    private String themeLabel(HudModule h) { return "Theme: " + h.theme.get(); }
+    private int themeW(HudModule h) { return width(themeLabel(h)) + 18; }
+    private int barW(HudModule h) { int w = 12 + themeW(h) + 4; for (Toggle t : toggles(h)) w += width(t.label()) + 16 + 4; return w + 140; }
     private int barX(HudModule h) { return (width - barW(h)) / 2; }
 
     @Override
@@ -111,6 +114,11 @@ public final class HudEditorScreen extends OrbitBaseScreen {
             int bx = barX(selected), by = barY(), bw = barW(selected);
             round(c, bx, by, bw, 22, 11, 0xEE0E0B1E);
             int x = bx + 8;
+            int thw = themeW(selected);
+            boolean thh = mx >= x && mx < x + thw && my >= by + 3 && my < by + 19;
+            round(c, x, by + 3, thw, 16, 8, selected.themed() ? withAlpha(acc, thh ? 230 : 190) : thh ? 0x40FFFFFF : 0x26FFFFFF);
+            text(c, themeLabel(selected), x + 9, by + 7, 0xFFFFFFFF, false);
+            x += thw + 4;
             for (Toggle t : toggles(selected)) {
                 int w = width(t.label()) + 16;
                 boolean on = t.s().on(), hv = mx >= x && mx < x + w && my >= by + 3 && my < by + 19;
@@ -142,6 +150,15 @@ public final class HudEditorScreen extends OrbitBaseScreen {
         // style bar
         if (selected != null && selected.isEnabled() && my >= barY() && my < barY() + 22) {
             int bx = barX(selected), by = barY(), x = bx + 8;
+            int thw = themeW(selected);
+            if (mx >= x && mx < x + thw) { // next theme (right-click: previous)
+                var opts = selected.theme.options;
+                int i = opts.indexOf(selected.theme.get());
+                selected.theme.set(opts.get(Math.floorMod(i + (button == 1 ? -1 : 1), opts.size())));
+                Sounds.tab();
+                return true;
+            }
+            x += thw + 4;
             for (Toggle t : toggles(selected)) {
                 int w = width(t.label()) + 16;
                 if (mx >= x && mx < x + w) { t.s().toggle(); Sounds.toggle(t.s().on()); return true; }

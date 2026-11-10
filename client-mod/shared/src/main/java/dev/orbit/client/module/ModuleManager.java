@@ -59,6 +59,7 @@ public final class ModuleManager {
         add(new PvpModules.PearlTracker(), Items.ENDER_PEARL, Category.COMBAT);
         add(new PvpModules.WTapCounter(), Items.FEATHER, Category.COMBAT);
         add(new AutoClicker(), Items.STONE_BUTTON, Category.COMBAT);
+        add(new ClipsModule(), Items.RECOVERY_COMPASS, Category.PLAYER);
         add(new PvpModules.FightStats(), Items.WRITABLE_BOOK, Category.COMBAT);
         add(new PvpModules.FightTimeline(), Items.RECOVERY_COMPASS, Category.COMBAT);
         add(new PvpModules.DamageNumbers(), Items.REDSTONE, Category.COMBAT);
@@ -135,8 +136,11 @@ public final class ModuleManager {
 
     public void tick() { for (Module m : modules) if (m.isEnabled()) m.tick(); }
 
+    /** true when this PC had no Orbit settings yet (a new install) — Settings sync then restores yours */
+    public boolean fresh;
+
     public void load() {
-        if (!Files.exists(file)) return;
+        if (!Files.exists(file)) { fresh = true; return; }
         try {
             JsonObject root = JsonParser.parseString(Files.readString(file)).getAsJsonObject();
             for (Module m : modules) if (root.has(m.id)) m.load(root.getAsJsonObject(m.id));

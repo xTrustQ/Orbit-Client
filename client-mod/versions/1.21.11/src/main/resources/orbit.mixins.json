@@ -5,7 +5,7 @@
   "compatibilityLevel": "JAVA_${java}",
   "client": [
     "TntLabelMixin",
-    "ItemScaleMixin", "EntityRenderStateMixin", "TrollRenderMixin", "LimbAnimatorAccessor", "LivingEntityInvoker", "TrollSoundMixin", "TrollPacketSoundMixin", "GameRendererInvoker", "DeathAnimationMixin", "GameMenuScreenMixin", "HitboxMixin", "ShieldTintMixin", "OverlayTextureAccessor", "AttackMissMixin", "MinecraftClientClickInvoker","VanillaButtonStyleMixin", "VanillaSliderStyleMixin", "VanillaBackgroundMixin", "WeatherMixin", "SnowMixin", "ItemEntityRenderStateMixin", "HeldItemScaleMixin", "HeldItemFeatureScaleMixin",
+    "ItemScaleMixin", "EntityRenderStateMixin", "TrollRenderMixin", "LimbAnimatorAccessor", "LivingEntityInvoker", "TrollSoundMixin", "TrollPacketSoundMixin", "GameRendererInvoker", "DeathAnimationMixin", "GameMenuScreenMixin", "HitboxMixin", "ShieldTintMixin", "OverlayTextureAccessor", "AttackMissMixin", "MinecraftClientClickInvoker", "ClipFrameMixin","VanillaButtonStyleMixin", "VanillaSliderStyleMixin", "VanillaBackgroundMixin", "WeatherMixin", "SnowMixin", "ItemEntityRenderStateMixin", "HeldItemScaleMixin", "HeldItemFeatureScaleMixin",
     "HideArmorMixin",
     "PlayerListHudMixin",
     "MinecraftClientAccessor",

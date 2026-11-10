@@ -21,7 +21,7 @@ public final class OrbitClient implements ClientModInitializer {
     public static final String MOD_ID = "orbit";
     public static final Logger LOG = LoggerFactory.getLogger("Orbit");
     private static ModuleManager modules;
-    public static KeyBinding menuKey, zoomKey, freelookKey, emoteKey, waypointKey, paletteKey;
+    public static KeyBinding menuKey, zoomKey, freelookKey, emoteKey, waypointKey, paletteKey, clipKey;
     private static int saveTimer;
 
     public static ModuleManager modules() { return modules; }
@@ -37,6 +37,7 @@ public final class OrbitClient implements ClientModInitializer {
         emoteKey = KeyBindingHelper.registerKeyBinding(Compat.key("emotes", GLFW.GLFW_KEY_B));
         waypointKey = KeyBindingHelper.registerKeyBinding(Compat.key("waypoint", GLFW.GLFW_KEY_N));
         paletteKey = KeyBindingHelper.registerKeyBinding(Compat.key("palette", GLFW.GLFW_KEY_K));
+        clipKey = KeyBindingHelper.registerKeyBinding(Compat.key("clip", GLFW.GLFW_KEY_F8));
         modules.autoReconnect().install();
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
@@ -48,6 +49,8 @@ public final class OrbitClient implements ClientModInitializer {
             dev.orbit.client.cosmetics.Props.tick();
             dev.orbit.client.pvp.Combat.tick();
             try { dev.orbit.client.cosmetics.CosmeticsApi.tick(); } catch (Throwable t) { LOG.debug("Cosmetics API tick", t); }
+            try { dev.orbit.client.sync.SettingsSync.tick(); } catch (Throwable t) { LOG.debug("Settings sync tick", t); }
+            while (clipKey.wasPressed()) dev.orbit.client.clips.ClipRecorder.saveClip();
             while (paletteKey.wasPressed()) if (client.player != null && client.currentScreen == null) client.setScreen(new dev.orbit.client.gui.CommandPaletteScreen(null));
             SpotifyLyrics.setWanted(modules.get("lyrics").isEnabled() || modules.get("spotify").isEnabled());
             if (++saveTimer >= 20 * 30) { saveTimer = 0; modules.save(); } // autosave every 30s
@@ -115,6 +118,7 @@ public final class OrbitClient implements ClientModInitializer {
         if (modules.get("damagenumbers") instanceof dev.orbit.client.module.PvpModules.DamageNumbers dn) dn.render(ctx, sw, sh);
         if (modules.get("killeffects") instanceof dev.orbit.client.module.PvpModules.KillEffectsModule ke) ke.renderPopup(ctx, sw, sh);
         modules.crosshair().render(ctx, sw, sh);
+        dev.orbit.client.friends.FriendToasts.render(ctx, sw); // "X is online" / invite pop-ups
         if (mc.currentScreen instanceof HudEditorScreen) return;
         if (modules.ui().hideInF3.on() && Compat.debugHudOpen(mc)) return;
         for (HudModule h : modules.hud()) if (h.isEnabled()) h.render(ctx, sw, sh, false);

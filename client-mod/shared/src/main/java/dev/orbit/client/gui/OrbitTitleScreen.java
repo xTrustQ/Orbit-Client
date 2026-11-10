@@ -1472,12 +1472,29 @@ public final class OrbitTitleScreen extends OrbitBaseScreen {
         statusDot(c, cx + 32, top + 29, on);
         bold(c, friend.name, cx + 42, top + 10, 0xFFFFFFFF, false);
         boolean conf = confirming("delfriend:" + friend.uuid);
-        String rl0 = conf ? "Really remove?" : "Remove";
-        text(c, fit(on ? "Online" : "Offline — messages only arrive while they're online", cw - 70 - width(rl0) - 16, false), cx + 42, top + 21, on ? 0xFF8CF5B4 : FAINT, false);
+        // header buttons, right to left: Remove · Invite (to your server) · Join (their server)
         String rl = conf ? "Really remove?" : "Remove";
-        int rw = width(rl) + 16;
-        pill(c, "rmfriend", rl, cx + cw - rw - 10, top + 12, rw, 16, mx, my, conf ? 0xCCE5484D : 0x1AFFFFFF, 0xFFE5484D, conf ? 0xFFFFFFFF : MUTED,
+        int rw = width(rl) + 16, px0 = cx + cw - rw - 10;
+        pill(c, "rmfriend", rl, px0, top + 12, rw, 16, mx, my, conf ? 0xCCE5484D : 0x1AFFFFFF, 0xFFE5484D, conf ? 0xFFFFFFFF : MUTED,
                 () -> { if (confirm("delfriend:" + friend.uuid)) { dev.orbit.client.friends.Friends.remove(friend.uuid); selectedFriend = null; } Sounds.click(); });
+        String theirs = dev.orbit.client.friends.Friends.where(friend.uuid), mine = dev.orbit.client.emote.EmoteSync.currentWhere();
+        boolean sameServer = theirs != null && theirs.equalsIgnoreCase(mine);
+        if (on && dev.orbit.client.friends.Friends.joinable(mine) && !sameServer) {
+            int iw = width("Invite") + 18; px0 -= iw + 6;
+            pill(c, "invfriend", "Invite", px0, top + 12, iw, 16, mx, my, 0x26FFFFFF, withAlpha(acc, 200), TEXT, () -> {
+                Sounds.click();
+                if (!dev.orbit.client.friends.Friends.invite(friend.uuid)) say("Couldn't send the invite — are you connected?", false);
+                else { say("Invited " + friend.name + " to " + mine, true); chatScrollTarget = 0; }
+            });
+        }
+        if (on && dev.orbit.client.friends.Friends.joinable(theirs) && !sameServer) {
+            int jw = width("Join") + 22; px0 -= jw + 6;
+            pill(c, "joinfriend", "Join", px0, top + 12, jw, 16, mx, my, withAlpha(acc, 210), lerpColor(acc, 0xFFFFFFFF, 0.2f), 0xFF0E0A1C,
+                    () -> { Sounds.click(); dev.orbit.client.friends.Friends.join(theirs); });
+        }
+        String status = !on ? "Offline — messages only arrive while they're online"
+                : sameServer ? "On your server · " + theirs : theirs != null ? "Playing on " + theirs : "Online";
+        text(c, fit(status, px0 - (cx + 42) - 8, false), cx + 42, top + 21, on ? 0xFF8CF5B4 : FAINT, false);
         c.fill(cx + 10, top + 38, cx + cw - 10, top + 39, 0x18FFFFFF);
 
         // messages: newest at the bottom, grouped by sender, time under each group
@@ -1501,12 +1518,21 @@ public final class OrbitTitleScreen extends OrbitBaseScreen {
             List<String> lines = wrap(m.text, maxBubble - 18);
             int bw = 0; for (String l : lines) bw = Math.max(bw, width(l));
             bw += 18;
-            int bh = lines.size() * 10 + 9;
+            // invites get a "Join" button inside the bubble
+            boolean inv = !m.mine && dev.orbit.client.friends.Friends.joinable(m.invite);
+            if (inv) bw = Math.max(bw, width("Join " + m.invite) + 40);
+            int bh = lines.size() * 10 + 9 + (inv ? 21 : 0);
             yb -= bh;
             int bx = m.mine ? cx + cw - 12 - bw : cx + 32;
             if (yb + bh > chatY0 && yb < chatY1) {
-                round(c, bx, yb, bw, bh, 9, m.mine ? acc : 0x2EFFFFFF);
+                round(c, bx, yb, bw, bh, 9, m.mine ? acc : inv ? withAlpha(acc, 60) : 0x2EFFFFFF);
                 for (int k = 0; k < lines.size(); k++) text(c, lines.get(k), bx + 9, yb + 5 + k * 10, m.mine ? 0xFF0E0A1C : TEXT, false);
+                if (inv && yb + bh - 19 >= chatY0 && yb + bh - 4 <= chatY1) {
+                    String jl = "Join " + fit(m.invite, bw - 40, false);
+                    final String addr = m.invite;
+                    pill(c, "inv" + i, jl, bx + 8, yb + bh - 19, bw - 16, 15, mx, my, withAlpha(acc, 210), lerpColor(acc, 0xFFFFFFFF, 0.2f), 0xFF0E0A1C,
+                            () -> { Sounds.click(); dev.orbit.client.friends.Friends.join(addr); });
+                }
                 if (!m.mine && lastOfGroup) headOf(c, friend.name, cx + 12, yb + bh - 14, 14);
             }
             yb -= firstOfGroup ? 8 : 3;
@@ -1551,8 +1577,10 @@ public final class OrbitTitleScreen extends OrbitBaseScreen {
         int right = unread > 0 ? 26 : h ? 22 : 6;
         bold(c, fit(f.name, w - 38 - right, true), x + 30, ry + 5, on ? 0xFFFFFFFF : lerpColor(MUTED, 0xFFFFFFFF, hv), false);
         var msgs = dev.orbit.client.friends.Friends.chat(f.uuid);
-        String sub = msgs.isEmpty() ? (on ? "Online" : "Offline") : (msgs.get(msgs.size() - 1).mine ? "You: " : "") + msgs.get(msgs.size() - 1).text;
-        text(c, fit(sub, w - 38 - right, false), x + 30, ry + 16, unread > 0 ? TEXT : FAINT, false);
+        String playing = on ? dev.orbit.client.friends.Friends.where(f.uuid) : null;
+        String sub = playing != null && unread == 0 ? "Playing on " + playing
+                : msgs.isEmpty() ? (on ? "Online" : "Offline") : (msgs.get(msgs.size() - 1).mine ? "You: " : "") + msgs.get(msgs.size() - 1).text;
+        text(c, fit(sub, w - 38 - right, false), x + 30, ry + 16, unread > 0 ? TEXT : playing != null ? 0xFF8CF5B4 : FAINT, false);
         if (ry + rowH > listY0 && ry < listY1) {
             hit(x, Math.max(ry, listY0), w, Math.min(rowH - 2, listY1 - Math.max(ry, listY0)), () -> { selectedFriend = f.uuid; input = ""; inputFor = "chat"; chatScroll = chatScrollTarget = 0; Sounds.click(); });
             if (unread > 0) { round(c, x + w - 24, ry + 8, 18, 12, 6, 0xFFE5484D); centered(c, String.valueOf(Math.min(99, unread)), x + w - 15, ry + 10, 0xFFFFFFFF, false); }

@@ -133,6 +133,12 @@ handle('instances:toggleContent', (id, kind, file, enabled) => instances.toggleC
 handle('instances:removeContent', (id, kind, file) => instances.removeContent(id, kind, file));
 handle('instances:repair', (id) => content.repairMods(id, task('repair-' + id)));
 handle('instances:performancePack', (id) => content.installPerformancePack(id, task('perf-' + id)));
+handle('instances:performanceProfile', (id, preset) => {
+  if (launcher.runningIds().includes(id)) throw new Error('Close Minecraft first — it would overwrite the settings when it exits');
+  const r = require('./performance').apply(instances.dirOf(id), preset);
+  instances.update(id, { performanceProfile: preset });
+  return r;
+});
 handle('instances:addLocalFiles', async (id, kind) => {
   const r = await dialog.showOpenDialog(win, { properties: ['openFile', 'multiSelections'], filters: [{ name: 'Content', extensions: kind === 'mod' ? ['jar'] : ['zip'] }] });
   for (const f of r.filePaths) fs.copyFileSync(f, path.join(instances.dirOf(id), instances.CONTENT_DIRS[kind], path.basename(f)));

@@ -61,6 +61,14 @@ public class OrbitVisualTest implements FabricClientGameTest {
         ctx.setScreen(() -> OrbitTitleScreen.onFriend("069a79f4-44e9-4726-a5be-fca90e38aaf5"));
         ctx.waitTicks(20);
         ctx.takeScreenshot("00-title-friends-chat");
+        // Friends 2.0: Notch is online on a server (Join button), and invites us (Join inside the bubble)
+        ctx.runOnClient(c -> {
+            dev.orbit.client.friends.Friends.onOnline(java.util.List.of("069a79f4-44e9-4726-a5be-fca90e38aaf5"), java.util.Map.of("069a79f4-44e9-4726-a5be-fca90e38aaf5", "eu.mcpvp.club"));
+            dev.orbit.client.friends.Friends.onInvite("069a79f4-44e9-4726-a5be-fca90e38aaf5", "Notch", "eu.mcpvp.club", System.currentTimeMillis());
+        });
+        ctx.setScreen(() -> OrbitTitleScreen.onFriend("069a79f4-44e9-4726-a5be-fca90e38aaf5"));
+        ctx.waitTicks(20);
+        ctx.takeScreenshot("00-title-friends-join");
         // locker preview: a hat + wings shown on the 3D model (turned round), then the cosmetics tiles
         ctx.setScreen(() -> OrbitTitleScreen.onTab("locker"));
         ctx.runOnClient(c -> { dev.orbit.client.cosmetics.CosmeticsFeature.previewHat = "Top Hat"; dev.orbit.client.cosmetics.CosmeticsFeature.previewWings = "Butterfly"; dev.orbit.client.cosmetics.CosmeticsFeature.previewAura = "Flames"; });
@@ -378,6 +386,33 @@ public class OrbitVisualTest implements FabricClientGameTest {
             ctx.takeScreenshot("21c-hud-designer");
             ctx.setScreen(() -> null);
             sp.getServer().runCommand("kill @e[type=minecraft:zombie,tag=dummy]");
+
+            // HUD themes: Neon keystrokes, Glass CPS, Pill coordinates + friend pop-ups
+            ctx.runOnClient(c -> {
+                var m = OrbitClient.modules();
+                for (String id : new String[]{"targethud", "combo", "hitdelay", "fightstats", "timeline", "trajectories", "pearls", "wtap"}) m.get(id).setEnabled(false);
+                ((dev.orbit.client.module.HudModule) m.get("keystrokes")).theme.set("Neon");
+                ((dev.orbit.client.module.HudModule) m.get("cps")).theme.set("Glass");
+                ((dev.orbit.client.module.HudModule) m.get("coords")).theme.set("Pill");
+                dev.orbit.client.friends.FriendToasts.show("Notch", "Notch is online", "Playing on eu.mcpvp.club", false);
+                dev.orbit.client.friends.FriendToasts.show("jeb_", "jeb_ invited you", "Play on hypixel.net · join in Friends", true);
+            });
+            ctx.waitTicks(25);
+            ctx.takeScreenshot("21d-hud-themes-toasts");
+            ctx.runOnClient(c -> { var m = OrbitClient.modules(); for (String id : new String[]{"keystrokes", "cps", "coords"}) ((dev.orbit.client.module.HudModule) m.get(id)).theme.set("Default"); });
+
+            // Clips: record a few seconds, save, check the video file
+            ctx.runOnClient(c -> OrbitClient.modules().get("clips").setEnabled(true));
+            for (int k = 0; k < 8; k++) { ctx.runOnClient(c -> c.player.setYaw(c.player.getYaw() + 12)); ctx.waitTicks(10); }
+            ctx.runOnClient(c -> dev.orbit.client.clips.ClipRecorder.saveClip());
+            ctx.waitTicks(60);
+            ctx.runOnClient(c -> {
+                java.io.File[] clips = new java.io.File(c.runDirectory, "clips").listFiles();
+                if (clips == null || clips.length == 0) OrbitClient.LOG.warn("[TEST] clip: NO FILE");
+                else for (java.io.File f : clips) OrbitClient.LOG.info("[TEST] clip: {} {} bytes", f.getAbsolutePath(), f.length());
+                OrbitClient.modules().get("clips").setEnabled(false);
+            });
+            ctx.takeScreenshot("21e-clip-saved");
             ctx.runOnClient(c -> { var m = OrbitClient.modules(); for (String id : new String[]{"targethud", "combo", "hitdelay", "fightstats", "timeline", "trajectories", "pearls", "wtap"}) m.get(id).setEnabled(false); });
             // Death Animations on zombies, one per style
             ctx.runOnClient(c -> { OrbitClient.modules().get("deathanim").setEnabled(true); c.player.setPitch(10); });

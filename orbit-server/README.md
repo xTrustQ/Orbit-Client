@@ -27,6 +27,23 @@ put it in `launcher/package.json` → `"orbit": { "syncServer": "wss://your-doma
    everyone's cosmetics are forgotten whenever the service restarts.
 4. Render gives you `https://orbit-xyz.onrender.com` → the sync address is `wss://orbit-xyz.onrender.com`.
 
+## Keep data across restarts (needed for Settings sync on Render's free plan)
+
+Render's free plan wipes the disk whenever the server sleeps or restarts. Cosmetics don't mind (every game
+re-sends them), but **Settings sync** needs real storage. Free fix, 2 minutes:
+
+1. Create a free database at **upstash.com** → *Redis* → *Create database* (any region near your Render region).
+2. On the database page copy **UPSTASH_REDIS_REST_URL** and **UPSTASH_REDIS_REST_TOKEN**.
+3. Render → your Orbit server → **Environment** → add both as environment variables → *Save, rebuild and deploy*.
+
+Without them, settings are kept only until the server restarts.
+
+## Friends 2.0 & statistics
+- Each game tells the server which Minecraft server it's on; the server shows that **only** to players the person
+  added as a friend themselves (and only if "Show friends which server I'm on" is on).
+- Invites (`invite`) are delivered only if the receiver has the sender as a friend — no spam from strangers.
+- `GET /api/stats` → `{online, inGame, peak, players}` — used by the website's live counter.
+
 ## Cosmetics API
 
 The same server (same port) also hosts the **cosmetics API**: every Orbit player publishes what they wear —

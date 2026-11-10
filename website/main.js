@@ -59,3 +59,30 @@ fetch('https://api.github.com/repos/xTrustQ/Orbit-Client/releases/latest')
   .then((rel) => { if (rel?.tag_name) document.getElementById('ver').textContent = 'Version ' + rel.tag_name.replace(/^v/i, ''); })
   .catch(() => {});
 document.getElementById('year').textContent = new Date().getFullYear();
+
+// live statistics: downloads from GitHub (all versions), players from the Orbit server
+const fmt = (n) => new Intl.NumberFormat('en').format(n);
+const countUp = (el, to) => {
+  const start = performance.now(), from = 0, dur = 900;
+  const step = (t) => { const k = Math.min(1, (t - start) / dur), e = 1 - Math.pow(1 - k, 3); el.textContent = fmt(Math.round(from + (to - from) * e)); if (k < 1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+};
+fetch('https://api.github.com/repos/xTrustQ/Orbit-Client/releases?per_page=100')
+  .then((r) => (r.ok ? r.json() : []))
+  .then((rels) => {
+    const total = rels.reduce((s, rel) => s + (rel.assets || []).filter((a) => /\.exe$/i.test(a.name)).reduce((x, a) => x + a.download_count, 0), 0);
+    countUp(document.getElementById('st-downloads'), total);
+  })
+  .catch(() => {});
+const ORBIT_SERVER = 'https://orbit-server-nyn5.onrender.com';
+const loadOnline = () => fetch(ORBIT_SERVER + '/api/stats')
+  .then((r) => (r.ok ? r.json() : null))
+  .then((s) => {
+    if (!s) return;
+    const on = document.getElementById('st-online'), ig = document.getElementById('st-ingame');
+    if (on.textContent === '—') countUp(on, s.online || 0); else on.textContent = fmt(s.online || 0);
+    if (ig.textContent === '—') countUp(ig, s.inGame || 0); else ig.textContent = fmt(s.inGame || 0);
+  })
+  .catch(() => {});
+loadOnline(); // the free server may need a moment to wake up — the numbers appear when it answers
+setInterval(loadOnline, 60_000);

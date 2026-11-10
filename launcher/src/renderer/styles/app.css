@@ -350,6 +350,12 @@ input[type=range]::-webkit-slider-thumb:active { transform: scale(1.25); }
 @keyframes modalIn { from { opacity: 0; transform: translateY(20px) scale(.94); } }
 @keyframes modalOut { to { opacity: 0; transform: scale(.97); } }
 .icon-picker { display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px; }
+.perf-presets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.perf-preset { display: flex; flex-direction: column; gap: 2px; text-align: left; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line, rgba(255,255,255,.08)); background: rgba(255,255,255,.04); color: var(--text); font: inherit; cursor: pointer; transition: background .2s, border-color .2s, transform .2s var(--spring); }
+.perf-preset:hover { background: rgba(255,255,255,.08); transform: translateY(-1px); }
+.perf-preset b { font-size: 13.5px; }
+.perf-preset span { font-size: 11.5px; color: var(--muted); line-height: 1.35; }
+.perf-preset.sel { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 16%, transparent); }
 .icon-pick { aspect-ratio: 1; border-radius: 12px; border: 2px solid transparent; cursor: pointer; image-rendering: pixelated; background-size: cover; transition: transform 260ms var(--spring); }
 .icon-pick:hover { transform: scale(1.1); }
 .icon-pick.sel { border-color: var(--accent); box-shadow: 0 0 14px -2px var(--glow); }

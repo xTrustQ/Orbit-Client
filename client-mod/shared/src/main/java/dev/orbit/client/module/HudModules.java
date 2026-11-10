@@ -70,7 +70,7 @@ public final class HudModules {
         }
         @Override protected void renderContent(DrawContext c, boolean preview) {
             int y = 0;
-            for (String l : lines(preview)) { Render2D.chromaText(c, wrap(l), 0, y, textColor.argb(), chroma.on(), shadow.on()); y += 10; }
+            for (String l : lines(preview)) { Render2D.chromaText(c, wrap(l), 0, y, themedText(), chroma.on(), shadow.on() && !theme.is("Minimal")); y += 10; }
         }
         private static String pretty(String s) {
             StringBuilder b = new StringBuilder();
@@ -126,10 +126,17 @@ public final class HudModules {
             if (space.on()) {
                 int sw = K * 3 + G * 2;
                 key(c, 0, y, sw, 12, "", anim[6]);
-                c.fill(sw / 2 - 10, y + 5, sw / 2 + 10, y + 7, Render2D.lerpColor(textColor.argb(), 0xFF101010, anim[6]));
+                c.fill(sw / 2 - 10, y + 5, sw / 2 + 10, y + 7, Render2D.lerpColor(themedText(), 0xFF101010, anim[6]));
             }
         }
         private void key(DrawContext c, int x, int y, int w, int h, String label, float a) {
+            if (themed()) { // Glass / Minimal / Outline / Neon / Pill (chosen in the HUD Designer)
+                int tc = themeBox(c, x, y, w, h, a);
+                float tw = Render2D.width(label);
+                if (chroma.on() && a < 0.5f) Render2D.chromaText(c, label, x + (w - tw) / 2f, y + (h - 8) / 2f, tc, true, false);
+                else Render2D.text(c, label, x + (w - tw) / 2f, y + (h - 8) / 2f + 0.5f, tc, false);
+                return;
+            }
             int base = background.on() ? Render2D.withAlpha(bgColor.rgb(), (int) (bgOpacity.get() * 2.55)) : 0x00000000;
             int fill = Render2D.lerpColor(base, Render2D.withAlpha(pressed.rgb(), 200), a);
             Render2D.round(c, x, y, w, h, rounded.on() ? 3 : 0, fill);

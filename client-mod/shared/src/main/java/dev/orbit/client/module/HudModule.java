@@ -18,7 +18,10 @@ public abstract class HudModule extends Module {
     public double x = Double.NaN, y = Double.NaN;
     private final int defPx, defPy;
 
+    /** looks for every HUD element (Keystrokes & CPS too); "Default" = the background options below */
+    public static final String[] THEMES = {"Default", "Glass", "Minimal", "Outline", "Neon", "Pill"};
     public final Setting.Slider scale = add(new Setting.Slider("scale", "Size", 1.0, 0.5, 3.0, 0.05, "x"));
+    public final Setting.Mode theme = add(new Setting.Mode("theme", "Theme", "Default", THEMES));
     public final Setting.Color textColor = add(new Setting.Color("textColor", "Text color", 0xFFFFFFFF));
     public final Setting.Bool chroma = add(new Setting.Bool("chroma", "Rainbow text", false));
     public final Setting.Bool shadow = add(new Setting.Bool("shadow", "Text shadow", true));
@@ -29,7 +32,43 @@ public abstract class HudModule extends Module {
     public final Setting.Bool border = (Setting.Bool) add(new Setting.Bool("border", "Accent border", false)).visibleWhen(this::bg);
     public final Setting.Mode brackets = add(new Setting.Mode("brackets", "Brackets", "None", "None", "[ ]", "( )"));
 
-    private boolean bg() { return background.on(); }
+    private boolean bg() { return background.on() && theme.is("Default"); }
+    public boolean themed() { return !theme.is("Default"); }
+
+    /**
+     * Draws one themed box (the whole element, or one key of Keystrokes). pressed 0..1 lights it up.
+     * Returns the text colour that reads well on it.
+     */
+    public int themeBox(DrawContext c, int x, int y, int w, int h, float pressed) {
+        int acc = Render2D.accent();
+        switch (theme.get()) {
+            case "Glass" -> {
+                Render2D.round(c, x, y, w, h, 4, Render2D.lerpColor(0x1FFFFFFF, Render2D.withAlpha(0xFFFFFF, 210), pressed));
+                c.fill(x + 3, y, x + w - 3, y + 1, 0x40FFFFFF); // light catching the top edge
+                return Render2D.lerpColor(textColor.argb(), 0xFF101018, pressed);
+            }
+            case "Minimal" -> {
+                if (pressed > 0.01f) Render2D.round(c, x, y, w, h, 3, Render2D.withAlpha(acc, (int) (110 * pressed)));
+                return Render2D.lerpColor(textColor.argb(), 0xFFFFFFFF, pressed);
+            }
+            case "Outline" -> {
+                Render2D.round(c, x, y, w, h, 3, Render2D.alpha(acc, 0.9f));
+                Render2D.round(c, x + 1, y + 1, w - 2, h - 2, 2, Render2D.lerpColor(0xB0080810, acc, pressed));
+                return Render2D.lerpColor(textColor.argb(), 0xFF0E0A1C, pressed);
+            }
+            case "Neon" -> {
+                Render2D.round(c, x - 1, y - 1, w + 2, h + 2, 5, Render2D.withAlpha(acc, (int) (55 + 90 * pressed)));
+                Render2D.round(c, x, y, w, h, 4, Render2D.alpha(acc, 0.95f));
+                Render2D.round(c, x + 1, y + 1, w - 2, h - 2, 3, Render2D.lerpColor(0xE00A0A14, Render2D.withAlpha(acc, 230), pressed));
+                return Render2D.lerpColor(acc, 0xFF0E0A1C, pressed);
+            }
+            case "Pill" -> {
+                Render2D.round(c, x, y, w, h, Math.min(w, h) / 2, Render2D.lerpColor(0xA0101018, 0xF0FFFFFF, pressed));
+                return Render2D.lerpColor(textColor.argb(), 0xFF101018, pressed);
+            }
+            default -> { return textColor.argb(); }
+        }
+    }
 
     /** Default position in GUI pixels: negative = from the right/bottom edge, {@link #CENTER} = centred. */
     protected HudModule(String id, String name, String desc, boolean on, int defPx, int defPy) {
@@ -55,7 +94,7 @@ public abstract class HudModule extends Module {
     /** Whether the Background options paint a box behind the whole element. */
     protected boolean outerBackground() { return true; }
 
-    protected int pad() { return background.on() ? 4 : 1; }
+    protected int pad() { return themed() ? (theme.is("Pill") ? 6 : theme.is("Minimal") ? 1 : 4) : background.on() ? 4 : 1; }
 
     public int contentWidth(boolean preview) {
         int w = 0;
@@ -73,12 +112,15 @@ public abstract class HudModule extends Module {
     /** Should this element draw at all right now (e.g. Potions with no effects)? */
     public boolean hasContent() { return contentHeight(false) > 0; }
 
+    /** text colour for the current theme (Neon glows in the accent colour) */
+    protected int themedText() { return theme.is("Neon") ? Render2D.accent() : textColor.argb(); }
+
     protected void renderContent(DrawContext c, boolean preview) {
         int yy = 0;
         int w = contentWidth(preview);
         for (String l : lines(preview)) {
             String s = wrap(l);
-            Render2D.chromaText(c, s, (w - Render2D.width(s)) / 2f, yy, textColor.argb(), chroma.on(), shadow.on());
+            Render2D.chromaText(c, s, (w - Render2D.width(s)) / 2f, yy, themedText(), chroma.on(), shadow.on() && !theme.is("Minimal"));
             yy += 10;
         }
     }
@@ -102,7 +144,8 @@ public abstract class HudModule extends Module {
         Compat.push(c);
         Compat.translate(c, screenX(sw, preview), screenY(sh, preview));
         Compat.scale(c, scaleF());
-        if (background.on() && outerBackground()) {
+        if (themed() && outerBackground()) themeBox(c, 0, 0, w, h, 0);
+        else if (background.on() && outerBackground()) {
             int col = Render2D.withAlpha(bgColor.rgb(), (int) (bgOpacity.get() * 2.55));
             int r = rounded.on() ? 3 : 0;
             if (border.on()) {

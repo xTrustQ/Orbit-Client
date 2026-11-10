@@ -8,9 +8,16 @@
 //   PUT  /api/cosmetics    Bearer token, {hat, wings, aura, cape: base64 PNG | null}
 //   GET  /api/cosmetics?uuids=a,b,c                -> {uuid: {hat, wings, aura, cape, updated}}
 //   GET  /api/capes/<sha1>.png                     -> the cape image
+//   GET  /api/settings                 Bearer token -> {data, updated}   (Settings sync: your Orbit setup on any PC)
+//   PUT  /api/settings                 Bearer token, {data, updated}
+//   GET  /api/stats                    -> {online, inGame, players, downloads?}  (for the website)
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const store = require('./store');
+let statsSource = () => ({});
+/** server.js tells us how many players are connected right now */
+function setStats(fn) { statsSource = fn; }
 
 const DATA = process.env.DATA_DIR || path.join(__dirname, 'data');
 const CAPES = path.join(DATA, 'capes');
@@ -58,6 +65,14 @@ const send = (res, code, obj, type = 'application/json') => {
   res.end(type === 'application/json' ? JSON.stringify(obj) : obj);
 };
 const clean = (v) => (typeof v === 'string' && NAME.test(v) ? v : 'None');
+/** the signed-in player behind a Bearer token (memory first, then the persistent store) */
+async function auth(req) {
+  const tok = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+  if (!tok || tok.length > 100) return null;
+  let t = tokens[tok];
+  if (!t) { try { t = await store.get('token:' + tok); } catch { t = null; } if (t) tokens[tok] = t; }
+  return t && t.exp > Date.now() ? t : null;
+}
 
 async function handle(req, res) {
   const url = new URL(req.url, 'http://x');
@@ -89,14 +104,36 @@ async function handle(req, res) {
       const token = crypto.randomBytes(24).toString('base64url');
       tokens[token] = { uuid, exp: Date.now() + 30 * 24 * 3600_000 };
       save();
+      store.set('token:' + token, tokens[token], 30 * 24 * 3600).catch(() => {}); // survives server restarts
       return send(res, 200, { token, uuid });
+    }
+
+    if (url.pathname === '/api/stats' && req.method === 'GET') {
+      if (!allow(ip, 1)) return send(res, 429, { error: 'Slow down' });
+      return send(res, 200, { ...statsSource(), players: Object.keys(db).length, at: Date.now() });
+    }
+
+    if (url.pathname === '/api/settings') {
+      if (!allow(ip, req.method === 'PUT' ? 4 : 2)) return send(res, 429, { error: 'Slow down' });
+      const t = await auth(req);
+      if (!t) return send(res, 401, { error: 'Sign in again' });
+      if (req.method === 'GET') {
+        const s = await store.get('settings:' + t.uuid);
+        return s ? send(res, 200, s) : send(res, 404, { error: 'Nothing saved yet' });
+      }
+      if (req.method === 'PUT') {
+        const b = await body(req, 400_000);
+        if (!b.data || typeof b.data !== 'object') return send(res, 400, { error: 'Missing data' });
+        const entry = { data: b.data, updated: Number(b.updated) || Date.now() };
+        await store.set('settings:' + t.uuid, entry);
+        return send(res, 200, { ok: true, updated: entry.updated, persistent: store.persistent });
+      }
     }
 
     if (url.pathname === '/api/cosmetics' && req.method === 'PUT') {
       if (!allow(ip, 3)) return send(res, 429, { error: 'Slow down' });
-      const tok = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
-      const t = tokens[tok];
-      if (!t || t.exp < Date.now()) return send(res, 401, { error: 'Sign in again' });
+      const t = await auth(req);
+      if (!t) return send(res, 401, { error: 'Sign in again' });
       const b = await body(req, 600_000);
       let cape = null;
       if (typeof b.cape === 'string' && b.cape.length) {
@@ -130,4 +167,4 @@ async function handle(req, res) {
   }
 }
 
-module.exports = { handle };
+module.exports = { handle, setStats };

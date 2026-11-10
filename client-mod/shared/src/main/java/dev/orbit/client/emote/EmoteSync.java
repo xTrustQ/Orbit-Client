@@ -54,8 +54,20 @@ public final class EmoteSync {
             return;
         }
         String r = currentRoom();
-        if (!r.equals(room)) { room = r; sendHello(); }
+        // re-announce when the emote room, the server you're on, your friend list or sharing changes
+        String key = r + "|" + currentWhere() + "|" + Friends.list().size() + "|" + OrbitClient.modules().ui().shareServer.on();
+        if (!r.equals(room) || !key.equals(helloKey)) { room = r; helloKey = key; sendHello(); Friends.poll(true); }
         Friends.poll(false);
+    }
+    private static String helloKey = "";
+
+    /** where you are, for friends: a server address, "Singleplayer", or "" on the menu */
+    public static String currentWhere() {
+        MinecraftClient mc = MinecraftClient.getInstance();
+        if (mc.world == null) return "";
+        if (mc.isInSingleplayer()) return "Singleplayer";
+        ServerInfo s = mc.getCurrentServerEntry();
+        return s != null ? s.address : "";
     }
 
     private static void connect() {
@@ -67,6 +79,7 @@ public final class EmoteSync {
                     if (err != null) { nextAttempt = System.currentTimeMillis() + 20_000; OrbitClient.LOG.debug("Orbit sync unavailable: {}", err.getMessage()); return; }
                     socket = ws;
                     room = null; // forces a hello on the next tick
+                    Friends.resetPresence(); // no "came online" pop-ups for everyone who already was
                 });
     }
 
@@ -90,7 +103,22 @@ public final class EmoteSync {
         o.addProperty("uuid", id.toString());
         o.addProperty("name", mc.getSession().getUsername());
         o.addProperty("room", room == null ? "" : room);
+        // Friends 2.0: the server you're on (the Orbit server only shows it to people who added you) + your friends
+        boolean share = OrbitClient.modules().ui().shareServer.on();
+        o.addProperty("where", share ? currentWhere() : "");
+        o.addProperty("share", share);
+        JsonArray fr = new JsonArray();
+        for (Friends.Friend f : Friends.list()) fr.add(f.uuid.toLowerCase());
+        o.add("friends", fr);
         send(o);
+    }
+
+    public static boolean sendInvite(String to, String server) {
+        JsonObject o = new JsonObject();
+        o.addProperty("type", "invite");
+        o.addProperty("to", to);
+        o.addProperty("server", server);
+        return send(o);
     }
 
     public static void sendEmote(Emote e) {
@@ -141,13 +169,19 @@ public final class EmoteSync {
                 if ("online".equals(type)) {
                     List<String> ids = new ArrayList<>();
                     o.getAsJsonArray("uuids").forEach(e -> ids.add(e.getAsString()));
-                    mc.execute(() -> Friends.onOnline(ids));
+                    java.util.Map<String, String> where = new java.util.HashMap<>();
+                    if (o.has("status") && o.get("status").isJsonObject())
+                        for (var e : o.getAsJsonObject("status").entrySet()) where.put(e.getKey(), e.getValue().getAsString());
+                    mc.execute(() -> Friends.onOnline(ids, where));
                     return;
                 }
+                if ("invite-failed".equals(type)) { mc.execute(Friends::onInviteFailed); return; }
+                if ("invite-sent".equals(type)) return;
                 if (!o.has("uuid")) return;
                 UUID who = UUID.fromString(o.get("uuid").getAsString());
                 mc.execute(() -> {
                     switch (type) {
+                        case "invite" -> Friends.onInvite(who.toString(), o.has("name") ? o.get("name").getAsString() : "Player", o.get("server").getAsString(), o.has("at") ? o.get("at").getAsLong() : 0);
                         case "dm" -> Friends.onDm(who.toString(), o.has("name") ? o.get("name").getAsString() : "Player", o.get("text").getAsString(), o.has("at") ? o.get("at").getAsLong() : 0);
                         case "here" -> dev.orbit.client.cosmetics.OrbitUsers.add(who);
                         case "gone" -> dev.orbit.client.cosmetics.OrbitUsers.remove(who);
