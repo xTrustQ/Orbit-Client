@@ -401,18 +401,36 @@ public class OrbitVisualTest implements FabricClientGameTest {
             ctx.takeScreenshot("21d-hud-themes-toasts");
             ctx.runOnClient(c -> { var m = OrbitClient.modules(); for (String id : new String[]{"keystrokes", "cps", "coords"}) ((dev.orbit.client.module.HudModule) m.get(id)).theme.set("Default"); });
 
-            // Clips: record a few seconds, save, check the video file
-            ctx.runOnClient(c -> OrbitClient.modules().get("clips").setEnabled(true));
+            // Clips: record a few seconds at 60 fps, save, check the video file, then watch it in the Gallery
+            ctx.runOnClient(c -> {
+                var cm = (dev.orbit.client.module.ClipsModule) OrbitClient.modules().get("clips");
+                cm.rate.set("60 fps");
+                cm.setEnabled(true);
+                c.options.getMaxFps().setValue(260); // let the game itself run fast enough
+            });
             for (int k = 0; k < 8; k++) { ctx.runOnClient(c -> c.player.setYaw(c.player.getYaw() + 12)); ctx.waitTicks(10); }
             ctx.runOnClient(c -> dev.orbit.client.clips.ClipRecorder.saveClip());
             ctx.waitTicks(60);
             ctx.runOnClient(c -> {
                 java.io.File[] clips = new java.io.File(c.runDirectory, "clips").listFiles();
                 if (clips == null || clips.length == 0) OrbitClient.LOG.warn("[TEST] clip: NO FILE");
-                else for (java.io.File f : clips) OrbitClient.LOG.info("[TEST] clip: {} {} bytes", f.getAbsolutePath(), f.length());
+                else for (java.io.File f : clips) {
+                    try { var inf = dev.orbit.client.clips.ClipPlayer.read(f); OrbitClient.LOG.info("[TEST] clip: {} {} bytes, {} frames, {} fps, {}x{}", f.getName(), f.length(), inf.frames(), Math.round(inf.fps()), inf.width(), inf.height()); }
+                    catch (Exception e) { OrbitClient.LOG.warn("[TEST] clip unreadable", e); }
+                }
                 OrbitClient.modules().get("clips").setEnabled(false);
             });
             ctx.takeScreenshot("21e-clip-saved");
+            ctx.setScreen(() -> OrbitTitleScreen.pauseOn("clips"));
+            ctx.waitTicks(30);
+            ctx.takeScreenshot("21f-gallery-clips");
+            ctx.runOnClient(c -> {
+                java.io.File[] fs = new java.io.File(c.runDirectory, "clips").listFiles();
+                if (fs != null && fs.length > 0 && c.currentScreen instanceof OrbitTitleScreen ts) ts.playClip(fs[0]);
+            });
+            ctx.waitTicks(30);
+            ctx.takeScreenshot("21g-clip-player");
+            ctx.setScreen(() -> null);
             ctx.runOnClient(c -> { var m = OrbitClient.modules(); for (String id : new String[]{"targethud", "combo", "hitdelay", "fightstats", "timeline", "trajectories", "pearls", "wtap"}) m.get(id).setEnabled(false); });
             // Death Animations on zombies, one per style
             ctx.runOnClient(c -> { OrbitClient.modules().get("deathanim").setEnabled(true); c.player.setPitch(10); });

@@ -38,7 +38,7 @@ public final class OrbitTitleScreen extends OrbitBaseScreen {
     /** Set to let the next vanilla TitleScreen through once. */
     public static boolean allowVanillaOnce;
 
-    private enum Tab { HOME("Home"), LOCKER("Locker"), SHOTS("Screenshots"), ACCOUNTS("Accounts"), FRIENDS("Friends");
+    private enum Tab { HOME("Home"), LOCKER("Locker"), SHOTS("Gallery"), ACCOUNTS("Accounts"), FRIENDS("Friends");
         final String title; Tab(String t) { title = t; } }
     private enum Sub { SKINS("Skins"), CAPES("Capes"), COSMETICS("Cosmetics"), EMOTES("Emotes");
         final String title; Sub(String t) { title = t; } }
@@ -76,6 +76,11 @@ public final class OrbitTitleScreen extends OrbitBaseScreen {
     // screenshots
     private List<File> shots;
     private File preview;
+    // clips (Gallery → Clips)
+    private static boolean clipsView;
+    private List<File> clips;
+    private dev.orbit.client.clips.ClipPlayer clipPlayer;
+    private final java.util.Map<File, dev.orbit.client.clips.ClipPlayer.Info> clipInfo = new java.util.concurrent.ConcurrentHashMap<>();
     private float scroll, scrollTarget;
 
     // locker preview: shown on the 3D model before you apply it
@@ -121,7 +126,8 @@ public final class OrbitTitleScreen extends OrbitBaseScreen {
     /** Test hook: preview a cape texture on the model. */
     public static net.minecraft.util.Identifier testCape;
     public static OrbitTitleScreen onTab(String name) {
-        tab = switch (name) { case "locker", "cosmetics", "emotes" -> Tab.LOCKER; case "shots" -> Tab.SHOTS; case "accounts" -> Tab.ACCOUNTS; case "friends" -> Tab.FRIENDS; default -> Tab.HOME; };
+        clipsView = name.equals("clips");
+        tab = switch (name) { case "locker", "cosmetics", "emotes" -> Tab.LOCKER; case "shots", "clips" -> Tab.SHOTS; case "accounts" -> Tab.ACCOUNTS; case "friends" -> Tab.FRIENDS; default -> Tab.HOME; };
         sub = name.equals("cosmetics") ? Sub.COSMETICS : name.equals("emotes") ? Sub.EMOTES : Sub.SKINS;
         return new OrbitTitleScreen();
     }
@@ -199,7 +205,7 @@ public final class OrbitTitleScreen extends OrbitBaseScreen {
         if (t == tab) return;
         switchDir = Integer.compare(t.ordinal(), tab.ordinal());
         switchedAt = System.currentTimeMillis();
-        tab = t; input = ""; inputFor = ""; preview = null; scroll = scrollTarget = 0; clearPreview(); clearHover();
+        tab = t; input = ""; inputFor = ""; preview = null; scroll = scrollTarget = 0; clearPreview(); clearHover(); closeClip(); clips = null;
         Sounds.tab();
         clearAndInit();
     }
@@ -851,7 +857,7 @@ public final class OrbitTitleScreen extends OrbitBaseScreen {
     private String previewKey = "";
     private boolean draggingSkin, lastHoverBack;
     private void clearHover() { dev.orbit.client.cosmetics.CosmeticsFeature.previewHat = null; dev.orbit.client.cosmetics.CosmeticsFeature.previewWings = null; dev.orbit.client.cosmetics.CosmeticsFeature.previewAura = null; }
-    @Override public void removed() { clearHover(); Emotes.PREVIEW.clear(); }
+    @Override public void removed() { clearHover(); Emotes.PREVIEW.clear(); closeClip(); }
     private Supplier<SkinTextures> tileSupplier;
     private final java.util.Map<Integer, PlayerPreview> tiles = new java.util.HashMap<>();
 
@@ -1155,12 +1161,31 @@ public final class OrbitTitleScreen extends OrbitBaseScreen {
         return null;
     }
 
+    /** "Screenshots | Clips" switch in the Gallery header */
+    private void gallerySwitch(DrawContext c, int mx, int my, int rightX, int y) {
+        String[] l = {"Screenshots", "Clips"};
+        int w0 = width(l[0]) + 18, w1 = width(l[1]) + 18, x = rightX - w0 - w1 - 6;
+        round(c, x - 3, y - 1, w0 + w1 + 6, 22, 11, 0x1AFFFFFF);
+        for (int i = 0; i < 2; i++) {
+            int bx = i == 0 ? x : x + w0, bw = i == 0 ? w0 : w1;
+            boolean a = (i == 1) == clipsView;
+            if (a) round(c, bx, y + 2, bw, 16, 8, 0xF2FFFFFF);
+            else if (in(mx, my, bx, y + 2, bw, 16)) round(c, bx, y + 2, bw, 16, 8, 0x26FFFFFF);
+            centered(c, l[i], bx + bw / 2f, y + 6, a ? 0xFF140A28 : MUTED, false);
+            final boolean toClips = i == 1;
+            hit(bx, y + 2, bw, 16, () -> { if (clipsView != toClips) { clipsView = toClips; scroll = scrollTarget = 0; preview = null; Sounds.tab(); if (toClips) clips = null; } });
+        }
+    }
+
     private void screenshots(DrawContext c, int mx, int my) {
+        hits.clear();
+        if (clipsView) { clipsGallery(c, mx, my); return; }
         if (shots == null) loadShots();
         int px = 24, pw = width - 48, y = 44;
         display(c, "Screenshots", px, y, 0xFFFFFFFF, false);
         text(c, shots.size() + " in your profile  ·  F2 takes one in-game", px, y + 12, MUTED, false);
         btn(c, "folder", px + pw - 100, y, 100, 20, "Open folder", mx, my, 0, false);
+        if (preview == null) gallerySwitch(c, mx, my, px + pw - 108, y);
         int top = y + 32;
         if (shots.isEmpty()) { centered(c, "No screenshots yet", width / 2f, top + 40, FAINT, false); return; }
         int cols = Math.max(1, pw / 150), gap = 8, cw = (pw - (cols - 1) * gap) / cols, chh = Math.round(cw * 9 / 16f);
@@ -1191,6 +1216,183 @@ public final class OrbitTitleScreen extends OrbitBaseScreen {
             btn(c, "pdel", bx0 + 188, yy + h + 22, 90, 20, confirming("delshot") ? "Really delete?" : "Delete", mx, my, 0, false);
             btn(c, "pclose", bx0 + 282, yy + h + 22, 90, 20, "Close", mx, my, 0, false);
         }
+    }
+
+    // ------------------------------------------------------------------ clips (Gallery → Clips)
+    private File clipsDir() { return new File(client.runDirectory, "clips"); }
+    private void loadClips() {
+        File[] fs = clipsDir().listFiles((d, n) -> n.toLowerCase().endsWith(".avi"));
+        clips = new ArrayList<>();
+        if (fs != null) { java.util.Arrays.sort(fs, (a, b) -> Long.compare(b.lastModified(), a.lastModified())); clips.addAll(List.of(fs)); }
+    }
+    /** size / length of a clip, read once in the background */
+    private dev.orbit.client.clips.ClipPlayer.Info clipInfo(File f) {
+        var i = clipInfo.get(f);
+        if (i != null || !LOADING.add("info:" + f)) return i;
+        Util.getIoWorkerExecutor().execute(() -> { try { clipInfo.put(f, dev.orbit.client.clips.ClipPlayer.read(f)); } catch (Exception e) { OrbitClient.LOG.debug("Clip info", e); } });
+        return null;
+    }
+    /** thumbnail: a frame a third of the way in */
+    private Identifier clipThumb(File f) {
+        String key = "clip:" + f.getName() + ":" + f.lastModified();
+        Identifier id = Tex.get(key);
+        if (id != null || !LOADING.add(key)) return id;
+        Util.getIoWorkerExecutor().execute(() -> {
+            try {
+                var info = dev.orbit.client.clips.ClipPlayer.read(f);
+                byte[] jpeg = dev.orbit.client.clips.ClipPlayer.frameJpeg(f, info.frames() / 3);
+                java.awt.image.BufferedImage src = javax.imageio.ImageIO.read(new java.io.ByteArrayInputStream(jpeg));
+                if (src == null) return;
+                java.awt.image.BufferedImage img = new java.awt.image.BufferedImage(480, 270, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+                var g = img.createGraphics();
+                g.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION, java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+                g.drawImage(src, 0, 0, 480, 270, null); g.dispose();
+                var out = new java.io.ByteArrayOutputStream();
+                javax.imageio.ImageIO.write(img, "png", out);
+                byte[] png = out.toByteArray();
+                client.execute(() -> Tex.fromPng(key, png, true));
+            } catch (Exception e) { OrbitClient.LOG.debug("Clip thumbnail failed for {}", f, e); }
+        });
+        return null;
+    }
+    private static String mmss(double s) { int t = (int) Math.round(s); return t / 60 + ":" + String.format("%02d", t % 60); }
+    /** opens the player on a clip (tests / "watch" shortcuts) */
+    public void playClip(File f) { clipsView = true; openClip(f); }
+    private void closeClip() { if (clipPlayer != null) { clipPlayer.close(); clipPlayer = null; } }
+    private void openClip(File f) {
+        closeClip();
+        try { clipPlayer = new dev.orbit.client.clips.ClipPlayer(f); Sounds.click(); }
+        catch (Exception e) { say("Couldn't play this clip — " + e.getMessage(), false); }
+    }
+
+    private void clipsGallery(DrawContext c, int mx, int my) {
+        if (clips == null) loadClips();
+        int px = 24, pw = width - 48, y = 44, acc = accent();
+        display(c, "Clips", px, y, 0xFFFFFFFF, false);
+        String key = OrbitClient.clipKey == null ? "F8" : OrbitClient.clipKey.getBoundKeyLocalizedText().getString();
+        boolean on = OrbitClient.modules().get("clips") != null && OrbitClient.modules().get("clips").isEnabled();
+        text(c, fit(clips.size() + " saved  ·  " + (on ? "press " + key + " in-game to save the last seconds" : "turn on Clips in the Orbit menu, then press " + key), pw - 230, false), px, y + 12, MUTED, false);
+        btn(c, "cfolder", px + pw - 100, y, 100, 20, "Open folder", mx, my, 0, false);
+        hit(px + pw - 100, y, 100, 20, () -> { clipsDir().mkdirs(); Util.getOperatingSystem().open(clipsDir()); });
+        if (clipPlayer == null) gallerySwitch(c, mx, my, px + pw - 108, y);
+        int top = y + 32;
+        if (clips.isEmpty()) {
+            int cy = (top + height) / 2 - 20;
+            disc(c, width / 2f, cy, 18, withAlpha(acc, 50));
+            for (int i = 0; i < 9; i++) c.fill(width / 2 - 4 + i, cy - 8 + i / 2, width / 2 - 3 + i, cy + 8 - i / 2, 0xFFFFFFFF); // play triangle
+            centered(c, "No clips yet", width / 2f, cy + 28, TEXT, false);
+            centered(c, on ? "Press " + key + " while playing — the last seconds are saved here" : "Orbit menu (Right Shift) → Player → Clips, then press " + key + " in-game", width / 2f, cy + 40, FAINT, false);
+        } else {
+            int cols = Math.max(1, pw / 150), gap = 8, cw = (pw - (cols - 1) * gap) / cols, chh = Math.round(cw * 9 / 16f);
+            scroll = approach(scroll, scrollTarget, 16, 1 / 60f);
+            c.enableScissor(0, top, width, height - 18);
+            for (int i = 0; i < clips.size(); i++) {
+                File f = clips.get(i);
+                int x = px + (i % cols) * (cw + gap), yy = top + (i / cols) * (chh + gap) - Math.round(scroll);
+                if (yy > height || yy + chh < top) continue;
+                boolean h = in(mx, my, x, yy, cw, chh) && clipPlayer == null && my >= top;
+                float hv = hov("clip" + i, h);
+                round(c, x - 1, yy - 1, cw + 2, chh + 2, 6, lerpColor(0x1AFFFFFF, withAlpha(acc, 200), hv));
+                Identifier t = clipThumb(f);
+                if (t != null) Compat.blitTint(c, t, x, yy, cw, chh, 0, 0, 480, 270, 480, 270, 0xFFFFFFFF);
+                else round(c, x, yy, cw, chh, 5, 0x22000000);
+                c.fillGradient(x, yy + chh - 22, x + cw, yy + chh, 0x00000000, 0xB0000000);
+                var inf = clipInfo(f);
+                if (inf != null) {
+                    String d = mmss(inf.seconds());
+                    int dw = width(d) + 8;
+                    round(c, x + cw - dw - 4, yy + chh - 15, dw, 11, 5, 0xC0000000);
+                    text(c, d, x + cw - dw, yy + chh - 13, 0xFFFFFFFF, false);
+                }
+                text(c, fit(f.getName().replace("clip-", "").replace(".avi", "").replace('_', ' '), cw - 50, false), x + 5, yy + chh - 13, 0xDDFFFFFF, false);
+                // play button, grows on hover
+                float r = 9 + 2 * hv;
+                disc(c, x + cw / 2f, yy + chh / 2f, r, withAlpha(0x000000, (int) (120 + 60 * hv)));
+                int tx = x + cw / 2 - 3, ty = yy + chh / 2;
+                for (int k = 0; k < 8; k++) c.fill(tx + k, ty - 6 + k * 3 / 4, tx + k + 1, ty + 6 - k * 3 / 4, 0xFFFFFFFF);
+                if (yy >= top - chh && yy < height - 18) { final int top0 = top; hit(x, Math.max(yy, top0), cw, Math.min(chh, chh + yy - top0), () -> openClip(f)); }
+            }
+            c.disableScissor();
+            int rows = (clips.size() + cols - 1) / cols;
+            scrollTarget = Math.max(0, Math.min(Math.max(0, rows * (chh + gap) - (height - 18 - top)), scrollTarget));
+        }
+        if (clipPlayer != null) clipOverlay(c, mx, my);
+    }
+
+    private int clickX;
+    private void clipOverlay(DrawContext c, int mx, int my) {
+        hits.clear(); // only the player is clickable while it's open
+        var p = clipPlayer;
+        p.update();
+        var inf = p.info;
+        int acc = accent();
+        c.fill(0, 0, width, height, 0xE6050310);
+        float ar = inf.width() / (float) inf.height();
+        int w = Math.min(width - 60, Math.round((height - 96) * ar)), h = Math.round(w / ar);
+        int x = (width - w) / 2, yy = 24;
+        round(c, x - 2, yy - 2, w + 4, h + 4, 6, 0x30FFFFFF);
+        Compat.blitTint(c, p.id, x, yy, w, h, 0, 0, inf.width(), inf.height(), inf.width(), inf.height(), 0xFFFFFFFF);
+        hit(x, yy, w, h, p::toggle); // click the video = pause / play
+        if (!p.playing) {
+            disc(c, width / 2f, yy + h / 2f, 16, 0xA0000000);
+            for (int k = 0; k < 12; k++) c.fill(width / 2 - 5 + k, yy + h / 2 - 9 + k * 3 / 4, width / 2 - 4 + k, yy + h / 2 + 9 - k * 3 / 4, 0xFFFFFFFF);
+        }
+        // progress bar (click to jump)
+        int by = yy + h + 8;
+        float frac = inf.frames() <= 1 ? 0 : p.frame() / (float) (inf.frames() - 1);
+        boolean bh = in(mx, my, x, by - 4, w, 12);
+        round(c, x, by, w, bh ? 5 : 4, 2, 0x33FFFFFF);
+        round(c, x, by, Math.max(4, Math.round(w * frac)), bh ? 5 : 4, 2, acc);
+        disc(c, x + w * frac, by + 2, bh ? 4.5f : 3.5f, 0xFFFFFFFF);
+        final int bx0 = x, bw0 = w;
+        hit(x, by - 4, w, 12, () -> p.seek((clickX - bx0) / (float) bw0));
+        String meta = mmss(p.position()) + " / " + mmss(inf.seconds()) + "  ·  " + Math.round(inf.fps()) + " fps · " + inf.width() + "×" + inf.height();
+        text(c, meta, x, by + 10, MUTED, false);
+        int room = w - width(meta) - 16; // the file name only where it fits
+        if (room > 50) { String nm = fit(p.file.getName(), room, false); text(c, nm, x + w - width(nm), by + 10, FAINT, false); }
+        // buttons
+        String[] labels = {p.playing ? "Pause" : "Play", "Open in player", "Show in folder", confirming("delclip") ? "Really delete?" : "Delete", "Close"};
+        int total = 0; for (String l : labels) total += width(l) + 22;
+        total += (labels.length - 1) * 6;
+        int bx = (width - total) / 2, row = by + 24;
+        for (int i = 0; i < labels.length; i++) {
+            int bw = width(labels[i]) + 22;
+            final int k = i;
+            pill(c, "cp" + i, labels[i], bx, row, bw, 18, mx, my, i == 0 ? withAlpha(acc, 210) : i == 3 && confirming("delclip") ? 0xCCE5484D : 0x26FFFFFF,
+                    i == 0 ? lerpColor(acc, 0xFFFFFFFF, 0.2f) : i == 3 ? 0xFFE5484D : 0x48FFFFFF, i == 0 ? 0xFF0E0A1C : 0xFFFFFFFF, () -> clipButton(k));
+            bx += bw + 6;
+        }
+    }
+    private void clipButton(int i) {
+        var p = clipPlayer;
+        if (p == null) return;
+        Sounds.click();
+        switch (i) {
+            case 0 -> p.toggle();
+            case 1 -> { p.playing = false; Util.getOperatingSystem().open(p.file); }
+            case 2 -> {
+                if (Util.getOperatingSystem().equals(Util.OperatingSystem.WINDOWS)) {
+                    try { new ProcessBuilder("explorer.exe", "/select,", p.file.getAbsolutePath()).start(); } catch (Exception e) { Util.getOperatingSystem().open(clipsDir()); }
+                } else Util.getOperatingSystem().open(clipsDir());
+            }
+            case 3 -> { if (confirm("delclip")) { File f = p.file; closeClip(); recycleClip(f); } }
+            default -> closeClip();
+        }
+    }
+    private void recycleClip(File f) {
+        Util.getIoWorkerExecutor().execute(() -> {
+            boolean ok;
+            try {
+                if (Util.getOperatingSystem().equals(Util.OperatingSystem.WINDOWS)) {
+                    String path = f.getAbsolutePath().replace("'", "''");
+                    Process pr = new ProcessBuilder("powershell", "-NoProfile", "-WindowStyle", "Hidden", "-Command",
+                            "Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile('" + path + "','OnlyErrorDialogs','SendToRecycleBin')").start();
+                    ok = pr.waitFor(15, java.util.concurrent.TimeUnit.SECONDS) && !f.exists();
+                } else ok = f.delete();
+            } catch (Exception e) { ok = false; }
+            boolean done = ok;
+            client.execute(() -> { if (done) { Sounds.success(); say("Clip moved to the Recycle Bin", true); clips = null; } else say("Couldn't delete the clip", false); });
+        });
     }
 
     // ------------------------------------------------------------------ accounts
@@ -1692,6 +1894,7 @@ public final class OrbitTitleScreen extends OrbitBaseScreen {
 
     @Override
     protected boolean onClick(double mx, double my, int button) {
+        clickX = (int) mx;
         if (skipIntro()) return true;
         if (button != 0) return false;
         if (appearanceOpen) return clickAppearance(mx, my);
@@ -1882,6 +2085,8 @@ public final class OrbitTitleScreen extends OrbitBaseScreen {
 
     private boolean clickShots(double mx, double my) {
         int px = 24, pw = width - 48, y = 44;
+        if (clipsView) { if (!clickHits(mx, my) && clipPlayer != null) closeClip(); return true; } // click outside the player closes it
+        if (preview == null && clickHits(mx, my)) return true; // Screenshots | Clips switch
         if (preview != null) {
             int w = Math.min(width - 60, Math.round((height - 90) * 16 / 9f)), h = Math.round(w * 9 / 16f), yy = 30, bx0 = width / 2 - 188;
             if (in(mx, my, bx0, yy + h + 22, 90, 20)) { Util.getOperatingSystem().open(preview); return true; }
@@ -1922,8 +2127,10 @@ public final class OrbitTitleScreen extends OrbitBaseScreen {
             if (key == GLFW.GLFW_KEY_ESCAPE) { inputFor = ""; return true; }
             return true;
         }
+        if (clipPlayer != null && key == GLFW.GLFW_KEY_SPACE) { clipPlayer.toggle(); return true; }
         if (key == GLFW.GLFW_KEY_ESCAPE) {
             if (appearanceOpen) { appearanceOpen = false; return true; }
+            if (clipPlayer != null) { closeClip(); return true; }
             if (preview != null) { preview = null; return true; }
             if (tab != Tab.HOME) { switchTab(Tab.HOME); return true; }
             if (ingame) { client.setScreen(null); return true; }
