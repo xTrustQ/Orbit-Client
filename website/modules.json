@@ -3515,7 +3515,7 @@
  {
   "id": "deathanim",
   "name": "Death Animations",
-  "desc": "Cool custom deaths: a piano drops, a bowling strike, a UFO abduction, Tung Tung, black holes and more — only you see them",
+  "desc": "Cartoon deaths: a piano drops, a bowling strike, a UFO abduction or Tung Tung Sahur — only you see them",
   "category": "RENDER",
   "on": false,
   "toggle": true,
@@ -3526,7 +3526,7 @@
     "id": "style",
     "name": "Animation",
     "options": [
-     "Soul Ascend",
+     "Piano Drop",
      "Nebula",
      "Aurora",
      "Deep Space",
@@ -3538,7 +3538,7 @@
      "Crimson",
      "Midnight"
     ],
-    "value": "Soul Ascend"
+    "value": "Piano Drop"
    },
    {
     "type": "bool",

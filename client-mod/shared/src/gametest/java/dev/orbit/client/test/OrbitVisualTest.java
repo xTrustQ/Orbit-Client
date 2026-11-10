@@ -449,7 +449,7 @@ public class OrbitVisualTest implements FabricClientGameTest {
             ctx.runOnClient(c -> { var m = OrbitClient.modules(); for (String id : new String[]{"targethud", "combo", "hitdelay", "fightstats", "timeline", "trajectories", "pearls", "wtap"}) m.get(id).setEnabled(false); });
             // Death Animations on zombies, one per style
             ctx.runOnClient(c -> { OrbitClient.modules().get("deathanim").setEnabled(true); c.player.setPitch(10); });
-            String[] styles = {"Soul Ascend", "Black Hole", "Thunder Strike", "Firework", "Shatter", "Tung Tung Bonk"};
+            String[] styles = {"Piano Drop", "Bowling Strike", "UFO Abduction", "Tung Tung Bonk"};
             for (int i = 0; i < styles.length; i++) {
                 String st = styles[i];
                 ctx.runOnClient(c -> ((NewModules.DeathAnimationsModule) OrbitClient.modules().get("deathanim")).style.set(st));

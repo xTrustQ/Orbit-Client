@@ -296,11 +296,11 @@ public final class NewModules {
 
     // ================================================================= Death animations
     public static final class DeathAnimationsModule extends Module {
-        public final Setting.Mode style = add(new Setting.Mode("style", "Animation", "Soul Ascend", dev.orbit.client.death.DeathAnimations.NAMES));
+        public final Setting.Mode style = add(new Setting.Mode("style", "Animation", "Piano Drop", dev.orbit.client.death.DeathAnimations.NAMES));
         public final Setting.Bool players = add(new Setting.Bool("players", "Other players", true));
         public final Setting.Bool self = add(new Setting.Bool("self", "Myself", true));
         public final Setting.Bool mobs = add(new Setting.Bool("mobs", "Mobs", true));
-        public DeathAnimationsModule() { super("deathanim", "Death Animations", "Cool custom deaths: a piano drops, a bowling strike, a UFO abduction, Tung Tung, black holes and more — only you see them", Category.RENDER, false); }
+        public DeathAnimationsModule() { super("deathanim", "Death Animations", "Cartoon deaths: a piano drops, a bowling strike, a UFO abduction or Tung Tung Sahur — only you see them", Category.RENDER, false); }
     }
 
     // ================================================================= Hide armor

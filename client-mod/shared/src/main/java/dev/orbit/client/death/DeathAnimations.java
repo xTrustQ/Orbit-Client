@@ -37,7 +37,9 @@ public final class DeathAnimations {
     private DeathAnimations() {}
 
     public enum Style { SOUL, BLACK_HOLE, THUNDER, FIREWORK, SHATTER, TUNG, PIANO, BOWLING, UFO }
-    public static final String[] NAMES = {"Soul Ascend", "Black Hole", "Thunder Strike", "Firework", "Shatter", "Tung Tung Bonk", "Piano Drop", "Bowling Strike", "UFO Abduction", "Random"};
+    /** what you can pick for Death Animations (the simple particle styles are only used by Kill Effects now) */
+    public static final String[] NAMES = {"Piano Drop", "Bowling Strike", "UFO Abduction", "Tung Tung Bonk", "Random"};
+    private static final Style[] PICKS = {Style.PIANO, Style.BOWLING, Style.UFO, Style.TUNG};
 
     /** phi = direction (radians, world) from the victim to where the bat buddy stands: always on your left; stage = id of the prop's stand-in entity (0 = none) */
     private record Anim(Style style, double x, double y, double z, float height, float phi, int[] tick, int stage) {}
@@ -126,7 +128,7 @@ public final class DeathAnimations {
             alive.add(l.getId());
             if (SEEN.add(l.getId()) && l.deathTime <= 3 && eligible(l, m)) {
                 int pick = Arrays.asList(NAMES).indexOf(m.style.get());
-                Style s = pick < 0 || pick >= Style.values().length ? Style.values()[RNG.nextInt(Style.values().length)] : Style.values()[pick];
+                Style s = pick < 0 || pick >= PICKS.length ? PICKS[RNG.nextInt(PICKS.length)] : PICKS[pick];
                 // the buddy stands to the camera's left of the victim, so you watch it from the side
                 float phi = (float) Math.toRadians(mc.gameRenderer.getCamera().getYaw());
                 add(l.getId(), s, l.getX(), l.getY(), l.getZ(), l.getHeight(), phi, Math.max(0, l.deathTime - 1)); // in step with the body
