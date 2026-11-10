@@ -405,11 +405,15 @@ public class OrbitVisualTest implements FabricClientGameTest {
             ctx.runOnClient(c -> {
                 var cm = (dev.orbit.client.module.ClipsModule) OrbitClient.modules().get("clips");
                 cm.rate.set("60 fps");
+                cm.quality.set("1080p");
                 cm.setEnabled(true);
                 c.options.getMaxFps().setValue(260); // let the game itself run fast enough
+                c.getWindow().setWindowedSize(1920, 1080); // record at a real 1080p, like a normal full-screen game
             });
+            ctx.waitTicks(20);
+            ctx.runOnClient(c -> OrbitClient.LOG.info("[TEST] clip window: {}x{}", c.getFramebuffer().textureWidth, c.getFramebuffer().textureHeight));
             for (int k = 0; k < 8; k++) { ctx.runOnClient(c -> c.player.setYaw(c.player.getYaw() + 12)); ctx.waitTicks(10); }
-            ctx.runOnClient(c -> dev.orbit.client.clips.ClipRecorder.saveClip());
+            ctx.runOnClient(c -> { OrbitClient.LOG.info("[TEST] clip game fps while recording: {}", c.getCurrentFps()); dev.orbit.client.clips.ClipRecorder.saveClip(); });
             ctx.waitTicks(60);
             ctx.runOnClient(c -> {
                 java.io.File[] clips = new java.io.File(c.runDirectory, "clips").listFiles();
@@ -419,7 +423,9 @@ public class OrbitVisualTest implements FabricClientGameTest {
                     catch (Exception e) { OrbitClient.LOG.warn("[TEST] clip unreadable", e); }
                 }
                 OrbitClient.modules().get("clips").setEnabled(false);
+                c.getWindow().setWindowedSize(854, 480);
             });
+            ctx.waitTicks(10);
             ctx.takeScreenshot("21e-clip-saved");
             ctx.setScreen(() -> OrbitTitleScreen.pauseOn("clips"));
             ctx.waitTicks(30);

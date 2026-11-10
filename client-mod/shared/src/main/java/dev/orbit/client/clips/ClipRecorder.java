@@ -44,7 +44,11 @@ public final class ClipRecorder {
 
     private static final ArrayDeque<Frame> FRAMES = new ArrayDeque<>();
     // enough encoder threads for 60 fps, but always leave cores for Minecraft itself
-    private static final int THREADS = Math.max(2, Math.min(6, Runtime.getRuntime().availableProcessors() - 2));
+    private static final int THREADS = Math.max(2, Math.min(8, Runtime.getRuntime().availableProcessors() / 2));
+    /** keep the last-seconds buffer under ~400 MB: big 1080p/60 clips get a slightly lower JPEG quality */
+    private static final long MEMORY_BUDGET = 400L << 20;
+    private static volatile float quality = 0.82f;
+    private static volatile long avgFrameBytes = 150_000;
     private static final ExecutorService WORK = Executors.newFixedThreadPool(THREADS, r -> { Thread t = new Thread(r, "Orbit-Clips"); t.setDaemon(true); t.setPriority(Thread.MIN_PRIORITY + 1); return t; });
     private static final ExecutorService SAVE = Executors.newSingleThreadExecutor(r -> { Thread t = new Thread(r, "Orbit-Clips-Save"); t.setDaemon(true); return t; });
     private static final AtomicInteger IN_FLIGHT = new AtomicInteger();
@@ -97,6 +101,10 @@ public final class ClipRecorder {
                 }
                 buf.close();
                 lastDone = System.nanoTime();
+                // would the whole buffer get too big? then compress a little harder (and back up when there's room)
+                long need = avgFrameBytes * m.fps() * m.seconds();
+                if (need > MEMORY_BUDGET && quality > 0.55f) quality = Math.max(0.55f, quality - 0.01f);
+                else if (need < MEMORY_BUDGET * 0.7 && quality < 0.82f) quality = Math.min(0.82f, quality + 0.01f);
                 WORK.execute(() -> {
                     try { add(new Frame(encode(raw, w, oh, px, f), at), m.seconds()); }
                     catch (Throwable t) { if (!warned) { warned = true; OrbitClient.LOG.warn("Clips: could not encode a frame", t); } }
@@ -124,9 +132,10 @@ public final class ClipRecorder {
             wr.setOutput(ios);
             ImageWriteParam p = wr.getDefaultWriteParam();
             p.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
-            p.setCompressionQuality(0.82f);
+            p.setCompressionQuality(quality);
             wr.write(null, new IIOImage(img, null, null), p);
         } finally { wr.reset(); }
+        avgFrameBytes = (avgFrameBytes * 15 + out.size()) / 16;
         return withSize(out.toByteArray(), ow, oh);
     }
     /** one JPEG encoder per worker thread (making a new one for every frame is slow) */
