@@ -1,21 +1,33 @@
-// Player profiles for the website's player lookup (orbit-client.com/players): playtime, sessions and PvP stats
-// of Orbit players. Only signed-in (Mojang-verified) players get a profile, so nobody can pad someone else's
+// Player profiles for orbit-client.com/players.html: play time, days played, streaks, the last days' activity,
+// friends and badges. Only signed-in (Mojang-verified) players get a profile, so nobody can pad someone else's
 // numbers; players can switch their profile to private in the Orbit menu.
 const store = require('./store');
 
 const cache = new Map();       // uuid -> profile (loaded on demand)
 const dirty = new Set();
 const names = new Map();       // lowercase name -> uuid
-let board = null;              // top players by playtime: [{uuid, name, playMs}]
+let board = null;              // recently active public players (for the leaderboards)
 
+// names shown with the Developer badge (comma separated)
+const DEVELOPERS = (process.env.ORBIT_DEVELOPERS || 'TrustQ').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
+const EARLY_UNTIL = Date.UTC(2027, 0, 1);
+
+const day = (t = Date.now()) => new Date(t).toISOString().slice(0, 10); // YYYY-MM-DD (UTC)
 const blank = (uuid, name) => ({ uuid, name, firstSeen: Date.now(), lastSeen: Date.now(), playMs: 0, sessions: 0,
+  days: {}, daysPlayed: 0, curStreak: 0, bestStreak: 0, lastDay: null, friends: 0,
   kills: 0, deaths: 0, hits: 0, misses: 0, wtaps: 0, dealt: 0, taken: 0, bestCombo: 0, public: true });
+
+function upgrade(p) { // profiles saved by older versions
+  p.days = p.days || {}; p.daysPlayed = p.daysPlayed || 0; p.curStreak = p.curStreak || 0; p.bestStreak = p.bestStreak || 0;
+  p.friends = p.friends || 0; if (p.lastDay === undefined) p.lastDay = null;
+  return p;
+}
 
 async function get(uuid, name) {
   let p = cache.get(uuid);
   if (!p) {
     try { p = await store.get('player:' + uuid); } catch { p = null; }
-    p = p || blank(uuid, name);
+    p = upgrade(p || blank(uuid, name));
     cache.set(uuid, p);
   }
   if (name && p.name !== name) { p.name = name; dirty.add(uuid); }
@@ -24,19 +36,50 @@ async function get(uuid, name) {
 }
 function touch(uuid) { dirty.add(uuid); }
 
+function badges(p) {
+  const b = [];
+  if (p.name && DEVELOPERS.includes(p.name.toLowerCase())) b.push('developer');
+  if (p.firstSeen < EARLY_UNTIL) b.push('early');
+  return b;
+}
+
 /** a verified player came online / changed server / went away */
 function online(p) { p.lastSeen = Date.now(); touch(p.uuid); }
 function startSession(p) { p.sessions++; p.lastSeen = Date.now(); touch(p.uuid); }
-function addPlaytime(p, ms) { if (ms > 0 && ms < 12 * 3600_000) { p.playMs += ms; p.lastSeen = Date.now(); touch(p.uuid); } }
+function addPlaytime(p, ms) {
+  if (!(ms > 0 && ms < 12 * 3600_000)) return;
+  const today = day();
+  if (!p.days[today]) { // first minutes today: days played + streak
+    p.days[today] = 0;
+    p.daysPlayed++;
+    p.curStreak = p.lastDay === day(Date.now() - 86400_000) ? p.curStreak + 1 : 1;
+    p.bestStreak = Math.max(p.bestStreak, p.curStreak);
+    p.lastDay = today;
+  }
+  p.days[today] += ms;
+  p.playMs += ms;
+  p.lastSeen = Date.now();
+  for (const d of Object.keys(p.days)) if (d < day(Date.now() - 40 * 86400_000)) delete p.days[d]; // keep ~40 days
+  touch(p.uuid);
+}
+function setFriends(p, n) { if (p.friends !== n) { p.friends = n; touch(p.uuid); } }
 
 const INT = (v, max) => Math.max(0, Math.min(max, Math.floor(Number(v) || 0)));
-/** PvP numbers since the game's last report (small, sane deltas only) */
+/** PvP numbers since the game's last report (kept, but not shown on the website) */
 function addStats(p, s) {
   p.kills += INT(s.kills, 500); p.deaths += INT(s.deaths, 500); p.hits += INT(s.hits, 20000); p.misses += INT(s.misses, 20000);
   p.wtaps += INT(s.wtaps, 20000); p.dealt += INT(s.dealt, 100000); p.taken += INT(s.taken, 100000);
   p.bestCombo = Math.max(p.bestCombo, INT(s.bestCombo, 1000));
   touch(p.uuid);
 }
+
+/** play time per day for the last n days (oldest first) */
+function lastDays(p, n = 7) {
+  const out = [];
+  for (let i = n - 1; i >= 0; i--) { const d = day(Date.now() - i * 86400_000); out.push({ date: d, ms: p.days[d] || 0 }); }
+  return out;
+}
+const weekMs = (days) => lastDays({ days }, 7).reduce((s, d) => s + d.ms, 0);
 
 async function flush() {
   const ids = [...dirty];
@@ -53,7 +96,7 @@ async function flush() {
 }
 async function loadBoard() {
   if (board) return board;
-  try { board = (await store.get('leaderboard')) || []; } catch { board = []; }
+  try { board = (await store.get('board2')) || []; } catch { board = []; }
   return board;
 }
 async function updateBoard(changed) {
@@ -61,13 +104,25 @@ async function updateBoard(changed) {
   for (const p of changed) {
     const i = b.findIndex((e) => e.uuid === p.uuid);
     if (i >= 0) b.splice(i, 1);
-    if (p.public && p.playMs > 0) b.push({ uuid: p.uuid, name: p.name, playMs: p.playMs, kills: p.kills });
+    if (p.public && p.playMs > 0) {
+      const recent = {};
+      for (const d of lastDays(p, 8)) if (d.ms) recent[d.date] = d.ms;
+      b.push({ uuid: p.uuid, name: p.name, playMs: p.playMs, daysPlayed: p.daysPlayed, bestStreak: p.bestStreak, days: recent, badges: badges(p), lastSeen: p.lastSeen });
+    }
   }
-  b.sort((a, c) => c.playMs - a.playMs);
-  board = b.slice(0, 25);
-  try { await store.set('leaderboard', board); } catch { /* next time */ }
+  // keep the 300 most recently active players
+  b.sort((a, c) => c.lastSeen - a.lastSeen);
+  board = b.slice(0, 300);
+  try { await store.set('board2', board); } catch { /* next time */ }
 }
 setInterval(() => flush().catch(() => {}), 60_000);
+
+/** leaderboard: week (play time in the last 7 days), all (all-time play time), streak, days */
+async function leaderboard(type) {
+  const b = await loadBoard();
+  const value = { week: (e) => weekMs(e.days || {}), all: (e) => e.playMs, streak: (e) => e.bestStreak, days: (e) => e.daysPlayed }[type] || ((e) => weekMs(e.days || {}));
+  return b.map((e) => ({ ...e, value: value(e) })).filter((e) => e.value > 0).sort((a, c) => c.value - a.value).slice(0, 25);
+}
 
 /** for the website: profile by Minecraft name */
 async function lookup(name) {
@@ -79,4 +134,4 @@ async function lookup(name) {
   return get(uuid);
 }
 
-module.exports = { get, online, startSession, addPlaytime, addStats, flush, lookup, loadBoard, touch };
+module.exports = { get, online, startSession, addPlaytime, addStats, setFriends, flush, lookup, leaderboard, loadBoard, touch, badges, lastDays };

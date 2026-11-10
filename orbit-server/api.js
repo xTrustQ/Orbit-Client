@@ -21,6 +21,7 @@ let liveSource = () => ({ online: false, inGame: false });
 function setStats(fn) { statsSource = fn; }
 function setLive(fn) { liveSource = fn; }
 const profiles = require('./profiles');
+const tierCache = new Map(); // name -> {at, status, body}
 
 const DATA = process.env.DATA_DIR || path.join(__dirname, 'data');
 const CAPES = path.join(DATA, 'capes');
@@ -128,14 +129,38 @@ async function handle(req, res) {
       return send(res, 200, {
         name: p.name, uuid: p.uuid, online: live.online, inGame: live.inGame,
         firstSeen: p.firstSeen, lastSeen: live.online ? Date.now() : p.lastSeen, playMs: p.playMs, sessions: p.sessions,
-        kills: p.kills, deaths: p.deaths, hits: p.hits, misses: p.misses, wtaps: p.wtaps, dealt: p.dealt, taken: p.taken, bestCombo: p.bestCombo,
+        daysPlayed: p.daysPlayed, bestStreak: p.bestStreak, curStreak: p.curStreak, friends: p.friends,
+        last7: profiles.lastDays(p, 7), badges: profiles.badges(p),
         cosmetics: cos ? { hat: cos.hat, wings: cos.wings, aura: cos.aura, cape: cos.cape } : null,
       });
     }
     if (url.pathname === '/api/leaderboard' && req.method === 'GET') {
       if (!allow(ip, 1)) return send(res, 429, { error: 'Slow down' });
-      const b = await profiles.loadBoard();
-      return send(res, 200, b.slice(0, 10).map((e) => ({ name: e.name, playMs: e.playMs, kills: e.kills, online: liveSource(e.uuid).online })));
+      const type = url.searchParams.get('type') || 'week';
+      const list = await profiles.leaderboard(type);
+      return send(res, 200, list.slice(0, Math.min(25, Number(url.searchParams.get('limit')) || 10))
+        .map((e) => ({ name: e.name, value: e.value, badges: e.badges || [], online: liveSource(e.uuid).online })));
+    }
+    // PvP tiers from pvptiers.com (their API doesn't allow websites to ask directly), cached for 10 minutes
+    const tm = url.pathname.match(/^\/api\/tiers\/([A-Za-z0-9_]{1,16})$/);
+    if (tm && req.method === 'GET') {
+      if (!allow(ip, 2)) return send(res, 429, { error: 'Slow down' });
+      const key = tm[1].toLowerCase(), hit = tierCache.get(key);
+      if (hit && hit.at > Date.now() - 600_000) return send(res, hit.status, hit.body);
+      let status = 200, out;
+      try {
+        const r = await fetch(`https://pvptiers.com/api/search_profile/${encodeURIComponent(tm[1])}`, { signal: AbortSignal.timeout(8000) });
+        if (r.status === 404) { status = 404; out = { error: 'Not ranked' }; }
+        else if (!r.ok) { status = 502; out = { error: 'Tier list unavailable' }; }
+        else {
+          const j = await r.json();
+          out = { region: j.region || null, points: j.points || 0, rankings: Object.fromEntries(Object.entries(j.rankings || {})
+            .filter(([, v]) => v && v.tier && !v.retired).map(([k, v]) => [k, { tier: v.tier, high: v.pos === 0, peak: v.peak_tier, peakHigh: v.peak_pos === 0 }])) };
+        }
+      } catch { status = 502; out = { error: 'Tier list unavailable' }; }
+      if (status !== 502) tierCache.set(key, { at: Date.now(), status, body: out });
+      if (tierCache.size > 2000) tierCache.clear();
+      return send(res, status, out);
     }
 
     if (url.pathname === '/api/settings') {

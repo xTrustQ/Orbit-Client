@@ -4,461 +4,4466 @@
   "name": "Armor Status",
   "desc": "Armor & held item durability",
   "category": "COMBAT",
-  "settings": 3
+  "on": true,
+  "toggle": true,
+  "settings": 14,
+  "opts": [
+   {
+    "type": "slider",
+    "id": "scale",
+    "name": "Size",
+    "value": 1,
+    "min": 0.5,
+    "max": 3,
+    "step": 0.05,
+    "unit": "x"
+   },
+   {
+    "type": "mode",
+    "id": "theme",
+    "name": "Theme",
+    "options": [
+     "Default",
+     "Glass",
+     "Minimal",
+     "Outline",
+     "Neon",
+     "Pill"
+    ],
+    "value": "Default"
+   },
+   {
+    "type": "color",
+    "id": "textColor",
+    "name": "Text color",
+    "value": "#FFFFFF"
+   },
+   {
+    "type": "bool",
+    "id": "chroma",
+    "name": "Rainbow text",
+    "value": false
+   },
+   {
+    "type": "bool",
+    "id": "shadow",
+    "name": "Text shadow",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "background",
+    "name": "Background",
+    "value": true
+   },
+   {
+    "type": "color",
+    "id": "bgColor",
+    "name": "Background color",
+    "value": "#000000"
+   },
+   {
+    "type": "slider",
+    "id": "bgOpacity",
+    "name": "Background opacity",
+    "value": 45,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "unit": "%"
+   },
+   {
+    "type": "bool",
+    "id": "rounded",
+    "name": "Rounded corners",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "border",
+    "name": "Accent border",
+    "value": false
+   },
+   {
+    "type": "mode",
+    "id": "brackets",
+    "name": "Brackets",
+    "options": [
+     "None",
+     "[ ]",
+     "( )"
+    ],
+    "value": "None"
+   },
+   {
+    "type": "mode",
+    "id": "layout",
+    "name": "Layout",
+    "options": [
+     "Vertical",
+     "Horizontal"
+    ],
+    "value": "Vertical"
+   },
+   {
+    "type": "mode",
+    "id": "durability",
+    "name": "Durability",
+    "options": [
+     "Value",
+     "Percent",
+     "Hidden"
+    ],
+    "value": "Value"
+   },
+   {
+    "type": "bool",
+    "id": "hand",
+    "name": "Show held item",
+    "value": true
+   }
+  ]
  },
  {
   "id": "autoclicker",
   "name": "Auto Clicker",
   "desc": "Keeps clicking while you hold a mouse button — check the server rules first",
   "category": "COMBAT",
-  "settings": 6
+  "on": false,
+  "toggle": true,
+  "settings": 6,
+  "opts": [
+   {
+    "type": "bool",
+    "id": "left",
+    "name": "Left click (attack)",
+    "value": true
+   },
+   {
+    "type": "slider",
+    "id": "leftcps",
+    "name": "Left CPS",
+    "value": 12,
+    "min": 1,
+    "max": 20,
+    "step": 1,
+    "unit": " CPS"
+   },
+   {
+    "type": "bool",
+    "id": "right",
+    "name": "Right click (use / place)",
+    "value": false
+   },
+   {
+    "type": "slider",
+    "id": "rightcps",
+    "name": "Right CPS",
+    "value": 12,
+    "min": 1,
+    "max": 20,
+    "step": 1,
+    "unit": " CPS"
+   },
+   {
+    "type": "bool",
+    "id": "mine",
+    "name": "Mine blocks normally when aiming at one",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "vary",
+    "name": "Slightly uneven timing (feels like a real hand)",
+    "value": true
+   }
+  ]
  },
  {
   "id": "combo",
   "name": "Combo Counter",
   "desc": "Counts your hits in a row before you get hit",
   "category": "COMBAT",
-  "settings": 0
+  "on": false,
+  "toggle": true,
+  "settings": 11,
+  "opts": [
+   {
+    "type": "slider",
+    "id": "scale",
+    "name": "Size",
+    "value": 1,
+    "min": 0.5,
+    "max": 3,
+    "step": 0.05,
+    "unit": "x"
+   },
+   {
+    "type": "mode",
+    "id": "theme",
+    "name": "Theme",
+    "options": [
+     "Default",
+     "Glass",
+     "Minimal",
+     "Outline",
+     "Neon",
+     "Pill"
+    ],
+    "value": "Default"
+   },
+   {
+    "type": "color",
+    "id": "textColor",
+    "name": "Text color",
+    "value": "#FFFFFF"
+   },
+   {
+    "type": "bool",
+    "id": "chroma",
+    "name": "Rainbow text",
+    "value": false
+   },
+   {
+    "type": "bool",
+    "id": "shadow",
+    "name": "Text shadow",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "background",
+    "name": "Background",
+    "value": true
+   },
+   {
+    "type": "color",
+    "id": "bgColor",
+    "name": "Background color",
+    "value": "#000000"
+   },
+   {
+    "type": "slider",
+    "id": "bgOpacity",
+    "name": "Background opacity",
+    "value": 45,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "unit": "%"
+   },
+   {
+    "type": "bool",
+    "id": "rounded",
+    "name": "Rounded corners",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "border",
+    "name": "Accent border",
+    "value": false
+   },
+   {
+    "type": "mode",
+    "id": "brackets",
+    "name": "Brackets",
+    "options": [
+     "None",
+     "[ ]",
+     "( )"
+    ],
+    "value": "None"
+   }
+  ]
  },
  {
   "id": "cps",
   "name": "CPS",
   "desc": "Clicks per second",
   "category": "COMBAT",
-  "settings": 1
+  "on": true,
+  "toggle": true,
+  "settings": 12,
+  "opts": [
+   {
+    "type": "slider",
+    "id": "scale",
+    "name": "Size",
+    "value": 1,
+    "min": 0.5,
+    "max": 3,
+    "step": 0.05,
+    "unit": "x"
+   },
+   {
+    "type": "mode",
+    "id": "theme",
+    "name": "Theme",
+    "options": [
+     "Default",
+     "Glass",
+     "Minimal",
+     "Outline",
+     "Neon",
+     "Pill"
+    ],
+    "value": "Default"
+   },
+   {
+    "type": "color",
+    "id": "textColor",
+    "name": "Text color",
+    "value": "#FFFFFF"
+   },
+   {
+    "type": "bool",
+    "id": "chroma",
+    "name": "Rainbow text",
+    "value": false
+   },
+   {
+    "type": "bool",
+    "id": "shadow",
+    "name": "Text shadow",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "background",
+    "name": "Background",
+    "value": true
+   },
+   {
+    "type": "color",
+    "id": "bgColor",
+    "name": "Background color",
+    "value": "#000000"
+   },
+   {
+    "type": "slider",
+    "id": "bgOpacity",
+    "name": "Background opacity",
+    "value": 45,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "unit": "%"
+   },
+   {
+    "type": "bool",
+    "id": "rounded",
+    "name": "Rounded corners",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "border",
+    "name": "Accent border",
+    "value": false
+   },
+   {
+    "type": "mode",
+    "id": "brackets",
+    "name": "Brackets",
+    "options": [
+     "None",
+     "[ ]",
+     "( )"
+    ],
+    "value": "None"
+   },
+   {
+    "type": "bool",
+    "id": "right",
+    "name": "Show right clicks",
+    "value": true
+   }
+  ]
  },
  {
   "id": "crosshair",
   "name": "Crosshair",
   "desc": "Pick a style or paint your own pixel crosshair",
   "category": "COMBAT",
-  "settings": 12
+  "on": false,
+  "toggle": true,
+  "settings": 12,
+  "opts": [
+   {
+    "type": "mode",
+    "id": "style",
+    "name": "Style",
+    "options": [
+     "Cross",
+     "Plus gap",
+     "Dot",
+     "Circle",
+     "Custom"
+    ],
+    "value": "Cross"
+   },
+   {
+    "type": "slider",
+    "id": "size",
+    "name": "Size",
+    "value": 5,
+    "min": 1,
+    "max": 12,
+    "step": 1,
+    "unit": ""
+   },
+   {
+    "type": "slider",
+    "id": "thickness",
+    "name": "Thickness",
+    "value": 1,
+    "min": 1,
+    "max": 4,
+    "step": 1,
+    "unit": ""
+   },
+   {
+    "type": "slider",
+    "id": "gap",
+    "name": "Gap",
+    "value": 2,
+    "min": 0,
+    "max": 8,
+    "step": 1,
+    "unit": ""
+   },
+   {
+    "type": "slider",
+    "id": "scale",
+    "name": "Custom scale",
+    "value": 1,
+    "min": 1,
+    "max": 3,
+    "step": 1,
+    "unit": "x"
+   },
+   {
+    "type": "color",
+    "id": "color",
+    "name": "Color",
+    "value": "#FFFFFF"
+   },
+   {
+    "type": "bool",
+    "id": "outline",
+    "name": "Dark outline (easier to see on snow)",
+    "value": false
+   },
+   {
+    "type": "bool",
+    "id": "dot",
+    "name": "Center dot",
+    "value": false
+   },
+   {
+    "type": "bool",
+    "id": "third",
+    "name": "Show in third person",
+    "value": false
+   },
+   {
+    "type": "bool",
+    "id": "dynamic",
+    "name": "Dynamic: changes with what you're doing",
+    "value": true
+   },
+   {
+    "type": "color",
+    "id": "targetColor",
+    "name": "Colour when aiming at a player / mob",
+    "value": "#FF4D5E"
+   }
+  ]
  },
  {
   "id": "damagenumbers",
   "name": "Damage Numbers",
   "desc": "Floating, animated damage numbers over everything that gets hurt",
   "category": "COMBAT",
-  "settings": 4
+  "on": false,
+  "toggle": true,
+  "settings": 4,
+  "opts": [
+   {
+    "type": "mode",
+    "id": "style",
+    "name": "Animation",
+    "options": [
+     "Pop & rise",
+     "Bounce",
+     "Simple"
+    ],
+    "value": "Pop & rise"
+   },
+   {
+    "type": "bool",
+    "id": "hearts",
+    "name": "Show as hearts (÷2)",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "heals",
+    "name": "Show healing too",
+    "value": true
+   },
+   {
+    "type": "slider",
+    "id": "size",
+    "name": "Size",
+    "value": 1,
+    "min": 0.5,
+    "max": 2,
+    "step": 0.05,
+    "unit": "x"
+   }
+  ]
  },
  {
   "id": "fightstats",
   "name": "Fight Statistics",
   "desc": "Hits, misses, accuracy, combos, damage, kills",
   "category": "COMBAT",
-  "settings": 0
+  "on": false,
+  "toggle": true,
+  "settings": 11,
+  "opts": [
+   {
+    "type": "slider",
+    "id": "scale",
+    "name": "Size",
+    "value": 1,
+    "min": 0.5,
+    "max": 3,
+    "step": 0.05,
+    "unit": "x"
+   },
+   {
+    "type": "mode",
+    "id": "theme",
+    "name": "Theme",
+    "options": [
+     "Default",
+     "Glass",
+     "Minimal",
+     "Outline",
+     "Neon",
+     "Pill"
+    ],
+    "value": "Default"
+   },
+   {
+    "type": "color",
+    "id": "textColor",
+    "name": "Text color",
+    "value": "#FFFFFF"
+   },
+   {
+    "type": "bool",
+    "id": "chroma",
+    "name": "Rainbow text",
+    "value": false
+   },
+   {
+    "type": "bool",
+    "id": "shadow",
+    "name": "Text shadow",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "background",
+    "name": "Background",
+    "value": true
+   },
+   {
+    "type": "color",
+    "id": "bgColor",
+    "name": "Background color",
+    "value": "#000000"
+   },
+   {
+    "type": "slider",
+    "id": "bgOpacity",
+    "name": "Background opacity",
+    "value": 45,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "unit": "%"
+   },
+   {
+    "type": "bool",
+    "id": "rounded",
+    "name": "Rounded corners",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "border",
+    "name": "Accent border",
+    "value": false
+   },
+   {
+    "type": "mode",
+    "id": "brackets",
+    "name": "Brackets",
+    "options": [
+     "None",
+     "[ ]",
+     "( )"
+    ],
+    "value": "None"
+   }
+  ]
  },
  {
   "id": "hitcolors",
   "name": "Hit Colours",
   "desc": "Recolour the red hurt flash and the damage numbers",
   "category": "COMBAT",
-  "settings": 3
+  "on": false,
+  "toggle": true,
+  "settings": 3,
+  "opts": [
+   {
+    "type": "color",
+    "id": "hurt",
+    "name": "Hurt flash on entities",
+    "value": "#FF0000"
+   },
+   {
+    "type": "color",
+    "id": "number",
+    "name": "Damage number colour",
+    "value": "#FF5A5A"
+   },
+   {
+    "type": "color",
+    "id": "crit",
+    "name": "Critical hit colour",
+    "value": "#FFC23D"
+   }
+  ]
  },
  {
   "id": "hitdelay",
   "name": "Hit Delay Indicator",
   "desc": "Attack cooldown bar and time between your hits",
   "category": "COMBAT",
-  "settings": 0
+  "on": false,
+  "toggle": true,
+  "settings": 11,
+  "opts": [
+   {
+    "type": "slider",
+    "id": "scale",
+    "name": "Size",
+    "value": 1,
+    "min": 0.5,
+    "max": 3,
+    "step": 0.05,
+    "unit": "x"
+   },
+   {
+    "type": "mode",
+    "id": "theme",
+    "name": "Theme",
+    "options": [
+     "Default",
+     "Glass",
+     "Minimal",
+     "Outline",
+     "Neon",
+     "Pill"
+    ],
+    "value": "Default"
+   },
+   {
+    "type": "color",
+    "id": "textColor",
+    "name": "Text color",
+    "value": "#FFFFFF"
+   },
+   {
+    "type": "bool",
+    "id": "chroma",
+    "name": "Rainbow text",
+    "value": false
+   },
+   {
+    "type": "bool",
+    "id": "shadow",
+    "name": "Text shadow",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "background",
+    "name": "Background",
+    "value": true
+   },
+   {
+    "type": "color",
+    "id": "bgColor",
+    "name": "Background color",
+    "value": "#000000"
+   },
+   {
+    "type": "slider",
+    "id": "bgOpacity",
+    "name": "Background opacity",
+    "value": 45,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "unit": "%"
+   },
+   {
+    "type": "bool",
+    "id": "rounded",
+    "name": "Rounded corners",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "border",
+    "name": "Accent border",
+    "value": false
+   },
+   {
+    "type": "mode",
+    "id": "brackets",
+    "name": "Brackets",
+    "options": [
+     "None",
+     "[ ]",
+     "( )"
+    ],
+    "value": "None"
+   }
+  ]
  },
  {
   "id": "hitboxes",
   "name": "Hitboxes",
   "desc": "See exactly where you can hit players and mobs",
   "category": "COMBAT",
-  "settings": 8
+  "on": false,
+  "toggle": true,
+  "settings": 8,
+  "opts": [
+   {
+    "type": "color",
+    "id": "color",
+    "name": "Box colour",
+    "value": "#FFFFFF"
+   },
+   {
+    "type": "bool",
+    "id": "target",
+    "name": "Highlight what you're aiming at",
+    "value": true
+   },
+   {
+    "type": "color",
+    "id": "targetColor",
+    "name": "Aimed-at colour",
+    "value": "#FF4D5E"
+   },
+   {
+    "type": "bool",
+    "id": "players",
+    "name": "Players",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "mobs",
+    "name": "Mobs & animals",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "other",
+    "name": "Items, arrows & other",
+    "value": false
+   },
+   {
+    "type": "bool",
+    "id": "eyes",
+    "name": "Eye height line",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "look",
+    "name": "Look direction line",
+    "value": true
+   }
+  ]
  },
  {
   "id": "keystrokes",
   "name": "Keystrokes",
   "desc": "WASD, mouse & space",
   "category": "COMBAT",
-  "settings": 4
+  "on": true,
+  "toggle": true,
+  "settings": 15,
+  "opts": [
+   {
+    "type": "slider",
+    "id": "scale",
+    "name": "Size",
+    "value": 1,
+    "min": 0.5,
+    "max": 3,
+    "step": 0.05,
+    "unit": "x"
+   },
+   {
+    "type": "mode",
+    "id": "theme",
+    "name": "Theme",
+    "options": [
+     "Default",
+     "Glass",
+     "Minimal",
+     "Outline",
+     "Neon",
+     "Pill"
+    ],
+    "value": "Default"
+   },
+   {
+    "type": "color",
+    "id": "textColor",
+    "name": "Text color",
+    "value": "#FFFFFF"
+   },
+   {
+    "type": "bool",
+    "id": "chroma",
+    "name": "Rainbow text",
+    "value": false
+   },
+   {
+    "type": "bool",
+    "id": "shadow",
+    "name": "Text shadow",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "background",
+    "name": "Background",
+    "value": true
+   },
+   {
+    "type": "color",
+    "id": "bgColor",
+    "name": "Background color",
+    "value": "#000000"
+   },
+   {
+    "type": "slider",
+    "id": "bgOpacity",
+    "name": "Background opacity",
+    "value": 45,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "unit": "%"
+   },
+   {
+    "type": "bool",
+    "id": "rounded",
+    "name": "Rounded corners",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "border",
+    "name": "Accent border",
+    "value": false
+   },
+   {
+    "type": "mode",
+    "id": "brackets",
+    "name": "Brackets",
+    "options": [
+     "None",
+     "[ ]",
+     "( )"
+    ],
+    "value": "None"
+   },
+   {
+    "type": "bool",
+    "id": "mouse",
+    "name": "Mouse buttons",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "space",
+    "name": "Space bar",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "cps",
+    "name": "CPS on mouse",
+    "value": true
+   },
+   {
+    "type": "color",
+    "id": "pressed",
+    "name": "Pressed color",
+    "value": "#FFFFFF"
+   }
+  ]
  },
  {
   "id": "killeffects",
   "name": "Kill Effects",
   "desc": "Your own particles, sound and popup when you kill someone",
   "category": "COMBAT",
-  "settings": 6
+  "on": false,
+  "toggle": true,
+  "settings": 6,
+  "opts": [
+   {
+    "type": "mode",
+    "id": "effect",
+    "name": "Effect",
+    "options": [
+     "Lightning",
+     "Firework",
+     "Soul",
+     "Black Hole",
+     "Shatter",
+     "Blood",
+     "Hearts",
+     "Totem",
+     "None"
+    ],
+    "value": "Firework"
+   },
+   {
+    "type": "mode",
+    "id": "sound",
+    "name": "Sound",
+    "options": [
+     "Level up",
+     "Orb",
+     "Anvil",
+     "Bell",
+     "Thunder",
+     "Chime",
+     "Totem",
+     "Blast",
+     "None"
+    ],
+    "value": "Level up"
+   },
+   {
+    "type": "slider",
+    "id": "volume",
+    "name": "Volume",
+    "value": 0.8,
+    "min": 0,
+    "max": 1,
+    "step": 0.05,
+    "unit": ""
+   },
+   {
+    "type": "slider",
+    "id": "pitch",
+    "name": "Pitch",
+    "value": 1,
+    "min": 0.5,
+    "max": 2,
+    "step": 0.05,
+    "unit": "x"
+   },
+   {
+    "type": "slider",
+    "id": "particles",
+    "name": "Particle amount",
+    "value": 30,
+    "min": 5,
+    "max": 80,
+    "step": 1,
+    "unit": ""
+   },
+   {
+    "type": "bool",
+    "id": "popup",
+    "name": "\"Killed …\" popup on screen",
+    "value": true
+   }
+  ]
  },
  {
   "id": "hurtcam",
   "name": "No Hurt Cam",
   "desc": "No screen shake when you take damage",
   "category": "COMBAT",
-  "settings": 0
+  "on": false,
+  "toggle": true,
+  "settings": 0,
+  "opts": []
  },
  {
   "id": "pearls",
   "name": "Pearl Tracker",
   "desc": "Ender pearl cooldown, how many you have and your pearls in the air",
   "category": "COMBAT",
-  "settings": 0
+  "on": false,
+  "toggle": true,
+  "settings": 11,
+  "opts": [
+   {
+    "type": "slider",
+    "id": "scale",
+    "name": "Size",
+    "value": 1,
+    "min": 0.5,
+    "max": 3,
+    "step": 0.05,
+    "unit": "x"
+   },
+   {
+    "type": "mode",
+    "id": "theme",
+    "name": "Theme",
+    "options": [
+     "Default",
+     "Glass",
+     "Minimal",
+     "Outline",
+     "Neon",
+     "Pill"
+    ],
+    "value": "Default"
+   },
+   {
+    "type": "color",
+    "id": "textColor",
+    "name": "Text color",
+    "value": "#FFFFFF"
+   },
+   {
+    "type": "bool",
+    "id": "chroma",
+    "name": "Rainbow text",
+    "value": false
+   },
+   {
+    "type": "bool",
+    "id": "shadow",
+    "name": "Text shadow",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "background",
+    "name": "Background",
+    "value": true
+   },
+   {
+    "type": "color",
+    "id": "bgColor",
+    "name": "Background color",
+    "value": "#000000"
+   },
+   {
+    "type": "slider",
+    "id": "bgOpacity",
+    "name": "Background opacity",
+    "value": 45,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "unit": "%"
+   },
+   {
+    "type": "bool",
+    "id": "rounded",
+    "name": "Rounded corners",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "border",
+    "name": "Accent border",
+    "value": false
+   },
+   {
+    "type": "mode",
+    "id": "brackets",
+    "name": "Brackets",
+    "options": [
+     "None",
+     "[ ]",
+     "( )"
+    ],
+    "value": "None"
+   }
+  ]
  },
  {
   "id": "potions",
   "name": "Potion Effects",
   "desc": "Active effects & timers",
   "category": "COMBAT",
-  "settings": 3
+  "on": false,
+  "toggle": true,
+  "settings": 14,
+  "opts": [
+   {
+    "type": "slider",
+    "id": "scale",
+    "name": "Size",
+    "value": 1,
+    "min": 0.5,
+    "max": 3,
+    "step": 0.05,
+    "unit": "x"
+   },
+   {
+    "type": "mode",
+    "id": "theme",
+    "name": "Theme",
+    "options": [
+     "Default",
+     "Glass",
+     "Minimal",
+     "Outline",
+     "Neon",
+     "Pill"
+    ],
+    "value": "Default"
+   },
+   {
+    "type": "color",
+    "id": "textColor",
+    "name": "Text color",
+    "value": "#FFFFFF"
+   },
+   {
+    "type": "bool",
+    "id": "chroma",
+    "name": "Rainbow text",
+    "value": false
+   },
+   {
+    "type": "bool",
+    "id": "shadow",
+    "name": "Text shadow",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "background",
+    "name": "Background",
+    "value": true
+   },
+   {
+    "type": "color",
+    "id": "bgColor",
+    "name": "Background color",
+    "value": "#000000"
+   },
+   {
+    "type": "slider",
+    "id": "bgOpacity",
+    "name": "Background opacity",
+    "value": 45,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "unit": "%"
+   },
+   {
+    "type": "bool",
+    "id": "rounded",
+    "name": "Rounded corners",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "border",
+    "name": "Accent border",
+    "value": false
+   },
+   {
+    "type": "mode",
+    "id": "brackets",
+    "name": "Brackets",
+    "options": [
+     "None",
+     "[ ]",
+     "( )"
+    ],
+    "value": "None"
+   },
+   {
+    "type": "mode",
+    "id": "style",
+    "name": "Style",
+    "options": [
+     "Tiles",
+     "Classic",
+     "Compact"
+    ],
+    "value": "Tiles"
+   },
+   {
+    "type": "bool",
+    "id": "vertical",
+    "name": "Stack tiles vertically",
+    "value": false
+   },
+   {
+    "type": "bool",
+    "id": "icons",
+    "name": "Show icons",
+    "value": true
+   }
+  ]
  },
  {
   "id": "trajectories",
   "name": "Projectile Predictor",
   "desc": "See where pearls, snowballs, eggs, potions, arrows and tridents will fly",
   "category": "COMBAT",
-  "settings": 2
+  "on": false,
+  "toggle": true,
+  "settings": 2,
+  "opts": [
+   {
+    "type": "color",
+    "id": "color",
+    "name": "Line colour",
+    "value": "#9AD8FF"
+   },
+   {
+    "type": "bool",
+    "id": "landing",
+    "name": "Show where it lands",
+    "value": true
+   }
+  ]
  },
  {
   "id": "reach",
   "name": "Reach Display",
   "desc": "Shows the distance of your last hit",
   "category": "COMBAT",
-  "settings": 2
+  "on": false,
+  "toggle": true,
+  "settings": 13,
+  "opts": [
+   {
+    "type": "slider",
+    "id": "scale",
+    "name": "Size",
+    "value": 1,
+    "min": 0.5,
+    "max": 3,
+    "step": 0.05,
+    "unit": "x"
+   },
+   {
+    "type": "mode",
+    "id": "theme",
+    "name": "Theme",
+    "options": [
+     "Default",
+     "Glass",
+     "Minimal",
+     "Outline",
+     "Neon",
+     "Pill"
+    ],
+    "value": "Default"
+   },
+   {
+    "type": "color",
+    "id": "textColor",
+    "name": "Text color",
+    "value": "#FFFFFF"
+   },
+   {
+    "type": "bool",
+    "id": "chroma",
+    "name": "Rainbow text",
+    "value": false
+   },
+   {
+    "type": "bool",
+    "id": "shadow",
+    "name": "Text shadow",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "background",
+    "name": "Background",
+    "value": true
+   },
+   {
+    "type": "color",
+    "id": "bgColor",
+    "name": "Background color",
+    "value": "#000000"
+   },
+   {
+    "type": "slider",
+    "id": "bgOpacity",
+    "name": "Background opacity",
+    "value": 45,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "unit": "%"
+   },
+   {
+    "type": "bool",
+    "id": "rounded",
+    "name": "Rounded corners",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "border",
+    "name": "Accent border",
+    "value": false
+   },
+   {
+    "type": "mode",
+    "id": "brackets",
+    "name": "Brackets",
+    "options": [
+     "None",
+     "[ ]",
+     "( )"
+    ],
+    "value": "None"
+   },
+   {
+    "type": "slider",
+    "id": "decimals",
+    "name": "Decimals",
+    "value": 2,
+    "min": 0,
+    "max": 3,
+    "step": 1,
+    "unit": ""
+   },
+   {
+    "type": "slider",
+    "id": "fade",
+    "name": "Hide after",
+    "value": 3,
+    "min": 1,
+    "max": 15,
+    "step": 1,
+    "unit": "s"
+   }
+  ]
  },
  {
   "id": "timeline",
   "name": "Replay HUD",
   "desc": "Your last fight as a mini timeline of hits given and taken",
   "category": "COMBAT",
-  "settings": 2
+  "on": false,
+  "toggle": true,
+  "settings": 13,
+  "opts": [
+   {
+    "type": "slider",
+    "id": "scale",
+    "name": "Size",
+    "value": 1,
+    "min": 0.5,
+    "max": 3,
+    "step": 0.05,
+    "unit": "x"
+   },
+   {
+    "type": "mode",
+    "id": "theme",
+    "name": "Theme",
+    "options": [
+     "Default",
+     "Glass",
+     "Minimal",
+     "Outline",
+     "Neon",
+     "Pill"
+    ],
+    "value": "Default"
+   },
+   {
+    "type": "color",
+    "id": "textColor",
+    "name": "Text color",
+    "value": "#FFFFFF"
+   },
+   {
+    "type": "bool",
+    "id": "chroma",
+    "name": "Rainbow text",
+    "value": false
+   },
+   {
+    "type": "bool",
+    "id": "shadow",
+    "name": "Text shadow",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "background",
+    "name": "Background",
+    "value": true
+   },
+   {
+    "type": "color",
+    "id": "bgColor",
+    "name": "Background color",
+    "value": "#000000"
+   },
+   {
+    "type": "slider",
+    "id": "bgOpacity",
+    "name": "Background opacity",
+    "value": 45,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "unit": "%"
+   },
+   {
+    "type": "bool",
+    "id": "rounded",
+    "name": "Rounded corners",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "border",
+    "name": "Accent border",
+    "value": false
+   },
+   {
+    "type": "mode",
+    "id": "brackets",
+    "name": "Brackets",
+    "options": [
+     "None",
+     "[ ]",
+     "( )"
+    ],
+    "value": "None"
+   },
+   {
+    "type": "slider",
+    "id": "window",
+    "name": "Seconds shown",
+    "value": 15,
+    "min": 5,
+    "max": 30,
+    "step": 1,
+    "unit": "s"
+   },
+   {
+    "type": "bool",
+    "id": "always",
+    "name": "Show outside of fights too",
+    "value": false
+   }
+  ]
  },
  {
   "id": "saturation",
   "name": "Saturation",
   "desc": "AppleSkin-style saturation, food preview & exhaustion",
   "category": "COMBAT",
-  "settings": 5
+  "on": true,
+  "toggle": true,
+  "settings": 16,
+  "opts": [
+   {
+    "type": "slider",
+    "id": "scale",
+    "name": "Size",
+    "value": 1,
+    "min": 0.5,
+    "max": 3,
+    "step": 0.05,
+    "unit": "x"
+   },
+   {
+    "type": "mode",
+    "id": "theme",
+    "name": "Theme",
+    "options": [
+     "Default",
+     "Glass",
+     "Minimal",
+     "Outline",
+     "Neon",
+     "Pill"
+    ],
+    "value": "Default"
+   },
+   {
+    "type": "color",
+    "id": "textColor",
+    "name": "Text color",
+    "value": "#FFFFFF"
+   },
+   {
+    "type": "bool",
+    "id": "chroma",
+    "name": "Rainbow text",
+    "value": false
+   },
+   {
+    "type": "bool",
+    "id": "shadow",
+    "name": "Text shadow",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "background",
+    "name": "Background",
+    "value": true
+   },
+   {
+    "type": "color",
+    "id": "bgColor",
+    "name": "Background color",
+    "value": "#000000"
+   },
+   {
+    "type": "slider",
+    "id": "bgOpacity",
+    "name": "Background opacity",
+    "value": 45,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "unit": "%"
+   },
+   {
+    "type": "bool",
+    "id": "rounded",
+    "name": "Rounded corners",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "border",
+    "name": "Accent border",
+    "value": false
+   },
+   {
+    "type": "mode",
+    "id": "brackets",
+    "name": "Brackets",
+    "options": [
+     "None",
+     "[ ]",
+     "( )"
+    ],
+    "value": "None"
+   },
+   {
+    "type": "bool",
+    "id": "overlay",
+    "name": "Saturation outline on hunger bar",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "preview",
+    "name": "Preview food in your hand",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "exhaustionBar",
+    "name": "Exhaustion bar behind hunger",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "numbers",
+    "name": "Also show numbers",
+    "value": false
+   },
+   {
+    "type": "bool",
+    "id": "exhaustion",
+    "name": "Numbers: exhaustion too",
+    "value": false
+   }
+  ]
  },
  {
   "id": "shield",
   "name": "Shield Status",
   "desc": "Your shield turns green when it works and red when an axe disabled it",
   "category": "COMBAT",
-  "settings": 7
+  "on": true,
+  "toggle": true,
+  "settings": 18,
+  "opts": [
+   {
+    "type": "slider",
+    "id": "scale",
+    "name": "Size",
+    "value": 1,
+    "min": 0.5,
+    "max": 3,
+    "step": 0.05,
+    "unit": "x"
+   },
+   {
+    "type": "mode",
+    "id": "theme",
+    "name": "Theme",
+    "options": [
+     "Default",
+     "Glass",
+     "Minimal",
+     "Outline",
+     "Neon",
+     "Pill"
+    ],
+    "value": "Default"
+   },
+   {
+    "type": "color",
+    "id": "textColor",
+    "name": "Text color",
+    "value": "#FFFFFF"
+   },
+   {
+    "type": "bool",
+    "id": "chroma",
+    "name": "Rainbow text",
+    "value": false
+   },
+   {
+    "type": "bool",
+    "id": "shadow",
+    "name": "Text shadow",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "background",
+    "name": "Background",
+    "value": true
+   },
+   {
+    "type": "color",
+    "id": "bgColor",
+    "name": "Background color",
+    "value": "#000000"
+   },
+   {
+    "type": "slider",
+    "id": "bgOpacity",
+    "name": "Background opacity",
+    "value": 45,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "unit": "%"
+   },
+   {
+    "type": "bool",
+    "id": "rounded",
+    "name": "Rounded corners",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "border",
+    "name": "Accent border",
+    "value": false
+   },
+   {
+    "type": "mode",
+    "id": "brackets",
+    "name": "Brackets",
+    "options": [
+     "None",
+     "[ ]",
+     "( )"
+    ],
+    "value": "None"
+   },
+   {
+    "type": "bool",
+    "id": "tint",
+    "name": "Colour the shield itself (green = works, red = disabled)",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "interpolate",
+    "name": "Fade from red back to green during the cooldown",
+    "value": true
+   },
+   {
+    "type": "color",
+    "id": "readyColor",
+    "name": "Working colour",
+    "value": "#5CFF6E"
+   },
+   {
+    "type": "color",
+    "id": "disabledColor",
+    "name": "Disabled colour",
+    "value": "#FF4A4A"
+   },
+   {
+    "type": "bool",
+    "id": "text",
+    "name": "Also show a text box with the timer",
+    "value": false
+   },
+   {
+    "type": "bool",
+    "id": "durability",
+    "name": "Show durability",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "others",
+    "name": "Also colour other players' shields",
+    "value": true
+   }
+  ]
  },
  {
   "id": "targethud",
   "name": "Target HUD",
   "desc": "Animated card of who you're fighting: health, armor, distance, weapon",
   "category": "COMBAT",
-  "settings": 2
+  "on": false,
+  "toggle": true,
+  "settings": 13,
+  "opts": [
+   {
+    "type": "slider",
+    "id": "scale",
+    "name": "Size",
+    "value": 1,
+    "min": 0.5,
+    "max": 3,
+    "step": 0.05,
+    "unit": "x"
+   },
+   {
+    "type": "mode",
+    "id": "theme",
+    "name": "Theme",
+    "options": [
+     "Default",
+     "Glass",
+     "Minimal",
+     "Outline",
+     "Neon",
+     "Pill"
+    ],
+    "value": "Default"
+   },
+   {
+    "type": "color",
+    "id": "textColor",
+    "name": "Text color",
+    "value": "#FFFFFF"
+   },
+   {
+    "type": "bool",
+    "id": "chroma",
+    "name": "Rainbow text",
+    "value": false
+   },
+   {
+    "type": "bool",
+    "id": "shadow",
+    "name": "Text shadow",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "background",
+    "name": "Background",
+    "value": true
+   },
+   {
+    "type": "color",
+    "id": "bgColor",
+    "name": "Background color",
+    "value": "#000000"
+   },
+   {
+    "type": "slider",
+    "id": "bgOpacity",
+    "name": "Background opacity",
+    "value": 45,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "unit": "%"
+   },
+   {
+    "type": "bool",
+    "id": "rounded",
+    "name": "Rounded corners",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "border",
+    "name": "Accent border",
+    "value": false
+   },
+   {
+    "type": "mode",
+    "id": "brackets",
+    "name": "Brackets",
+    "options": [
+     "None",
+     "[ ]",
+     "( )"
+    ],
+    "value": "None"
+   },
+   {
+    "type": "bool",
+    "id": "armor",
+    "name": "Armor & durability (opponent info)",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "weapon",
+    "name": "Held item",
+    "value": true
+   }
+  ]
  },
  {
   "id": "totems",
   "name": "Totem Counter",
   "desc": "How many Totems of Undying you carry",
   "category": "COMBAT",
-  "settings": 1
+  "on": false,
+  "toggle": true,
+  "settings": 12,
+  "opts": [
+   {
+    "type": "slider",
+    "id": "scale",
+    "name": "Size",
+    "value": 1,
+    "min": 0.5,
+    "max": 3,
+    "step": 0.05,
+    "unit": "x"
+   },
+   {
+    "type": "mode",
+    "id": "theme",
+    "name": "Theme",
+    "options": [
+     "Default",
+     "Glass",
+     "Minimal",
+     "Outline",
+     "Neon",
+     "Pill"
+    ],
+    "value": "Default"
+   },
+   {
+    "type": "color",
+    "id": "textColor",
+    "name": "Text color",
+    "value": "#FFFFFF"
+   },
+   {
+    "type": "bool",
+    "id": "chroma",
+    "name": "Rainbow text",
+    "value": false
+   },
+   {
+    "type": "bool",
+    "id": "shadow",
+    "name": "Text shadow",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "background",
+    "name": "Background",
+    "value": true
+   },
+   {
+    "type": "color",
+    "id": "bgColor",
+    "name": "Background color",
+    "value": "#000000"
+   },
+   {
+    "type": "slider",
+    "id": "bgOpacity",
+    "name": "Background opacity",
+    "value": 45,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "unit": "%"
+   },
+   {
+    "type": "bool",
+    "id": "rounded",
+    "name": "Rounded corners",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "border",
+    "name": "Accent border",
+    "value": false
+   },
+   {
+    "type": "mode",
+    "id": "brackets",
+    "name": "Brackets",
+    "options": [
+     "None",
+     "[ ]",
+     "( )"
+    ],
+    "value": "None"
+   },
+   {
+    "type": "bool",
+    "id": "hideZero",
+    "name": "Hide when you have none",
+    "value": false
+   }
+  ]
  },
  {
   "id": "wtap",
   "name": "W-Tap Counter",
   "desc": "Counts your W-taps (letting go of W after a hit)",
   "category": "COMBAT",
-  "settings": 0
+  "on": false,
+  "toggle": true,
+  "settings": 11,
+  "opts": [
+   {
+    "type": "slider",
+    "id": "scale",
+    "name": "Size",
+    "value": 1,
+    "min": 0.5,
+    "max": 3,
+    "step": 0.05,
+    "unit": "x"
+   },
+   {
+    "type": "mode",
+    "id": "theme",
+    "name": "Theme",
+    "options": [
+     "Default",
+     "Glass",
+     "Minimal",
+     "Outline",
+     "Neon",
+     "Pill"
+    ],
+    "value": "Default"
+   },
+   {
+    "type": "color",
+    "id": "textColor",
+    "name": "Text color",
+    "value": "#FFFFFF"
+   },
+   {
+    "type": "bool",
+    "id": "chroma",
+    "name": "Rainbow text",
+    "value": false
+   },
+   {
+    "type": "bool",
+    "id": "shadow",
+    "name": "Text shadow",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "background",
+    "name": "Background",
+    "value": true
+   },
+   {
+    "type": "color",
+    "id": "bgColor",
+    "name": "Background color",
+    "value": "#000000"
+   },
+   {
+    "type": "slider",
+    "id": "bgOpacity",
+    "name": "Background opacity",
+    "value": 45,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "unit": "%"
+   },
+   {
+    "type": "bool",
+    "id": "rounded",
+    "name": "Rounded corners",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "border",
+    "name": "Accent border",
+    "value": false
+   },
+   {
+    "type": "mode",
+    "id": "brackets",
+    "name": "Brackets",
+    "options": [
+     "None",
+     "[ ]",
+     "( )"
+    ],
+    "value": "None"
+   }
+  ]
  },
  {
   "id": "clock",
   "name": "Clock",
   "desc": "Real-world time",
   "category": "HUD",
-  "settings": 2
+  "on": false,
+  "toggle": true,
+  "settings": 13,
+  "opts": [
+   {
+    "type": "slider",
+    "id": "scale",
+    "name": "Size",
+    "value": 1,
+    "min": 0.5,
+    "max": 3,
+    "step": 0.05,
+    "unit": "x"
+   },
+   {
+    "type": "mode",
+    "id": "theme",
+    "name": "Theme",
+    "options": [
+     "Default",
+     "Glass",
+     "Minimal",
+     "Outline",
+     "Neon",
+     "Pill"
+    ],
+    "value": "Default"
+   },
+   {
+    "type": "color",
+    "id": "textColor",
+    "name": "Text color",
+    "value": "#FFFFFF"
+   },
+   {
+    "type": "bool",
+    "id": "chroma",
+    "name": "Rainbow text",
+    "value": false
+   },
+   {
+    "type": "bool",
+    "id": "shadow",
+    "name": "Text shadow",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "background",
+    "name": "Background",
+    "value": true
+   },
+   {
+    "type": "color",
+    "id": "bgColor",
+    "name": "Background color",
+    "value": "#000000"
+   },
+   {
+    "type": "slider",
+    "id": "bgOpacity",
+    "name": "Background opacity",
+    "value": 45,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "unit": "%"
+   },
+   {
+    "type": "bool",
+    "id": "rounded",
+    "name": "Rounded corners",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "border",
+    "name": "Accent border",
+    "value": false
+   },
+   {
+    "type": "mode",
+    "id": "brackets",
+    "name": "Brackets",
+    "options": [
+     "None",
+     "[ ]",
+     "( )"
+    ],
+    "value": "None"
+   },
+   {
+    "type": "mode",
+    "id": "format",
+    "name": "Format",
+    "options": [
+     "24h",
+     "12h"
+    ],
+    "value": "24h"
+   },
+   {
+    "type": "bool",
+    "id": "seconds",
+    "name": "Show seconds",
+    "value": false
+   }
+  ]
  },
  {
   "id": "coords",
   "name": "Coordinates",
   "desc": "XYZ, facing & biome",
   "category": "HUD",
-  "settings": 3
+  "on": true,
+  "toggle": true,
+  "settings": 14,
+  "opts": [
+   {
+    "type": "slider",
+    "id": "scale",
+    "name": "Size",
+    "value": 1,
+    "min": 0.5,
+    "max": 3,
+    "step": 0.05,
+    "unit": "x"
+   },
+   {
+    "type": "mode",
+    "id": "theme",
+    "name": "Theme",
+    "options": [
+     "Default",
+     "Glass",
+     "Minimal",
+     "Outline",
+     "Neon",
+     "Pill"
+    ],
+    "value": "Default"
+   },
+   {
+    "type": "color",
+    "id": "textColor",
+    "name": "Text color",
+    "value": "#FFFFFF"
+   },
+   {
+    "type": "bool",
+    "id": "chroma",
+    "name": "Rainbow text",
+    "value": false
+   },
+   {
+    "type": "bool",
+    "id": "shadow",
+    "name": "Text shadow",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "background",
+    "name": "Background",
+    "value": true
+   },
+   {
+    "type": "color",
+    "id": "bgColor",
+    "name": "Background color",
+    "value": "#000000"
+   },
+   {
+    "type": "slider",
+    "id": "bgOpacity",
+    "name": "Background opacity",
+    "value": 45,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "unit": "%"
+   },
+   {
+    "type": "bool",
+    "id": "rounded",
+    "name": "Rounded corners",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "border",
+    "name": "Accent border",
+    "value": false
+   },
+   {
+    "type": "mode",
+    "id": "brackets",
+    "name": "Brackets",
+    "options": [
+     "None",
+     "[ ]",
+     "( )"
+    ],
+    "value": "None"
+   },
+   {
+    "type": "mode",
+    "id": "layout",
+    "name": "Layout",
+    "options": [
+     "Vertical",
+     "Single line"
+    ],
+    "value": "Vertical"
+   },
+   {
+    "type": "bool",
+    "id": "biome",
+    "name": "Show biome",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "facing",
+    "name": "Show facing",
+    "value": true
+   }
+  ]
  },
  {
   "id": "day",
   "name": "Day Counter",
   "desc": "In-game day number",
   "category": "HUD",
-  "settings": 0
+  "on": false,
+  "toggle": true,
+  "settings": 11,
+  "opts": [
+   {
+    "type": "slider",
+    "id": "scale",
+    "name": "Size",
+    "value": 1,
+    "min": 0.5,
+    "max": 3,
+    "step": 0.05,
+    "unit": "x"
+   },
+   {
+    "type": "mode",
+    "id": "theme",
+    "name": "Theme",
+    "options": [
+     "Default",
+     "Glass",
+     "Minimal",
+     "Outline",
+     "Neon",
+     "Pill"
+    ],
+    "value": "Default"
+   },
+   {
+    "type": "color",
+    "id": "textColor",
+    "name": "Text color",
+    "value": "#FFFFFF"
+   },
+   {
+    "type": "bool",
+    "id": "chroma",
+    "name": "Rainbow text",
+    "value": false
+   },
+   {
+    "type": "bool",
+    "id": "shadow",
+    "name": "Text shadow",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "background",
+    "name": "Background",
+    "value": true
+   },
+   {
+    "type": "color",
+    "id": "bgColor",
+    "name": "Background color",
+    "value": "#000000"
+   },
+   {
+    "type": "slider",
+    "id": "bgOpacity",
+    "name": "Background opacity",
+    "value": 45,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "unit": "%"
+   },
+   {
+    "type": "bool",
+    "id": "rounded",
+    "name": "Rounded corners",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "border",
+    "name": "Accent border",
+    "value": false
+   },
+   {
+    "type": "mode",
+    "id": "brackets",
+    "name": "Brackets",
+    "options": [
+     "None",
+     "[ ]",
+     "( )"
+    ],
+    "value": "None"
+   }
+  ]
  },
  {
   "id": "direction",
   "name": "Direction",
   "desc": "Compass heading",
   "category": "HUD",
-  "settings": 1
+  "on": false,
+  "toggle": true,
+  "settings": 12,
+  "opts": [
+   {
+    "type": "slider",
+    "id": "scale",
+    "name": "Size",
+    "value": 1,
+    "min": 0.5,
+    "max": 3,
+    "step": 0.05,
+    "unit": "x"
+   },
+   {
+    "type": "mode",
+    "id": "theme",
+    "name": "Theme",
+    "options": [
+     "Default",
+     "Glass",
+     "Minimal",
+     "Outline",
+     "Neon",
+     "Pill"
+    ],
+    "value": "Default"
+   },
+   {
+    "type": "color",
+    "id": "textColor",
+    "name": "Text color",
+    "value": "#FFFFFF"
+   },
+   {
+    "type": "bool",
+    "id": "chroma",
+    "name": "Rainbow text",
+    "value": false
+   },
+   {
+    "type": "bool",
+    "id": "shadow",
+    "name": "Text shadow",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "background",
+    "name": "Background",
+    "value": true
+   },
+   {
+    "type": "color",
+    "id": "bgColor",
+    "name": "Background color",
+    "value": "#000000"
+   },
+   {
+    "type": "slider",
+    "id": "bgOpacity",
+    "name": "Background opacity",
+    "value": 45,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "unit": "%"
+   },
+   {
+    "type": "bool",
+    "id": "rounded",
+    "name": "Rounded corners",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "border",
+    "name": "Accent border",
+    "value": false
+   },
+   {
+    "type": "mode",
+    "id": "brackets",
+    "name": "Brackets",
+    "options": [
+     "None",
+     "[ ]",
+     "( )"
+    ],
+    "value": "None"
+   },
+   {
+    "type": "bool",
+    "id": "degrees",
+    "name": "Show degrees",
+    "value": true
+   }
+  ]
  },
  {
   "id": "fps",
   "name": "FPS",
   "desc": "Frames per second",
   "category": "HUD",
-  "settings": 1
+  "on": true,
+  "toggle": true,
+  "settings": 12,
+  "opts": [
+   {
+    "type": "slider",
+    "id": "scale",
+    "name": "Size",
+    "value": 1,
+    "min": 0.5,
+    "max": 3,
+    "step": 0.05,
+    "unit": "x"
+   },
+   {
+    "type": "mode",
+    "id": "theme",
+    "name": "Theme",
+    "options": [
+     "Default",
+     "Glass",
+     "Minimal",
+     "Outline",
+     "Neon",
+     "Pill"
+    ],
+    "value": "Default"
+   },
+   {
+    "type": "color",
+    "id": "textColor",
+    "name": "Text color",
+    "value": "#FFFFFF"
+   },
+   {
+    "type": "bool",
+    "id": "chroma",
+    "name": "Rainbow text",
+    "value": false
+   },
+   {
+    "type": "bool",
+    "id": "shadow",
+    "name": "Text shadow",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "background",
+    "name": "Background",
+    "value": true
+   },
+   {
+    "type": "color",
+    "id": "bgColor",
+    "name": "Background color",
+    "value": "#000000"
+   },
+   {
+    "type": "slider",
+    "id": "bgOpacity",
+    "name": "Background opacity",
+    "value": 45,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "unit": "%"
+   },
+   {
+    "type": "bool",
+    "id": "rounded",
+    "name": "Rounded corners",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "border",
+    "name": "Accent border",
+    "value": false
+   },
+   {
+    "type": "mode",
+    "id": "brackets",
+    "name": "Brackets",
+    "options": [
+     "None",
+     "[ ]",
+     "( )"
+    ],
+    "value": "None"
+   },
+   {
+    "type": "mode",
+    "id": "style",
+    "name": "Style",
+    "options": [
+     "FPS: 144",
+     "144 FPS",
+     "144"
+    ],
+    "value": "FPS: 144"
+   }
+  ]
  },
  {
   "id": "memory",
   "name": "Memory",
   "desc": "RAM usage",
   "category": "HUD",
-  "settings": 0
+  "on": false,
+  "toggle": true,
+  "settings": 11,
+  "opts": [
+   {
+    "type": "slider",
+    "id": "scale",
+    "name": "Size",
+    "value": 1,
+    "min": 0.5,
+    "max": 3,
+    "step": 0.05,
+    "unit": "x"
+   },
+   {
+    "type": "mode",
+    "id": "theme",
+    "name": "Theme",
+    "options": [
+     "Default",
+     "Glass",
+     "Minimal",
+     "Outline",
+     "Neon",
+     "Pill"
+    ],
+    "value": "Default"
+   },
+   {
+    "type": "color",
+    "id": "textColor",
+    "name": "Text color",
+    "value": "#FFFFFF"
+   },
+   {
+    "type": "bool",
+    "id": "chroma",
+    "name": "Rainbow text",
+    "value": false
+   },
+   {
+    "type": "bool",
+    "id": "shadow",
+    "name": "Text shadow",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "background",
+    "name": "Background",
+    "value": true
+   },
+   {
+    "type": "color",
+    "id": "bgColor",
+    "name": "Background color",
+    "value": "#000000"
+   },
+   {
+    "type": "slider",
+    "id": "bgOpacity",
+    "name": "Background opacity",
+    "value": 45,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "unit": "%"
+   },
+   {
+    "type": "bool",
+    "id": "rounded",
+    "name": "Rounded corners",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "border",
+    "name": "Accent border",
+    "value": false
+   },
+   {
+    "type": "mode",
+    "id": "brackets",
+    "name": "Brackets",
+    "options": [
+     "None",
+     "[ ]",
+     "( )"
+    ],
+    "value": "None"
+   }
+  ]
  },
  {
   "id": "ping",
   "name": "Ping",
   "desc": "Latency to the server",
   "category": "HUD",
-  "settings": 0
+  "on": false,
+  "toggle": true,
+  "settings": 11,
+  "opts": [
+   {
+    "type": "slider",
+    "id": "scale",
+    "name": "Size",
+    "value": 1,
+    "min": 0.5,
+    "max": 3,
+    "step": 0.05,
+    "unit": "x"
+   },
+   {
+    "type": "mode",
+    "id": "theme",
+    "name": "Theme",
+    "options": [
+     "Default",
+     "Glass",
+     "Minimal",
+     "Outline",
+     "Neon",
+     "Pill"
+    ],
+    "value": "Default"
+   },
+   {
+    "type": "color",
+    "id": "textColor",
+    "name": "Text color",
+    "value": "#FFFFFF"
+   },
+   {
+    "type": "bool",
+    "id": "chroma",
+    "name": "Rainbow text",
+    "value": false
+   },
+   {
+    "type": "bool",
+    "id": "shadow",
+    "name": "Text shadow",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "background",
+    "name": "Background",
+    "value": true
+   },
+   {
+    "type": "color",
+    "id": "bgColor",
+    "name": "Background color",
+    "value": "#000000"
+   },
+   {
+    "type": "slider",
+    "id": "bgOpacity",
+    "name": "Background opacity",
+    "value": 45,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "unit": "%"
+   },
+   {
+    "type": "bool",
+    "id": "rounded",
+    "name": "Rounded corners",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "border",
+    "name": "Accent border",
+    "value": false
+   },
+   {
+    "type": "mode",
+    "id": "brackets",
+    "name": "Brackets",
+    "options": [
+     "None",
+     "[ ]",
+     "( )"
+    ],
+    "value": "None"
+   }
+  ]
  },
  {
   "id": "scoreboard",
   "name": "Scoreboard",
   "desc": "Resize, move, recolour or hide the sidebar",
   "category": "HUD",
-  "settings": 5
+  "on": false,
+  "toggle": true,
+  "settings": 5,
+  "opts": [
+   {
+    "type": "bool",
+    "id": "hide",
+    "name": "Hide scoreboard",
+    "value": false
+   },
+   {
+    "type": "slider",
+    "id": "scale",
+    "name": "Size",
+    "value": 1,
+    "min": 0.5,
+    "max": 2,
+    "step": 0.05,
+    "unit": "x"
+   },
+   {
+    "type": "slider",
+    "id": "bg",
+    "name": "Background opacity",
+    "value": 30,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "unit": "%"
+   },
+   {
+    "type": "slider",
+    "id": "y",
+    "name": "Move up / down",
+    "value": 0,
+    "min": -150,
+    "max": 150,
+    "step": 1,
+    "unit": ""
+   },
+   {
+    "type": "slider",
+    "id": "x",
+    "name": "Move left",
+    "value": 0,
+    "min": 0,
+    "max": 300,
+    "step": 1,
+    "unit": ""
+   }
+  ]
  },
  {
   "id": "server",
   "name": "Server Address",
   "desc": "Shows the server you're on",
   "category": "HUD",
-  "settings": 0
+  "on": false,
+  "toggle": true,
+  "settings": 11,
+  "opts": [
+   {
+    "type": "slider",
+    "id": "scale",
+    "name": "Size",
+    "value": 1,
+    "min": 0.5,
+    "max": 3,
+    "step": 0.05,
+    "unit": "x"
+   },
+   {
+    "type": "mode",
+    "id": "theme",
+    "name": "Theme",
+    "options": [
+     "Default",
+     "Glass",
+     "Minimal",
+     "Outline",
+     "Neon",
+     "Pill"
+    ],
+    "value": "Default"
+   },
+   {
+    "type": "color",
+    "id": "textColor",
+    "name": "Text color",
+    "value": "#FFFFFF"
+   },
+   {
+    "type": "bool",
+    "id": "chroma",
+    "name": "Rainbow text",
+    "value": false
+   },
+   {
+    "type": "bool",
+    "id": "shadow",
+    "name": "Text shadow",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "background",
+    "name": "Background",
+    "value": true
+   },
+   {
+    "type": "color",
+    "id": "bgColor",
+    "name": "Background color",
+    "value": "#000000"
+   },
+   {
+    "type": "slider",
+    "id": "bgOpacity",
+    "name": "Background opacity",
+    "value": 45,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "unit": "%"
+   },
+   {
+    "type": "bool",
+    "id": "rounded",
+    "name": "Rounded corners",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "border",
+    "name": "Accent border",
+    "value": false
+   },
+   {
+    "type": "mode",
+    "id": "brackets",
+    "name": "Brackets",
+    "options": [
+     "None",
+     "[ ]",
+     "( )"
+    ],
+    "value": "None"
+   }
+  ]
  },
  {
   "id": "speed",
   "name": "Speed",
   "desc": "Blocks per second",
   "category": "HUD",
-  "settings": 0
+  "on": false,
+  "toggle": true,
+  "settings": 11,
+  "opts": [
+   {
+    "type": "slider",
+    "id": "scale",
+    "name": "Size",
+    "value": 1,
+    "min": 0.5,
+    "max": 3,
+    "step": 0.05,
+    "unit": "x"
+   },
+   {
+    "type": "mode",
+    "id": "theme",
+    "name": "Theme",
+    "options": [
+     "Default",
+     "Glass",
+     "Minimal",
+     "Outline",
+     "Neon",
+     "Pill"
+    ],
+    "value": "Default"
+   },
+   {
+    "type": "color",
+    "id": "textColor",
+    "name": "Text color",
+    "value": "#FFFFFF"
+   },
+   {
+    "type": "bool",
+    "id": "chroma",
+    "name": "Rainbow text",
+    "value": false
+   },
+   {
+    "type": "bool",
+    "id": "shadow",
+    "name": "Text shadow",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "background",
+    "name": "Background",
+    "value": true
+   },
+   {
+    "type": "color",
+    "id": "bgColor",
+    "name": "Background color",
+    "value": "#000000"
+   },
+   {
+    "type": "slider",
+    "id": "bgOpacity",
+    "name": "Background opacity",
+    "value": 45,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "unit": "%"
+   },
+   {
+    "type": "bool",
+    "id": "rounded",
+    "name": "Rounded corners",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "border",
+    "name": "Accent border",
+    "value": false
+   },
+   {
+    "type": "mode",
+    "id": "brackets",
+    "name": "Brackets",
+    "options": [
+     "None",
+     "[ ]",
+     "( )"
+    ],
+    "value": "None"
+   }
+  ]
  },
  {
   "id": "spotify",
   "name": "Spotify",
   "desc": "Now playing — open chat to pause or skip",
   "category": "HUD",
-  "settings": 4
+  "on": false,
+  "toggle": true,
+  "settings": 15,
+  "opts": [
+   {
+    "type": "slider",
+    "id": "scale",
+    "name": "Size",
+    "value": 1,
+    "min": 0.5,
+    "max": 3,
+    "step": 0.05,
+    "unit": "x"
+   },
+   {
+    "type": "mode",
+    "id": "theme",
+    "name": "Theme",
+    "options": [
+     "Default",
+     "Glass",
+     "Minimal",
+     "Outline",
+     "Neon",
+     "Pill"
+    ],
+    "value": "Default"
+   },
+   {
+    "type": "color",
+    "id": "textColor",
+    "name": "Text color",
+    "value": "#FFFFFF"
+   },
+   {
+    "type": "bool",
+    "id": "chroma",
+    "name": "Rainbow text",
+    "value": false
+   },
+   {
+    "type": "bool",
+    "id": "shadow",
+    "name": "Text shadow",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "background",
+    "name": "Background",
+    "value": true
+   },
+   {
+    "type": "color",
+    "id": "bgColor",
+    "name": "Background color",
+    "value": "#000000"
+   },
+   {
+    "type": "slider",
+    "id": "bgOpacity",
+    "name": "Background opacity",
+    "value": 45,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "unit": "%"
+   },
+   {
+    "type": "bool",
+    "id": "rounded",
+    "name": "Rounded corners",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "border",
+    "name": "Accent border",
+    "value": false
+   },
+   {
+    "type": "mode",
+    "id": "brackets",
+    "name": "Brackets",
+    "options": [
+     "None",
+     "[ ]",
+     "( )"
+    ],
+    "value": "None"
+   },
+   {
+    "type": "bool",
+    "id": "cover",
+    "name": "Album cover",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "tint",
+    "name": "Tint with cover colours",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "controls",
+    "name": "Show controls",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "hidePaused",
+    "name": "Hide when nothing plays",
+    "value": true
+   }
+  ]
  },
  {
   "id": "lyrics",
   "name": "Spotify Lyrics",
   "desc": "Synced lyrics of what's playing, up in the sky",
   "category": "HUD",
-  "settings": 11
+  "on": true,
+  "toggle": true,
+  "settings": 22,
+  "opts": [
+   {
+    "type": "slider",
+    "id": "scale",
+    "name": "Size",
+    "value": 1,
+    "min": 0.5,
+    "max": 3,
+    "step": 0.05,
+    "unit": "x"
+   },
+   {
+    "type": "mode",
+    "id": "theme",
+    "name": "Theme",
+    "options": [
+     "Default",
+     "Glass",
+     "Minimal",
+     "Outline",
+     "Neon",
+     "Pill"
+    ],
+    "value": "Default"
+   },
+   {
+    "type": "color",
+    "id": "textColor",
+    "name": "Text color",
+    "value": "#FFFFFF"
+   },
+   {
+    "type": "bool",
+    "id": "chroma",
+    "name": "Rainbow text",
+    "value": false
+   },
+   {
+    "type": "bool",
+    "id": "shadow",
+    "name": "Text shadow",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "background",
+    "name": "Background",
+    "value": true
+   },
+   {
+    "type": "color",
+    "id": "bgColor",
+    "name": "Background color",
+    "value": "#000000"
+   },
+   {
+    "type": "slider",
+    "id": "bgOpacity",
+    "name": "Background opacity",
+    "value": 45,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "unit": "%"
+   },
+   {
+    "type": "bool",
+    "id": "rounded",
+    "name": "Rounded corners",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "border",
+    "name": "Accent border",
+    "value": false
+   },
+   {
+    "type": "mode",
+    "id": "brackets",
+    "name": "Brackets",
+    "options": [
+     "None",
+     "[ ]",
+     "( )"
+    ],
+    "value": "None"
+   },
+   {
+    "type": "mode",
+    "id": "style",
+    "name": "Style",
+    "options": [
+     "Sky",
+     "Card"
+    ],
+    "value": "Sky"
+   },
+   {
+    "type": "mode",
+    "id": "colors",
+    "name": "Colours",
+    "options": [
+     "Glow",
+     "Gradient",
+     "Accent",
+     "White"
+    ],
+    "value": "Glow"
+   },
+   {
+    "type": "slider",
+    "id": "skySize",
+    "name": "Lyric size",
+    "value": 1,
+    "min": 0.5,
+    "max": 2,
+    "step": 0.05,
+    "unit": "x"
+   },
+   {
+    "type": "mode",
+    "id": "skyPos",
+    "name": "Position",
+    "options": [
+     "Fixed in the sky",
+     "On screen"
+    ],
+    "value": "Fixed in the sky"
+   },
+   {
+    "type": "slider",
+    "id": "skyHeight",
+    "name": "Height in the sky",
+    "value": 30,
+    "min": 10,
+    "max": 60,
+    "step": 1,
+    "unit": "%"
+   },
+   {
+    "type": "bool",
+    "id": "recentre",
+    "name": "Move in front of me after looking away 6s",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "karaoke",
+    "name": "Karaoke fill",
+    "value": true
+   },
+   {
+    "type": "slider",
+    "id": "timing",
+    "name": "Timing (show lines earlier)",
+    "value": 250,
+    "min": -1000,
+    "max": 1500,
+    "step": 50,
+    "unit": "ms"
+   },
+   {
+    "type": "bool",
+    "id": "songInfo",
+    "name": "Show song & artist",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "nextLine",
+    "name": "Show next line",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "progress",
+    "name": "Song progress bar",
+    "value": true
+   }
+  ]
  },
  {
   "id": "gametime",
   "name": "World Time",
   "desc": "The Minecraft time of day (sun & moon)",
   "category": "HUD",
-  "settings": 3
+  "on": false,
+  "toggle": true,
+  "settings": 14,
+  "opts": [
+   {
+    "type": "slider",
+    "id": "scale",
+    "name": "Size",
+    "value": 1,
+    "min": 0.5,
+    "max": 3,
+    "step": 0.05,
+    "unit": "x"
+   },
+   {
+    "type": "mode",
+    "id": "theme",
+    "name": "Theme",
+    "options": [
+     "Default",
+     "Glass",
+     "Minimal",
+     "Outline",
+     "Neon",
+     "Pill"
+    ],
+    "value": "Default"
+   },
+   {
+    "type": "color",
+    "id": "textColor",
+    "name": "Text color",
+    "value": "#FFFFFF"
+   },
+   {
+    "type": "bool",
+    "id": "chroma",
+    "name": "Rainbow text",
+    "value": false
+   },
+   {
+    "type": "bool",
+    "id": "shadow",
+    "name": "Text shadow",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "background",
+    "name": "Background",
+    "value": true
+   },
+   {
+    "type": "color",
+    "id": "bgColor",
+    "name": "Background color",
+    "value": "#000000"
+   },
+   {
+    "type": "slider",
+    "id": "bgOpacity",
+    "name": "Background opacity",
+    "value": 45,
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "unit": "%"
+   },
+   {
+    "type": "bool",
+    "id": "rounded",
+    "name": "Rounded corners",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "border",
+    "name": "Accent border",
+    "value": false
+   },
+   {
+    "type": "mode",
+    "id": "brackets",
+    "name": "Brackets",
+    "options": [
+     "None",
+     "[ ]",
+     "( )"
+    ],
+    "value": "None"
+   },
+   {
+    "type": "mode",
+    "id": "format",
+    "name": "Format",
+    "options": [
+     "24h",
+     "12h"
+    ],
+    "value": "24h"
+   },
+   {
+    "type": "bool",
+    "id": "day",
+    "name": "Show day number",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "weather",
+    "name": "Show the weather",
+    "value": true
+   }
+  ]
  },
  {
   "id": "chunkborders",
   "name": "Chunk Borders",
   "desc": "Show chunk boundaries (like F3 + G)",
   "category": "RENDER",
-  "settings": 0
+  "on": false,
+  "toggle": true,
+  "settings": 0,
+  "opts": []
  },
  {
   "id": "deathanim",
   "name": "Death Animations",
   "desc": "Cool custom deaths: souls rising, black holes, lightning, fireworks, shattering ice — only you see them",
   "category": "RENDER",
-  "settings": 4
+  "on": false,
+  "toggle": true,
+  "settings": 4,
+  "opts": [
+   {
+    "type": "mode",
+    "id": "style",
+    "name": "Animation",
+    "options": [
+     "Soul Ascend",
+     "Nebula",
+     "Aurora",
+     "Deep Space",
+     "Sunset",
+     "Mono",
+     "Nova",
+     "Ocean",
+     "Emerald",
+     "Crimson",
+     "Midnight"
+    ],
+    "value": "Soul Ascend"
+   },
+   {
+    "type": "bool",
+    "id": "players",
+    "name": "Other players",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "self",
+    "name": "Myself",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "mobs",
+    "name": "Mobs",
+    "value": true
+   }
+  ]
  },
  {
   "id": "fullbright",
   "name": "Fullbright",
   "desc": "See clearly in the dark",
   "category": "RENDER",
-  "settings": 0
+  "on": false,
+  "toggle": true,
+  "settings": 0,
+  "opts": []
  },
  {
   "id": "hidearmor",
   "name": "Hide Armor",
   "desc": "Don't draw armor on you or other players (only for you)",
   "category": "RENDER",
-  "settings": 2
+  "on": false,
+  "toggle": true,
+  "settings": 2,
+  "opts": [
+   {
+    "type": "bool",
+    "id": "self",
+    "name": "Hide my armor",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "others",
+    "name": "Hide other players' armor",
+    "value": true
+   }
+  ]
  },
  {
   "id": "itemphysics",
   "name": "Item Physics",
   "desc": "Dropped items lie flat on the ground and tumble when they fall",
   "category": "RENDER",
-  "settings": 1
+  "on": false,
+  "toggle": true,
+  "settings": 1,
+  "opts": [
+   {
+    "type": "bool",
+    "id": "tumble",
+    "name": "Tumble while falling",
+    "value": true
+   }
+  ]
  },
  {
   "id": "itemscale",
   "name": "Item Scale",
   "desc": "Resize dropped and held items — all of them or only the ones you pick",
   "category": "RENDER",
-  "settings": 10
+  "on": false,
+  "toggle": true,
+  "settings": 10,
+  "opts": [
+   {
+    "type": "bool",
+    "id": "dropped",
+    "name": "Scale dropped items",
+    "value": true
+   },
+   {
+    "type": "slider",
+    "id": "scale",
+    "name": "Dropped item size",
+    "value": 1.5,
+    "min": 0.25,
+    "max": 4,
+    "step": 0.05,
+    "unit": "x"
+   },
+   {
+    "type": "bool",
+    "id": "spin",
+    "name": "Dropped items spin",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "bob",
+    "name": "Dropped items float up and down",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "held",
+    "name": "Scale item in hand (first person)",
+    "value": false
+   },
+   {
+    "type": "slider",
+    "id": "heldsize",
+    "name": "Hand item size",
+    "value": 0.8,
+    "min": 0.2,
+    "max": 2.5,
+    "step": 0.05,
+    "unit": "x"
+   },
+   {
+    "type": "bool",
+    "id": "thirdmine",
+    "name": "Scale my held item (third person)",
+    "value": false
+   },
+   {
+    "type": "bool",
+    "id": "thirdothers",
+    "name": "Scale others' held items (players & mobs)",
+    "value": false
+   },
+   {
+    "type": "slider",
+    "id": "thirdsize",
+    "name": "Third person item size",
+    "value": 1.3,
+    "min": 0.25,
+    "max": 3,
+    "step": 0.05,
+    "unit": "x"
+   },
+   {
+    "type": "mode",
+    "id": "filter",
+    "name": "Which items",
+    "options": [
+     "All items",
+     "Only chosen items",
+     "All except chosen"
+    ],
+    "value": "All items"
+   }
+  ]
  },
  {
   "id": "motionblur",
   "name": "Motion Blur",
   "desc": "Smooth trails when you turn your camera",
   "category": "RENDER",
-  "settings": 1
+  "on": false,
+  "toggle": true,
+  "settings": 1,
+  "opts": [
+   {
+    "type": "slider",
+    "id": "strength",
+    "name": "Strength",
+    "value": 50,
+    "min": 10,
+    "max": 90,
+    "step": 5,
+    "unit": "%"
+   }
+  ]
  },
  {
   "id": "trails",
   "name": "Movement Trails",
   "desc": "A trail of particles behind you as you move (only you see it)",
   "category": "RENDER",
-  "settings": 3
+  "on": false,
+  "toggle": true,
+  "settings": 3,
+  "opts": [
+   {
+    "type": "mode",
+    "id": "style",
+    "name": "Trail",
+    "options": [
+     "Rainbow",
+     "Flames",
+     "Souls",
+     "Hearts",
+     "Clouds",
+     "Stars",
+     "Notes",
+     "Snow",
+     "Sparkles"
+    ],
+    "value": "Rainbow"
+   },
+   {
+    "type": "slider",
+    "id": "density",
+    "name": "Density",
+    "value": 2,
+    "min": 1,
+    "max": 6,
+    "step": 1,
+    "unit": ""
+   },
+   {
+    "type": "bool",
+    "id": "sprint",
+    "name": "Only while sprinting",
+    "value": false
+   }
+  ]
  },
  {
   "id": "nofog",
   "name": "No Fog",
   "desc": "Removes distance fog — overworld, Nether & End",
   "category": "RENDER",
-  "settings": 1
+  "on": false,
+  "toggle": true,
+  "settings": 1,
+  "opts": [
+   {
+    "type": "bool",
+    "id": "liquids",
+    "name": "Also under water & lava",
+    "value": false
+   }
+  ]
  },
  {
   "id": "nametag",
   "name": "Own Nametag",
   "desc": "See your own name above you in third person",
   "category": "RENDER",
-  "settings": 0
+  "on": false,
+  "toggle": true,
+  "settings": 0,
+  "opts": []
  },
  {
   "id": "sky",
   "name": "Sky Changer",
   "desc": "Replace the overworld sky with a preset",
   "category": "RENDER",
-  "settings": 5
+  "on": false,
+  "toggle": true,
+  "settings": 5,
+  "opts": [
+   {
+    "type": "mode",
+    "id": "preset",
+    "name": "Sky",
+    "options": [
+     null
+    ]
+   },
+   {
+    "type": "bool",
+    "id": "celestial",
+    "name": "Show sun & moon",
+    "value": false
+   },
+   {
+    "type": "bool",
+    "id": "dayCycle",
+    "name": "Darken at night",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "tintFog",
+    "name": "Match fog to sky",
+    "value": true
+   },
+   {
+    "type": "slider",
+    "id": "brightness",
+    "name": "Brightness",
+    "value": 100,
+    "min": 30,
+    "max": 150,
+    "step": 5,
+    "unit": "%"
+   }
+  ]
  },
  {
   "id": "time",
   "name": "Time Changer",
   "desc": "Change the time of day — only for you",
   "category": "RENDER",
-  "settings": 3
+  "on": false,
+  "toggle": true,
+  "settings": 3,
+  "opts": [
+   {
+    "type": "mode",
+    "id": "preset",
+    "name": "Time",
+    "options": [
+     "Sunrise",
+     "Noon",
+     "Sunset",
+     "Midnight",
+     "Custom"
+    ],
+    "value": "Custom"
+   },
+   {
+    "type": "slider",
+    "id": "time",
+    "name": "Custom time",
+    "value": 6000,
+    "min": 0,
+    "max": 23999,
+    "step": 250,
+    "unit": ""
+   },
+   {
+    "type": "bool",
+    "id": "cycle",
+    "name": "Let it keep moving",
+    "value": false
+   }
+  ]
  },
  {
   "id": "tnttimer",
   "name": "TNT Timer",
   "desc": "Countdown above lit TNT",
   "category": "RENDER",
-  "settings": 1
+  "on": true,
+  "toggle": true,
+  "settings": 1,
+  "opts": [
+   {
+    "type": "bool",
+    "id": "decimals",
+    "name": "Show tenths of a second",
+    "value": true
+   }
+  ]
  },
  {
   "id": "weather",
   "name": "Weather Changer",
   "desc": "Pick the weather you see: clear, rain, thunder or snow",
   "category": "RENDER",
-  "settings": 1
+  "on": false,
+  "toggle": true,
+  "settings": 1,
+  "opts": [
+   {
+    "type": "mode",
+    "id": "weather",
+    "name": "Weather",
+    "options": [
+     "Clear",
+     "Rain",
+     "Thunder",
+     "Snow"
+    ],
+    "value": "Clear"
+   }
+  ]
  },
  {
   "id": "autoreconnect",
   "name": "Auto Reconnect",
   "desc": "Rejoin the server after a disconnect",
   "category": "PLAYER",
-  "settings": 2
+  "on": true,
+  "toggle": true,
+  "settings": 2,
+  "opts": [
+   {
+    "type": "slider",
+    "id": "delay",
+    "name": "Reconnect after",
+    "value": 5,
+    "min": 1,
+    "max": 30,
+    "step": 1,
+    "unit": "s"
+   },
+   {
+    "type": "bool",
+    "id": "auto",
+    "name": "Reconnect automatically",
+    "value": true
+   }
+  ]
  },
  {
   "id": "chatbubbles",
   "name": "Chat Bubbles",
   "desc": "Chat messages pop up above the player who sent them",
   "category": "PLAYER",
-  "settings": 2
+  "on": false,
+  "toggle": true,
+  "settings": 2,
+  "opts": [
+   {
+    "type": "slider",
+    "id": "seconds",
+    "name": "Show for",
+    "value": 6,
+    "min": 2,
+    "max": 15,
+    "step": 1,
+    "unit": "s"
+   },
+   {
+    "type": "bool",
+    "id": "mine",
+    "name": "Show my own (third person)",
+    "value": true
+   }
+  ]
  },
  {
   "id": "clips",
   "name": "Clips",
   "desc": "Press F8 to save the last 30 seconds as a video (uses some FPS while on)",
   "category": "PLAYER",
-  "settings": 4
+  "on": false,
+  "toggle": true,
+  "settings": 4,
+  "opts": [
+   {
+    "type": "slider",
+    "id": "length",
+    "name": "Clip length",
+    "value": 30,
+    "min": 10,
+    "max": 60,
+    "step": 5,
+    "unit": " s"
+   },
+   {
+    "type": "mode",
+    "id": "fps",
+    "name": "Frame rate",
+    "options": [
+     "20 fps",
+     "30 fps",
+     "60 fps"
+    ],
+    "value": "30 fps"
+   },
+   {
+    "type": "mode",
+    "id": "quality",
+    "name": "Quality",
+    "options": [
+     "540p",
+     "720p",
+     "1080p"
+    ],
+    "value": "720p"
+   }
+  ]
  },
  {
   "id": "cosmetics",
   "name": "Cosmetics",
   "desc": "Hats, wings and auras — change them in the Locker",
   "category": "PLAYER",
-  "settings": 4
+  "on": true,
+  "toggle": true,
+  "settings": 4,
+  "opts": [
+   {
+    "type": "mode",
+    "id": "hat",
+    "name": "Hat",
+    "options": [
+     "None",
+     "Halo",
+     "Crown",
+     "Top Hat",
+     "Witch Hat",
+     "Devil Horns",
+     "Cat Ears"
+    ],
+    "value": "None"
+   },
+   {
+    "type": "mode",
+    "id": "wings",
+    "name": "Wings",
+    "options": [
+     "None",
+     "Angel",
+     "Demon",
+     "Butterfly",
+     "Dragon"
+    ],
+    "value": "None"
+   },
+   {
+    "type": "mode",
+    "id": "aura",
+    "name": "Aura",
+    "options": [
+     "None",
+     "Stardust",
+     "Flames",
+     "Hearts",
+     "Enchanted",
+     "Snow",
+     "Souls"
+    ],
+    "value": "None"
+   },
+   {
+    "type": "bool",
+    "id": "others",
+    "name": "Show other Orbit players' cosmetics",
+    "value": true
+   }
+  ]
  },
  {
   "id": "emotes",
   "name": "Emotes",
   "desc": "Hold the key for the emote wheel — dance, wave, floss…",
   "category": "PLAYER",
-  "settings": 3
+  "on": true,
+  "toggle": true,
+  "settings": 3,
+  "opts": [
+   {
+    "type": "bool",
+    "id": "camera",
+    "name": "Turn the camera to see yourself",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "sync",
+    "name": "Show to other Orbit players",
+    "value": true
+   }
+  ]
  },
  {
   "id": "freelook",
   "name": "Freelook",
   "desc": "Look around without turning your player",
   "category": "PLAYER",
-  "settings": 4
+  "on": true,
+  "toggle": true,
+  "settings": 4,
+  "opts": [
+   {
+    "type": "mode",
+    "id": "mode",
+    "name": "Key mode",
+    "options": [
+     "Hold",
+     "Toggle"
+    ],
+    "value": "Hold"
+   },
+   {
+    "type": "bool",
+    "id": "invert",
+    "name": "Invert vertical",
+    "value": false
+   },
+   {
+    "type": "mode",
+    "id": "view",
+    "name": "Camera",
+    "options": [
+     "Behind",
+     "In front",
+     "First person"
+    ],
+    "value": "Behind"
+   }
+  ]
  },
  {
   "id": "invprofiles",
   "name": "Inventory Profiles",
   "desc": "Save hotbar layouts and switch between them (per server too)",
   "category": "PLAYER",
-  "settings": 2
+  "on": false,
+  "toggle": true,
+  "settings": 2,
+  "opts": [
+   {
+    "type": "mode",
+    "id": "slot",
+    "name": "Profile",
+    "options": [
+     "1",
+     "2",
+     "3",
+     "Per server"
+    ],
+    "value": "1"
+   },
+   {
+    "type": "bool",
+    "id": "auto",
+    "name": "Apply the server's profile automatically when I join",
+    "value": true
+   }
+  ]
  },
  {
   "id": "badge",
   "name": "Orbit Badge",
   "desc": "Planet icon before Orbit players' names (name tags & Tab)",
   "category": "PLAYER",
-  "settings": 0
+  "on": true,
+  "toggle": true,
+  "settings": 0,
+  "opts": []
  },
  {
   "id": "capes",
   "name": "Orbit Capes",
   "desc": "Shows the cape picked in the launcher",
   "category": "PLAYER",
-  "settings": 1
+  "on": true,
+  "toggle": true,
+  "settings": 1,
+  "opts": [
+   {
+    "type": "bool",
+    "id": "elytra",
+    "name": "Use on elytra",
+    "value": true
+   }
+  ]
  },
  {
   "id": "nameskins",
   "name": "Skins by Name",
   "desc": "Players without a skin (cracked servers, offline accounts) get the skin of their username",
   "category": "PLAYER",
-  "settings": 0
+  "on": true,
+  "toggle": true,
+  "settings": 0,
+  "opts": []
  },
  {
   "id": "togglesprint",
   "name": "Toggle Sprint",
   "desc": "Always sprint while moving forward",
   "category": "PLAYER",
-  "settings": 0
+  "on": false,
+  "toggle": true,
+  "settings": 0,
+  "opts": []
  },
  {
   "id": "troll",
   "name": "Troll Mod",
   "desc": "Show players as any mob, or make them invisible with just their name tag — only you see it",
   "category": "PLAYER",
-  "settings": 2
+  "on": false,
+  "toggle": true,
+  "settings": 2,
+  "opts": [
+   {
+    "type": "bool",
+    "id": "mobsounds",
+    "name": "Disguised players sound like their mob when hit",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "self",
+    "name": "\"Everyone else\" includes me too (pranks on your own name always apply — F5)",
+    "value": false
+   }
+  ]
  },
  {
   "id": "waypoints",
   "name": "Waypoints",
   "desc": "Mark places and see them through walls — with beams, edge arrows and a death point",
   "category": "PLAYER",
-  "settings": 7
+  "on": true,
+  "toggle": true,
+  "settings": 7,
+  "opts": [
+   {
+    "type": "bool",
+    "id": "distance",
+    "name": "Show distance",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "beam",
+    "name": "Light beam into the sky",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "arrows",
+    "name": "Arrows on the screen edge for waypoints out of view",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "coords",
+    "name": "Show coordinates when you look at one",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "death",
+    "name": "Save where I die (\"Last death\")",
+    "value": true
+   },
+   {
+    "type": "slider",
+    "id": "max",
+    "name": "Hide farther than",
+    "value": 5000,
+    "min": 50,
+    "max": 20000,
+    "step": 50,
+    "unit": "m"
+   }
+  ]
  },
  {
   "id": "zoom",
   "name": "Zoom",
   "desc": "Hold to zoom, scroll to adjust",
   "category": "PLAYER",
-  "settings": 5
+  "on": true,
+  "toggle": true,
+  "settings": 5,
+  "opts": [
+   {
+    "type": "slider",
+    "id": "factor",
+    "name": "Zoom amount",
+    "value": 4,
+    "min": 1.5,
+    "max": 20,
+    "step": 0.5,
+    "unit": "x"
+   },
+   {
+    "type": "bool",
+    "id": "smooth",
+    "name": "Smooth animation",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "scroll",
+    "name": "Scroll to adjust",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "cinematic",
+    "name": "Cinematic camera",
+    "value": true
+   }
+  ]
  },
  {
   "id": "interface",
   "name": "Interface",
   "desc": "Theme, main menu & HUD behaviour",
   "category": "CLIENT",
-  "settings": 16
+  "on": true,
+  "toggle": false,
+  "settings": 16,
+  "opts": [
+   {
+    "type": "mode",
+    "id": "accent",
+    "name": "Theme",
+    "options": [
+     "Nebula",
+     "Deep Space",
+     "Supernova",
+     "Aurora",
+     "Mars",
+     "Eclipse"
+    ],
+    "value": "Nebula"
+   },
+   {
+    "type": "bool",
+    "id": "spaceMenu",
+    "name": "Orbit main menu",
+    "value": true
+   },
+   {
+    "type": "mode",
+    "id": "menuSky",
+    "name": "Main menu background",
+    "options": [
+     "Nebula",
+     "Aurora",
+     "Deep Space",
+     "Sunset",
+     "Mono",
+     "Nova",
+     "Ocean",
+     "Emerald",
+     "Crimson",
+     "Midnight"
+    ],
+    "value": "Nebula"
+   },
+   {
+    "type": "bool",
+    "id": "menuPlanet",
+    "name": "Planet in the main menu",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "menuHills",
+    "name": "Hills at the bottom of menus",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "menuSpin",
+    "name": "Your player slowly turns in the menu",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "menuParticles",
+    "name": "Floating particles in the menu",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "hideF3",
+    "name": "Hide HUD while F3 is open",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "blur",
+    "name": "Blur behind menu",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "sounds",
+    "name": "Menu sound effects",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "smoothFont",
+    "name": "Smooth font (off = Minecraft font)",
+    "value": false
+   },
+   {
+    "type": "bool",
+    "id": "friendToasts",
+    "name": "Pop-up when a friend comes online or invites you",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "shareServer",
+    "name": "Show friends which server I'm on",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "publicProfile",
+    "name": "Public player profile on orbit-client.com (play time, streaks & leaderboards)",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "settingsSync",
+    "name": "Save my Orbit settings to my account (Settings sync)",
+    "value": true
+   }
+  ]
  },
  {
   "id": "recap",
   "name": "Session Recap",
   "desc": "A summary of your session (kills, hits, accuracy, distance…) when you leave",
   "category": "CLIENT",
-  "settings": 1
+  "on": true,
+  "toggle": true,
+  "settings": 1,
+  "opts": [
+   {
+    "type": "slider",
+    "id": "min",
+    "name": "Only after playing at least",
+    "value": 2,
+    "min": 0,
+    "max": 30,
+    "step": 1,
+    "unit": " min"
+   }
+  ]
  }
 ]

@@ -95,6 +95,7 @@ wss.on('connection', (ws) => {
         }
         if (ws.profile) {
           if (ws.profile.public !== wantPublic) { ws.profile.public = wantPublic; profiles.touch(ws.profile.uuid); }
+          if (ws.friends) profiles.setFriends(ws.profile, ws.friends.size);
           await track(ws);
         }
       })().catch(() => {});

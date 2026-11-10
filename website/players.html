@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Orbit Players — look up any Orbit player</title>
-<meta name="description" content="Look up an Orbit player: playtime, sessions, PvP stats and cosmetics.">
+<meta name="description" content="Look up an Orbit player: level, play time, streaks, PvP tiers and cosmetics. Plus Orbit leaderboards.">
 <meta name="theme-color" content="#06120f">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="style.css">
@@ -31,7 +31,7 @@
   <section class="page-head reveal">
     <p class="eyebrow">Player lookup</p>
     <h1 class="page-title">Find an Orbit player</h1>
-    <p class="sub">Type a Minecraft name to see their time in Orbit, PvP stats and cosmetics.</p>
+    <p class="sub">Type a Minecraft name to see their level, play time, streaks, PvP tiers and cosmetics.</p>
     <form class="lookup" id="lookup" autocomplete="off">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
       <input id="name" placeholder="Minecraft name, e.g. TrustQ" maxlength="16" spellcheck="false" aria-label="Minecraft name">
@@ -42,8 +42,14 @@
   <section id="result" class="result" aria-live="polite"></section>
 
   <section class="board reveal">
-    <h2>Top players</h2>
-    <p class="section-sub">Most time spent playing with Orbit</p>
+    <h2>Leaderboards</h2>
+    <p class="section-sub" id="board-sub">Most played this week</p>
+    <div class="board-tabs" role="tablist">
+      <button class="board-tab active" data-type="week">This week</button>
+      <button class="board-tab" data-type="all">All time</button>
+      <button class="board-tab" data-type="streak">Streak</button>
+      <button class="board-tab" data-type="days">Days played</button>
+    </div>
     <div id="board" class="board-list"><p class="muted-row">Loading…</p></div>
   </section>
 </main>
@@ -55,6 +61,7 @@
   <p class="legal">Profiles exist only for Orbit players who signed in with Microsoft. Players can make theirs private in the Orbit menu (Interface → Public player profile).</p>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/skinview3d@3.1.0/bundles/skinview3d.bundle.js"></script>
 <script src="main.js"></script>
 <script src="players.js"></script>
 </body>

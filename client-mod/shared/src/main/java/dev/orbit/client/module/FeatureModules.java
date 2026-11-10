@@ -112,7 +112,7 @@ public final class FeatureModules {
         public final Setting.Bool smoothFont = add(new Setting.Bool("smoothFont", "Smooth font (off = Minecraft font)", false));
         public final Setting.Bool friendToasts = add(new Setting.Bool("friendToasts", "Pop-up when a friend comes online or invites you", true));
         public final Setting.Bool shareServer = add(new Setting.Bool("shareServer", "Show friends which server I'm on", true));
-        public final Setting.Bool publicProfile = add(new Setting.Bool("publicProfile", "Public player profile on orbit-client.com (playtime & PvP stats)", true));
+        public final Setting.Bool publicProfile = add(new Setting.Bool("publicProfile", "Public player profile on orbit-client.com (play time, streaks & leaderboards)", true));
         public final Setting.Bool settingsSync = add(new Setting.Bool("settingsSync", "Save my Orbit settings to my account (Settings sync)", true));
         public final Setting.Action syncUpload = add(new Setting.Action("syncUpload", "Save settings to my account now", "Upload", dev.orbit.client.sync.SettingsSync::uploadNow));
         public final Setting.Action syncRestore = add(new Setting.Action("syncRestore", "Replace this PC's settings with my account's", "Restore", dev.orbit.client.sync.SettingsSync::restoreNow));
