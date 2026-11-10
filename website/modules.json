@@ -4017,11 +4017,11 @@
  {
   "id": "cosmetics",
   "name": "Cosmetics",
-  "desc": "Hats, wings and auras — change them in the Locker",
+  "desc": "Hats, wings, auras and pets — change them in the Locker",
   "category": "PLAYER",
   "on": true,
   "toggle": true,
-  "settings": 4,
+  "settings": 5,
   "opts": [
    {
     "type": "mode",
@@ -4034,7 +4034,20 @@
      "Top Hat",
      "Witch Hat",
      "Devil Horns",
-     "Cat Ears"
+     "Cat Ears",
+     "Party Hat",
+     "Beanie",
+     "Headphones",
+     "Viking Helmet",
+     "Cowboy Hat",
+     "Flower Crown",
+     "Bunny Ears",
+     "Santa Hat",
+     "Propeller Cap",
+     "Astronaut Helmet",
+     "Orbit Ring",
+     "Chef Hat",
+     "Antlers"
     ],
     "value": "None"
    },
@@ -4047,7 +4060,12 @@
      "Angel",
      "Demon",
      "Butterfly",
-     "Dragon"
+     "Dragon",
+     "Fairy",
+     "Phoenix",
+     "Frost",
+     "Void",
+     "Raven"
     ],
     "value": "None"
    },
@@ -4062,7 +4080,42 @@
      "Hearts",
      "Enchanted",
      "Snow",
-     "Souls"
+     "Souls",
+     "Petals",
+     "Music",
+     "Bubbles",
+     "Fireflies",
+     "Rainbow",
+     "Galaxy",
+     "Orbit"
+    ],
+    "value": "None"
+   },
+   {
+    "type": "mode",
+    "id": "pet",
+    "name": "Pet",
+    "options": [
+     "None",
+     "Cat",
+     "Fox",
+     "Puppy",
+     "Bunny",
+     "Panda",
+     "Penguin",
+     "Frog",
+     "Axolotl",
+     "Duck",
+     "Parrot",
+     "Bee",
+     "Owl",
+     "Bat",
+     "Baby Dragon",
+     "Ghost",
+     "Phoenix",
+     "Fairy",
+     "UFO",
+     "Jellyfish"
     ],
     "value": "None"
    },

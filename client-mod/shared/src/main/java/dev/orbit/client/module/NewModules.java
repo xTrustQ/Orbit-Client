@@ -167,15 +167,20 @@ public final class NewModules {
     // ================================================================= Cosmetics
     /** Hats, wings and auras on your own player (pick them in the title screen's Locker). */
     public static final class Cosmetics extends Module {
-        public static final String[] HATS = {"None", "Halo", "Crown", "Top Hat", "Witch Hat", "Devil Horns", "Cat Ears"};
-        public static final String[] WINGS = {"None", "Angel", "Demon", "Butterfly", "Dragon"};
-        public static final String[] AURAS = {"None", "Stardust", "Flames", "Hearts", "Enchanted", "Snow", "Souls"};
+        public static final String[] HATS = {"None", "Halo", "Crown", "Top Hat", "Witch Hat", "Devil Horns", "Cat Ears", "Party Hat", "Beanie", "Headphones",
+                "Viking Helmet", "Cowboy Hat", "Flower Crown", "Bunny Ears", "Santa Hat", "Propeller Cap", "Astronaut Helmet", "Orbit Ring", "Chef Hat", "Antlers"};
+        public static final String[] WINGS = {"None", "Angel", "Demon", "Butterfly", "Dragon", "Fairy", "Phoenix", "Frost", "Void", "Raven"};
+        public static final String[] AURAS = {"None", "Stardust", "Flames", "Hearts", "Enchanted", "Snow", "Souls", "Petals", "Music", "Bubbles", "Fireflies", "Rainbow", "Galaxy", "Orbit"};
+        /** shoulder pets first, then the ones that fly */
+        public static final String[] PETS = {"None", "Cat", "Fox", "Puppy", "Bunny", "Panda", "Penguin", "Frog", "Axolotl", "Duck",
+                "Parrot", "Bee", "Owl", "Bat", "Baby Dragon", "Ghost", "Phoenix", "Fairy", "UFO", "Jellyfish"};
         public final Setting.Mode hat = add(new Setting.Mode("hat", "Hat", "None", HATS));
         public final Setting.Mode wings = add(new Setting.Mode("wings", "Wings", "None", WINGS));
         public final Setting.Mode aura = add(new Setting.Mode("aura", "Aura", "None", AURAS));
+        public final Setting.Mode pet = add(new Setting.Mode("pet", "Pet", "None", PETS));
         public final Setting.Bool others = add(new Setting.Bool("others", "Show other Orbit players' cosmetics", true));
         // all three are drawn by CosmeticsFeature as 3D meshes (auras too), so they show in previews and F5
-        public Cosmetics() { super("cosmetics", "Cosmetics", "Hats, wings and auras — change them in the Locker", Category.PLAYER, true); }
+        public Cosmetics() { super("cosmetics", "Cosmetics", "Hats, wings, auras and pets — change them in the Locker", Category.PLAYER, true); }
     }
 
     // ================================================================= Item scale

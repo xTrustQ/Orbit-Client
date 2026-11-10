@@ -24,6 +24,7 @@ public class OrbitVisualTest implements FabricClientGameTest {
     public void runTest(ClientGameTestContext ctx) {
         String cos = System.getenv("ORBIT_TEST_COSMETICS");
         if (cos != null) System.setProperty("orbit.cosmetics", cos);
+        if ("cosmetics".equals(System.getenv("ORBIT_TEST_ONLY"))) { cosmeticsOnly(ctx); return; }
 
         ctx.waitTicks(16);
         ctx.takeScreenshot("00-intro-a");
@@ -477,6 +478,70 @@ public class OrbitVisualTest implements FabricClientGameTest {
             ctx.takeScreenshot("13-hud-editor");
             ctx.setScreen(() -> null);
             OrbitTitleScreen.allowVanillaOnce = true; // the harness requires ending on vanilla's title screen
+        }
+    }
+
+    /** quick run (ORBIT_TEST_ONLY=cosmetics): the Locker's cosmetics pages and every pet / new hat / wing / aura in a world */
+    private static void cosmeticsOnly(ClientGameTestContext ctx) {
+        ctx.waitTicks(40);
+        for (int g = 0; g < 4; g++) {
+            int gg = g;
+            ctx.runOnClient(c -> OrbitTitleScreen.testCosGroup(gg));
+            ctx.setScreen(() -> OrbitTitleScreen.onTab("cosmetics"));
+            ctx.waitTicks(25);
+            ctx.takeScreenshot("c0-locker-" + g);
+        }
+        ctx.runOnClient(c -> OrbitTitleScreen.testHover = "Fox");
+        ctx.waitTicks(10);
+        ctx.takeScreenshot("c0-locker-preview-fox");
+        ctx.runOnClient(c -> OrbitTitleScreen.testHover = "Parrot");
+        ctx.waitTicks(10);
+        ctx.takeScreenshot("c0-locker-preview-parrot");
+        ctx.runOnClient(c -> OrbitTitleScreen.testHover = null);
+        ctx.setScreen(OrbitTitleScreen::new);
+        ctx.waitTicks(5);
+        try (TestSingleplayerContext sp = ctx.worldBuilder().create()) {
+            sp.getClientWorld().waitForChunksRender();
+            sp.getServer().runCommand("time set 1000");
+            sp.getServer().runCommand("weather clear");
+            ctx.runOnClient(c -> { var cm = (NewModules.Cosmetics) OrbitClient.modules().get("cosmetics"); cm.setEnabled(true); c.options.setPerspective(Perspective.THIRD_PERSON_FRONT); c.player.setPitch(12); });
+            ctx.waitTicks(20);
+            String[] pets = NewModules.Cosmetics.PETS, hats = NewModules.Cosmetics.HATS, wings = NewModules.Cosmetics.WINGS, auras = NewModules.Cosmetics.AURAS;
+            for (int i = 1; i < pets.length; i++) {
+                String p = pets[i];
+                ctx.runOnClient(c -> ((NewModules.Cosmetics) OrbitClient.modules().get("cosmetics")).pet.set(p));
+                ctx.waitTicks(4);
+                ctx.takeScreenshot("c1-pet-" + i + "-" + p.replace(" ", ""));
+            }
+            ctx.runOnClient(c -> ((NewModules.Cosmetics) OrbitClient.modules().get("cosmetics")).pet.set("None"));
+            for (int i = 7; i < hats.length; i++) {
+                String h = hats[i];
+                ctx.runOnClient(c -> ((NewModules.Cosmetics) OrbitClient.modules().get("cosmetics")).hat.set(h));
+                ctx.waitTicks(3);
+                ctx.takeScreenshot("c2-hat-" + i + "-" + h.replace(" ", ""));
+            }
+            ctx.runOnClient(c -> { var cm = (NewModules.Cosmetics) OrbitClient.modules().get("cosmetics"); cm.hat.set("None"); c.options.setPerspective(Perspective.THIRD_PERSON_BACK); });
+            for (int i = 5; i < wings.length; i++) {
+                String w = wings[i];
+                ctx.runOnClient(c -> ((NewModules.Cosmetics) OrbitClient.modules().get("cosmetics")).wings.set(w));
+                ctx.waitTicks(4);
+                ctx.takeScreenshot("c3-wings-" + i + "-" + w);
+            }
+            ctx.runOnClient(c -> { var cm = (NewModules.Cosmetics) OrbitClient.modules().get("cosmetics"); cm.wings.set("None"); c.options.setPerspective(Perspective.THIRD_PERSON_FRONT); c.player.setPitch(20); });
+            for (int i = 7; i < auras.length; i++) {
+                String a = auras[i];
+                ctx.runOnClient(c -> ((NewModules.Cosmetics) OrbitClient.modules().get("cosmetics")).aura.set(a));
+                ctx.waitTicks(8);
+                ctx.takeScreenshot("c4-aura-" + i + "-" + a);
+            }
+            ctx.runOnClient(c -> { var cm = (NewModules.Cosmetics) OrbitClient.modules().get("cosmetics"); cm.aura.set("None"); cm.pet.set("Baby Dragon"); cm.hat.set("Party Hat"); c.options.setPerspective(Perspective.THIRD_PERSON_BACK); });
+            var fwd = ctx.computeOnClient(c -> c.options.forwardKey);
+            ctx.getInput().holdKey(fwd);
+            ctx.waitTicks(20);
+            ctx.takeScreenshot("c5-walking-dragon");
+            ctx.getInput().releaseKey(fwd);
+            ctx.runOnClient(c -> { var cm = (NewModules.Cosmetics) OrbitClient.modules().get("cosmetics"); cm.pet.set("None"); cm.hat.set("None"); c.options.setPerspective(Perspective.FIRST_PERSON); });
+            OrbitTitleScreen.allowVanillaOnce = true;
         }
     }
 }

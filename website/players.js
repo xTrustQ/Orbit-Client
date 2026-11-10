@@ -63,7 +63,7 @@ function profile(p) {
   const max = Math.max(...week.map((d) => d.ms), 1);
   const weekTotal = week.reduce((s, d) => s + d.ms, 0);
   const c = p.cosmetics;
-  const wears = c ? [['Hat', c.hat], ['Wings', c.wings], ['Aura', c.aura]].filter(([, v]) => v && v !== 'None') : [];
+  const wears = c ? [['Hat', c.hat], ['Wings', c.wings], ['Aura', c.aura], ['Pet', c.pet]].filter(([, v]) => v && v !== 'None') : [];
   return `<div class="card profile">
     <div class="pf-top">
       <div class="skin3d"><canvas id="skin" width="220" height="300" aria-label="${esc(p.name)}'s skin"></canvas><span>Drag to turn</span></div>

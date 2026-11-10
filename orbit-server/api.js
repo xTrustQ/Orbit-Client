@@ -5,8 +5,8 @@
 //   POST /api/auth/start   {uuid, name}            -> {serverId}
 //        (the game calls Mojang's sessionserver "join" with that serverId, like joining a real server)
 //   POST /api/auth/finish  {name, serverId}        -> {token, uuid}      (we ask Mojang "hasJoined")
-//   PUT  /api/cosmetics    Bearer token, {hat, wings, aura, cape: base64 PNG | null}
-//   GET  /api/cosmetics?uuids=a,b,c                -> {uuid: {hat, wings, aura, cape, updated}}
+//   PUT  /api/cosmetics    Bearer token, {hat, wings, aura, pet, cape: base64 PNG | null}
+//   GET  /api/cosmetics?uuids=a,b,c                -> {uuid: {hat, wings, aura, pet, cape, updated}}
 //   GET  /api/capes/<sha1>.png                     -> the cape image
 //   GET  /api/settings                 Bearer token -> {data, updated}   (Settings sync: your Orbit setup on any PC)
 //   PUT  /api/settings                 Bearer token, {data, updated}
@@ -131,7 +131,7 @@ async function handle(req, res) {
         firstSeen: p.firstSeen, lastSeen: live.online ? Date.now() : p.lastSeen, playMs: p.playMs, sessions: p.sessions,
         daysPlayed: p.daysPlayed, bestStreak: p.bestStreak, curStreak: p.curStreak, friends: p.friends,
         last7: profiles.lastDays(p, 7), badges: profiles.badges(p),
-        cosmetics: cos ? { hat: cos.hat, wings: cos.wings, aura: cos.aura, cape: cos.cape } : null,
+        cosmetics: cos ? { hat: cos.hat, wings: cos.wings, aura: cos.aura, pet: cos.pet || 'None', cape: cos.cape } : null,
       });
     }
     if (url.pathname === '/api/leaderboard' && req.method === 'GET') {
@@ -193,7 +193,7 @@ async function handle(req, res) {
         const f = path.join(CAPES, cape + '.png');
         if (!fs.existsSync(f)) fs.writeFileSync(f, png);
       } else if (typeof b.capeHash === 'string' && /^[0-9a-f]{40}$/.test(b.capeHash) && fs.existsSync(path.join(CAPES, b.capeHash + '.png'))) cape = b.capeHash;
-      db[t.uuid] = { hat: clean(b.hat), wings: clean(b.wings), aura: clean(b.aura), cape, updated: Date.now() };
+      db[t.uuid] = { hat: clean(b.hat), wings: clean(b.wings), aura: clean(b.aura), pet: clean(b.pet), cape, updated: Date.now() };
       save();
       return send(res, 200, db[t.uuid]);
     }

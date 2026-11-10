@@ -19,7 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Orbit cosmetics — hats, wings and auras — built as shaded 3D meshes in code (no model files).
+ * Orbit cosmetics — hats, wings, auras and pets — built as shaded 3D meshes in code (no model files).
+ * More hats & auras live in MoreCosmetics, the pets in Pets.
  * Drawn on your own player in-game and on the Locker's preview players.
  *
  * Units are pixels (1/16 block). Model space: -Y is up, +Z is the player's back.
@@ -32,8 +33,8 @@ public final class CosmeticsFeature extends FeatureRenderer<PlayerEntityRenderSt
     /** render-state id used by the title-screen PlayerPreview (tiles use ids below it) */
     public static final int PREVIEW_ID = -77_777;
     /** what the Locker is previewing (null = use your equipped cosmetic) */
-    public static volatile String previewHat, previewWings, previewAura;
-    /** Locker tiles: render-state id -> {hat, wings, aura} shown on that tile's little player */
+    public static volatile String previewHat, previewWings, previewAura, previewPet;
+    /** Locker tiles: render-state id -> {hat, wings, aura, pet} shown on that tile's little player */
     public static final java.util.Map<Integer, String[]> OVERRIDES = new java.util.concurrent.ConcurrentHashMap<>();
     static final int FULL_BRIGHT = 0xF000F0;
 
@@ -67,10 +68,11 @@ public final class CosmeticsFeature extends FeatureRenderer<PlayerEntityRenderSt
         } else if (!cos.isEnabled() && !preview) return;
         Identifier tex = white();
         if (tex == null) return;
-        String[] ov = remote != null ? new String[]{remote.hat(), remote.wings(), remote.aura()} : OVERRIDES.get(state.id);
+        String[] ov = remote != null ? new String[]{remote.hat(), remote.wings(), remote.aura(), remote.pet()} : OVERRIDES.get(state.id);
         String hat = pick(ov, 0, preview, previewHat, cos.isEnabled() ? cos.hat.get() : "None");
         String wings = pick(ov, 1, preview, previewWings, cos.isEnabled() ? cos.wings.get() : "None");
         String aura = pick(ov, 2, preview, previewAura, cos.isEnabled() ? cos.aura.get() : "None");
+        String pet = pick(ov, 3, preview, previewPet, cos.isEnabled() ? cos.pet.get() : "None");
         float t = (System.currentTimeMillis() % 3_600_000L) / 1000f;
         var lit = RenderLayers.entityTranslucent(tex);
         var glow = RenderLayers.entityTranslucentEmissive(tex);
@@ -102,6 +104,17 @@ public final class CosmeticsFeature extends FeatureRenderer<PlayerEntityRenderSt
         if (!aura.equals("None")) {
             queue.submitCustom(matrices, glow, (e, vc) -> Auras.draw(new Mesh(e, vc, FULL_BRIGHT), aura, t));
         }
+        if (!pet.equals("None")) { // walkers sit on your left shoulder, flyers hover next to it
+            float pt = t + (state.id & 7) * 0.37f; // players' pets don't all move in step
+            float[] at = Pets.place(pet, pt);
+            matrices.push();
+            getContextModel().body.applyTransform(matrices);
+            matrices.translate(at[0] / 16f, at[1] / 16f, at[2] / 16f);
+            matrices.multiply(net.minecraft.util.math.RotationAxis.POSITIVE_Y.rotation(at[3]));
+            queue.submitCustom(matrices, lit, (e, vc) -> Pets.lit(new Mesh(e, vc, light), pet, pt));
+            queue.submitCustom(matrices, glow, (e, vc) -> Pets.glow(new Mesh(e, vc, FULL_BRIGHT), pet, pt));
+            matrices.pop();
+        }
     }
 
     /** per player: wing phase, smoothed movement (0 = standing, 1 = sprinting), last time */
@@ -125,7 +138,7 @@ public final class CosmeticsFeature extends FeatureRenderer<PlayerEntityRenderSt
                 case "Devil Horns" -> { horn(m, 1); horn(m, -1); }
                 case "Cat Ears" -> { ear(m, 1); ear(m, -1); }
                 case "Witch Hat" -> witch(m, t);
-                default -> {}
+                default -> MoreCosmetics.hatLit(m, hat, t);
             }
         }
         static void glow(Mesh m, String hat, float t) {
@@ -133,7 +146,7 @@ public final class CosmeticsFeature extends FeatureRenderer<PlayerEntityRenderSt
                 case "Halo" -> halo(m, t);
                 case "Crown" -> crownGems(m, t);
                 case "Witch Hat" -> { float a = t * 1.6f; m.octa(Math.cos(a) * 6.5f, -15 + Math.sin(t * 2) * 1.2f, Math.sin(a) * 6.5f, 0.55f, 0.55f, 0.55f, 0xF0FFE27A); }
-                default -> {}
+                default -> MoreCosmetics.hatGlow(m, hat, t);
             }
         }
 
@@ -229,8 +242,13 @@ public final class CosmeticsFeature extends FeatureRenderer<PlayerEntityRenderSt
                 switch (type) {
                     case "Demon" -> bat(m, f, 0xE6741A2C, 0xD03C0A16, 0xFF2A0A12, false);
                     case "Dragon" -> bat(m, f, 0xE63E8A52, 0xD0183E26, 0xFF14281B, true);
-                    case "Butterfly" -> butterfly(m, f);
-                    default -> angel(m, f);
+                    case "Butterfly" -> butterfly(m, f, 0xF2EBA8FF, 0xF27A3CFF, 0xF2FF9BD6, 0xF25CC8FF, 0xFF1C1030);
+                    case "Fairy" -> butterfly(m, f, 0xA8E8FFFF, 0xA87ADFFF, 0xA8FFE0F4, 0xA8FFB0E0, 0xC0FFFFFF);
+                    case "Phoenix" -> angel(m, f, 0xFFFFE07A, 0xFFFFA23C, 0xFFFF4A1A);
+                    case "Frost" -> angel(m, f, 0xF0F4FBFF, 0xE0C4E8FF, 0xD07CC4FF);
+                    case "Void" -> bat(m, f, 0xE63A1A6A, 0xD0120626, 0xFF0A0414, false);
+                    case "Raven" -> angel(m, f, 0xFF2A2A34, 0xFF1C1C24, 0xFF101016);
+                    default -> angel(m, f, 0xFFFDFDFF, 0xFFEAF0FF, 0xFFD3E0FA);
                 }
             }
         }
@@ -249,8 +267,7 @@ public final class CosmeticsFeature extends FeatureRenderer<PlayerEntityRenderSt
         }
 
         // ------------------------------------------------------------------ angel: base + two rows of rounded feathers
-        static void angel(Mesh m, Frame f) {
-            int white = 0xFFFDFDFF, soft = 0xFFEAF0FF, tip = 0xFFD3E0FA;
+        static void angel(Mesh m, Frame f, int white, int soft, int tip) {
             // solid base (scapulars) so there are no gaps between feathers
             float[][] base = {{0, -1}, {5, -4.5f}, {11, -6}, {16, -5}, {19, -2.5f}, {15, 2}, {9, 4}, {3, 4.5f}, {0, 3}};
             float[] c0 = f.p(6, 0, -0.15f);
@@ -326,11 +343,11 @@ public final class CosmeticsFeature extends FeatureRenderer<PlayerEntityRenderSt
         }
 
         // ------------------------------------------------------------------ butterfly
-        static void butterfly(Mesh m, Frame f) {
+        static void butterfly(Mesh m, Frame f, int u0, int u1, int l0, int l1, int rim) {
             float[][] upper = {{14, -11}, {17, -8}, {17.5f, -4}, {15, -1}, {10, 0.5f}, {3, 0.5f}, {2, -4}, {6, -9}, {10, -11.5f}};
             float[][] lower = {{3, 1.5f}, {9, 2}, {13, 5}, {13, 9.5f}, {10, 13}, {6, 13.5f}, {3, 10}, {1.5f, 5}};
-            lobe(m, f, upper, new float[]{4, -2}, 0xF2EBA8FF, 0xF27A3CFF, 0xFF1C1030);
-            lobe(m, f, lower, new float[]{3, 3}, 0xF2FF9BD6, 0xF25CC8FF, 0xFF1C1030);
+            lobe(m, f, upper, new float[]{4, -2}, u0, u1, rim);
+            lobe(m, f, lower, new float[]{3, 3}, l0, l1, rim);
             spot(m, f, 12.5f, -6.5f, 1.6f, 0xF8FFFFFF);
             spot(m, f, 13.3f, -6.8f, 0.7f, 0xF81C1030);
             spot(m, f, 8.5f, 8.5f, 1.3f, 0xF8FFE38A);
@@ -365,7 +382,7 @@ public final class CosmeticsFeature extends FeatureRenderer<PlayerEntityRenderSt
                 case "Enchanted" -> enchanted(m, t);
                 case "Snow" -> snow(m, t);
                 case "Souls" -> souls(m, t);
-                default -> stardust(m, t);
+                default -> { if (!MoreCosmetics.aura(m, type, t)) stardust(m, t); }
             }
         }
 
@@ -570,6 +587,31 @@ public final class CosmeticsFeature extends FeatureRenderer<PlayerEntityRenderSt
                 float[][] r0 = rings.get(i), r1 = rings.get(i + 1);
                 for (int k = 0; k < n; k++) quadC(r0[k], r0[(k + 1) % n], r1[(k + 1) % n], r1[k], ca, ca, cb, cb);
             }
+        }
+        /** ellipsoid from the top (v = 0) down to vEnd (PI = whole sphere, PI/2 = top half / dome) */
+        void sphere(float cx, float cy, float cz, float rx, float ry, float rz, int n, int col, double vEnd) {
+            int nv = Math.max(3, (int) Math.round(n / 2.0 * vEnd / Math.PI));
+            for (int j = 0; j < nv; j++) for (int i = 0; i < n; i++) {
+                double v0 = j * vEnd / nv, v1 = (j + 1) * vEnd / nv, u0 = i * Math.PI * 2 / n, u1 = (i + 1) * Math.PI * 2 / n;
+                quad(sp(cx, cy, cz, rx, ry, rz, u0, v0), sp(cx, cy, cz, rx, ry, rz, u1, v0), sp(cx, cy, cz, rx, ry, rz, u1, v1), sp(cx, cy, cz, rx, ry, rz, u0, v1), col);
+            }
+        }
+        void ball(float cx, float cy, float cz, float r, int col) { sphere(cx, cy, cz, r, r, r, 12, col, Math.PI); }
+        private static float[] sp(float cx, float cy, float cz, float rx, float ry, float rz, double u, double v) {
+            float s = (float) Math.sin(v);
+            return new float[]{cx + rx * s * (float) Math.cos(u), cy - ry * (float) Math.cos(v), cz + rz * s * (float) Math.sin(u)};
+        }
+        /** box given relative to a pivot, turned around X, then Y, then Z (radians) at that pivot */
+        void boxR(float px, float py, float pz, float rx, float ry, float rz, float x0, float y0, float z0, float x1, float y1, float z1, int col) {
+            float[][] p = {{x0, y0, z0}, {x1, y0, z0}, {x1, y1, z0}, {x0, y1, z0}, {x0, y0, z1}, {x1, y0, z1}, {x1, y1, z1}, {x0, y1, z1}};
+            float cx = (float) Math.cos(rx), sx = (float) Math.sin(rx), cy = (float) Math.cos(ry), sy = (float) Math.sin(ry), cz = (float) Math.cos(rz), sz = (float) Math.sin(rz);
+            for (float[] q : p) {
+                float y = q[1] * cx - q[2] * sx, z = q[1] * sx + q[2] * cx; q[1] = y; q[2] = z;
+                float x = q[0] * cy + q[2] * sy; z = -q[0] * sy + q[2] * cy; q[0] = x; q[2] = z;
+                x = q[0] * cz - q[1] * sz; y = q[0] * sz + q[1] * cz; q[0] = x + px; q[1] = y + py; q[2] += pz;
+            }
+            int[][] f = {{0, 1, 2, 3}, {5, 4, 7, 6}, {4, 0, 3, 7}, {1, 5, 6, 2}, {4, 5, 1, 0}, {3, 2, 6, 7}};
+            for (int[] q : f) quad(p[q[0]], p[q[1]], p[q[2]], p[q[3]], col);
         }
         /** a thin bar between two points (for veins, vanes, snowflake arms) */
         void line(float[] a, float[] b, float w, int col) {

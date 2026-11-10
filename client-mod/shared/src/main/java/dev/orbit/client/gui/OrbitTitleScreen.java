@@ -820,7 +820,7 @@ public final class OrbitTitleScreen extends OrbitBaseScreen {
     }
 
     /** Scrollable grid area of the locker (between the sub-tabs and the bottom). */
-    private int gridTop(int top) { return top + (sub == Sub.SKINS ? 54 : sub == Sub.EMOTES ? 84 : 14); }
+    private int gridTop(int top) { return top + (sub == Sub.SKINS ? 54 : sub == Sub.EMOTES ? 84 : sub == Sub.COSMETICS ? 38 : 14); }
     private void clampScroll(int rows, int rowH, int top) {
         scrollTarget = Math.max(0, Math.min(Math.max(0, rows * rowH - (height - 24 - gridTop(top))), scrollTarget));
     }
@@ -858,7 +858,7 @@ public final class OrbitTitleScreen extends OrbitBaseScreen {
     }
     private String previewKey = "";
     private boolean draggingSkin, lastHoverBack;
-    private void clearHover() { dev.orbit.client.cosmetics.CosmeticsFeature.previewHat = null; dev.orbit.client.cosmetics.CosmeticsFeature.previewWings = null; dev.orbit.client.cosmetics.CosmeticsFeature.previewAura = null; }
+    private void clearHover() { dev.orbit.client.cosmetics.CosmeticsFeature.previewHat = null; dev.orbit.client.cosmetics.CosmeticsFeature.previewWings = null; dev.orbit.client.cosmetics.CosmeticsFeature.previewAura = null; dev.orbit.client.cosmetics.CosmeticsFeature.previewPet = null; }
     @Override public void removed() { clearHover(); Emotes.PREVIEW.clear(); closeClip(); }
     private Supplier<SkinTextures> tileSupplier;
     private final java.util.Map<Integer, PlayerPreview> tiles = new java.util.HashMap<>();
@@ -954,45 +954,82 @@ public final class OrbitTitleScreen extends OrbitBaseScreen {
         int contentH = layout.isEmpty() ? 0 : layout.get(layout.size() - 1)[3] + CH - gt;
         clampScroll((contentH + CGAP + CH) / (CH + CGAP), CH + CGAP, top);
     }
+    // cosmetics: one kind at a time (Hats / Wings / Auras / Pets), every item shown worn by you
+    private static int cosGroup = 0;
+    /** tests: which cosmetics page the Locker opens on */
+    public static void testCosGroup(int g) { cosGroup = g; }
+    public static String testHover;
+    private static final String[] COS_TITLES = {"Hats", "Wings", "Auras", "Pets"};
+    private static String[] cosItems(int g) {
+        return switch (g) {
+            case 0 -> dev.orbit.client.module.NewModules.Cosmetics.HATS;
+            case 1 -> dev.orbit.client.module.NewModules.Cosmetics.WINGS;
+            case 2 -> dev.orbit.client.module.NewModules.Cosmetics.AURAS;
+            default -> dev.orbit.client.module.NewModules.Cosmetics.PETS;
+        };
+    }
+    private static dev.orbit.client.module.setting.Setting.Mode cosSetting(dev.orbit.client.module.NewModules.Cosmetics cos, int g) { return g == 0 ? cos.hat : g == 1 ? cos.wings : g == 2 ? cos.aura : cos.pet; }
+    private static final int COS_CELL = 62, COS_GAP = 6;
+
     private void lockerCosmetics(DrawContext c, int mx, int my, int px, int top, int pw) {
         var cos = (dev.orbit.client.module.NewModules.Cosmetics) OrbitClient.modules().get("cosmetics");
-        text(c, fit("Hover to preview, click to wear (F5 in-game).", pw, false), px, top, MUTED, false);
+        text(c, fit("Hover to preview, click to wear. Orbit players see it.", pw, false), px, top, MUTED, false);
+        int chipX = px;
+        for (int g = 0; g < COS_TITLES.length; g++) {
+            String worn = cosSetting(cos, g).get();
+            String l = COS_TITLES[g] + "  " + (cosItems(g).length - 1);
+            int w = width(l) + 16;
+            boolean a = g == cosGroup, h = in(mx, my, chipX, top + 14, w, 16);
+            round(c, chipX, top + 14, w, 16, 8, a ? 0xF2FFFFFF : h ? 0x30FFFFFF : 0x14FFFFFF);
+            text(c, l, chipX + 8, top + 18, a ? 0xFF140A28 : MUTED, false);
+            if (!worn.equals("None")) round(c, chipX + w - 6, top + 13, 5, 5, 3, accent()); // wearing something from this kind
+            chipX += w + 4;
+        }
         int gt = gridTop(top), y = gt - Math.round(scroll);
         c.enableScissor(0, gt - 2, width, height - 22);
-        String[][] groups = {dev.orbit.client.module.NewModules.Cosmetics.HATS, dev.orbit.client.module.NewModules.Cosmetics.WINGS, dev.orbit.client.module.NewModules.Cosmetics.AURAS};
-        String[] titles = {"Hats", "Wings", "Auras"};
-        String hovHat = null, hovWings = null, hovAura = null;
-        for (int gi = 0; gi < 3; gi++) {
-            text(c, titles[gi], px, y, TEXT, false);
-            y += 12;
-            var setting = gi == 0 ? cos.hat : gi == 1 ? cos.wings : cos.aura;
-            int cell = 62, ch = 62, gap = 6, cols = Math.max(1, (pw + gap) / (cell + gap));
-            for (int i = 0; i < groups[gi].length; i++) {
-                String name = groups[gi][i];
-                int x = px + (i % cols) * (cell + gap), yy = y + (i / cols) * (ch + gap);
-                boolean sel = setting.is(name), h = in(mx, my, x, yy, cell, ch) && my > gt && my < height - 22;
-                if (h) { if (gi == 0) hovHat = name; else if (gi == 1) hovWings = name; else hovAura = name; }
-                round(c, x, yy, cell, ch, 10, sel ? withAlpha(accent(), 110) : h ? 0x33FFFFFF : 0x1AFFFFFF);
-                if (yy + ch > gt && yy < height - 22) tileArt(c, gi, i, name, x + 4, yy + 3, cell - 8, ch - 18);
-                centered(c, fit(name, cell - 4, false), x + cell / 2f, yy + ch - 12, sel ? 0xFFFFFFFF : TEXT, false);
+        String[] items = cosItems(cosGroup);
+        var setting = cosSetting(cos, cosGroup);
+        String hov = null;
+        int cell = COS_CELL, gap = COS_GAP, cols = Math.max(1, (pw + gap) / (cell + gap));
+        for (int i = 0; i < items.length; i++) {
+            String name = items[i];
+            int x = px + (i % cols) * (cell + gap), yy = y + (i / cols) * (cell + gap);
+            boolean sel = setting.is(name), h = in(mx, my, x, yy, cell, cell) && my > gt && my < height - 22;
+            if (h) hov = name;
+            float hv = hov("cos" + cosGroup + name, h);
+            round(c, x, yy, cell, cell, 10, sel ? withAlpha(accent(), 110) : lerpColor(0x1AFFFFFF, 0x33FFFFFF, hv));
+            if (yy + cell > gt && yy < height - 22) tileArt(c, cosGroup, i, name, x + 4, yy + 3 - Math.round(hv * 2), cell - 8, cell - 18);
+            centered(c, fit(name, cell - 4, false), x + cell / 2f, yy + cell - 12, sel ? 0xFFFFFFFF : TEXT, false);
+            if (cosGroup == 3 && i > 0) { // little tag: shoulder or flying
+                boolean fly = i >= 10;
+                round(c, x + cell - 9, yy + 3, 6, 6, 3, fly ? 0xFF7FD8FF : 0xFFFFC27A);
             }
-            y += ((groups[gi].length + cols - 1) / cols) * (ch + gap) + 8;
         }
         c.disableScissor();
-        scrollTarget = Math.max(0, Math.min(Math.max(0, y + Math.round(scroll) - (height - 24)), scrollTarget));
+        clampScroll((items.length + cols - 1) / cols, cell + gap, top);
+        if (cosGroup == 3 && chipX + 150 < px + pw) { // legend for the little dots
+            int lx = px + pw - width("shoulder") - width("flying") - 34;
+            round(c, lx, top + 19, 6, 6, 3, 0xFFFFC27A); text(c, "shoulder", lx + 9, top + 18, FAINT, false);
+            int fx = lx + 9 + width("shoulder") + 10;
+            round(c, fx, top + 19, 6, 6, 3, 0xFF7FD8FF); text(c, "flying", fx + 9, top + 18, FAINT, false);
+        }
+        if (hov == null) hov = testHover;
         // hovering previews the cosmetic on the big model; wings turn it round
-        dev.orbit.client.cosmetics.CosmeticsFeature.previewHat = hovHat;
-        dev.orbit.client.cosmetics.CosmeticsFeature.previewWings = hovWings;
-        dev.orbit.client.cosmetics.CosmeticsFeature.previewAura = hovAura;
-        boolean back = hovWings != null && !hovWings.equals("None");
+        dev.orbit.client.cosmetics.CosmeticsFeature.previewHat = cosGroup == 0 ? hov : null;
+        dev.orbit.client.cosmetics.CosmeticsFeature.previewWings = cosGroup == 1 ? hov : null;
+        dev.orbit.client.cosmetics.CosmeticsFeature.previewAura = cosGroup == 2 ? hov : null;
+        dev.orbit.client.cosmetics.CosmeticsFeature.previewPet = cosGroup == 3 ? hov : null;
+        boolean back = cosGroup == 1 && hov != null && !hov.equals("None");
         if (skin != null && back != lastHoverBack) { skin.showBack(back); lastHoverBack = back; }
     }
 
-    /** The picture on a cosmetics tile: a little 3D player wearing it (hats: head close-up, wings: from behind). */
+    /** The picture on a cosmetics tile: a little 3D player wearing it (hats: head close-up, wings: from behind, pets: the shoulder). */
     private void tileArt(DrawContext c, int group, int index, String name, int x, int y, int w, int h) {
         if (tileSupplier == null) return;
         int id = dev.orbit.client.cosmetics.CosmeticsFeature.PREVIEW_ID - 1 - group * 32 - index;
-        dev.orbit.client.cosmetics.CosmeticsFeature.OVERRIDES.put(id, group == 0 ? new String[]{name, "None", "None"} : group == 1 ? new String[]{"None", name, "None"} : new String[]{"None", "None", name});
+        String[] ov = {"None", "None", "None", "None"};
+        ov[group] = name;
+        dev.orbit.client.cosmetics.CosmeticsFeature.OVERRIDES.put(id, ov);
         PlayerPreview p = tiles.computeIfAbsent(id, k -> {
             PlayerPreview pp = new PlayerPreview(x, y, w, h, tileSupplier);
             pp.id = k;
@@ -1000,6 +1037,8 @@ public final class OrbitTitleScreen extends OrbitBaseScreen {
             pp.expand = false;
             if (group == 0) { pp.focusY = 1.72f; pp.zoom = 2.0f; pp.setSpin(-28); }
             else if (group == 1) { pp.focusY = 1.25f; pp.zoom = 1.25f; pp.setSpin(155); }
+            else if (group == 3 && index >= 10) { pp.focusY = 1.75f; pp.zoom = 1.2f; pp.setSpin(30); pp.animate = true; } // flying pets: a bit wider
+            else if (group == 3) { pp.focusY = 1.62f; pp.zoom = 1.6f; pp.setSpin(40); pp.animate = true; } // pets: head & left shoulder
             else { pp.focusY = 0.95f; pp.zoom = 0.95f; pp.setSpin(-20); pp.animate = true; } // auras: whole body
             return pp;
         });
@@ -2038,25 +2077,27 @@ public final class OrbitTitleScreen extends OrbitBaseScreen {
                 return true;
             }        } else if (sub == Sub.EMOTES) {
             return clickEmotes(mx, my, px, top, pw);
-        } else if (sub == Sub.COSMETICS && my > gt) {
+        } else if (sub == Sub.COSMETICS) {
             var cos = (dev.orbit.client.module.NewModules.Cosmetics) OrbitClient.modules().get("cosmetics");
-            String[][] groups = {dev.orbit.client.module.NewModules.Cosmetics.HATS, dev.orbit.client.module.NewModules.Cosmetics.WINGS, dev.orbit.client.module.NewModules.Cosmetics.AURAS};
-            int yy = gt - Math.round(scroll);
-            for (int gi = 0; gi < 3; gi++) {
-                yy += 12;
-                var setting = gi == 0 ? cos.hat : gi == 1 ? cos.wings : cos.aura;
-                int cell = 62, gap = 6, cols = Math.max(1, (pw + gap) / (cell + gap));
-                for (int i = 0; i < groups[gi].length; i++) {
-                    int x = px + (i % cols) * (cell + gap), cy = yy + (i / cols) * (62 + gap);
-                    if (in(mx, my, x, cy, cell, 62)) {
-                        setting.set(groups[gi][i]);
-                        if (!cos.isEnabled()) cos.setEnabled(true);
-                        OrbitClient.modules().save();
-                        Sounds.toggle(!groups[gi][i].equals("None"));
-                        return true;
-                    }
+            int chipX = px;
+            for (int g = 0; g < COS_TITLES.length; g++) {
+                int w = width(COS_TITLES[g] + "  " + (cosItems(g).length - 1)) + 16;
+                if (in(mx, my, chipX, top + 14, w, 16)) { if (cosGroup != g) { cosGroup = g; scroll = scrollTarget = 0; clearHover(); Sounds.tab(); } return true; }
+                chipX += w + 4;
+            }
+            if (my <= gt) return false;
+            String[] items = cosItems(cosGroup);
+            var setting = cosSetting(cos, cosGroup);
+            int yy = gt - Math.round(scroll), cols = Math.max(1, (pw + COS_GAP) / (COS_CELL + COS_GAP));
+            for (int i = 0; i < items.length; i++) {
+                int x = px + (i % cols) * (COS_CELL + COS_GAP), cy = yy + (i / cols) * (COS_CELL + COS_GAP);
+                if (in(mx, my, x, cy, COS_CELL, COS_CELL)) {
+                    setting.set(items[i]);
+                    if (!cos.isEnabled()) cos.setEnabled(true);
+                    OrbitClient.modules().save();
+                    Sounds.toggle(!items[i].equals("None"));
+                    return true;
                 }
-                yy += ((groups[gi].length + cols - 1) / cols) * (62 + gap) + 8;
             }
         }
         return false;

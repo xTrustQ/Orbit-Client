@@ -34,7 +34,7 @@ import java.util.concurrent.Executors;
 public final class CosmeticsApi {
     private CosmeticsApi() {}
 
-    public record Remote(String hat, String wings, String aura, String cape, long fetched) {}
+    public record Remote(String hat, String wings, String aura, String pet, String cape, long fetched) {}
 
     private static final HttpClient HTTP = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(8)).build();
     private static final ExecutorService IO = Executors.newSingleThreadExecutor(r -> { Thread t = new Thread(r, "Orbit-Cosmetics"); t.setDaemon(true); return t; });
@@ -81,7 +81,7 @@ public final class CosmeticsApi {
             for (PlayerEntity p : mc.world.getPlayers()) {
                 if (p == mc.player) continue;
                 Remote r = REMOTE.get(p.getUuid());
-                if ((r == null && ASKED.add(p.getUuid())) || (r != null && now - r.fetched() > 300_000)) { ids.add(p.getUuid().toString()); REMOTE.putIfAbsent(p.getUuid(), new Remote(null, null, null, null, now)); }
+                if ((r == null && ASKED.add(p.getUuid())) || (r != null && now - r.fetched() > 300_000)) { ids.add(p.getUuid().toString()); REMOTE.putIfAbsent(p.getUuid(), new Remote(null, null, null, null, null, now)); }
                 if (ids.size() >= 100) break;
             }
             if (!ids.isEmpty()) IO.execute(() -> fetch(ids));
@@ -90,12 +90,12 @@ public final class CosmeticsApi {
 
     private static String signature() {
         var mods = OrbitClient.modules();
-        String hat = "None", wings = "None", aura = "None";
-        if (mods.get("cosmetics") instanceof NewModules.Cosmetics c && c.isEnabled()) { hat = c.hat.get(); wings = c.wings.get(); aura = c.aura.get(); }
+        String hat = "None", wings = "None", aura = "None", pet = "None";
+        if (mods.get("cosmetics") instanceof NewModules.Cosmetics c && c.isEnabled()) { hat = c.hat.get(); wings = c.wings.get(); aura = c.aura.get(); pet = c.pet.get(); }
         Path cape = CapeManager.currentFile();
         long m = 0;
         try { if (cape != null) m = Files.getLastModifiedTime(cape).toMillis(); } catch (Exception ignored) { }
-        return hat + "|" + wings + "|" + aura + "|" + cape + "|" + m;
+        return hat + "|" + wings + "|" + aura + "|" + pet + "|" + cape + "|" + m;
     }
 
     // ------------------------------------------------------------------ publishing
@@ -109,7 +109,7 @@ public final class CosmeticsApi {
             if (token == null) return;
             String[] parts = lastSig.split("\\|", -1);
             JsonObject body = new JsonObject();
-            body.addProperty("hat", parts[0]); body.addProperty("wings", parts[1]); body.addProperty("aura", parts[2]);
+            body.addProperty("hat", parts[0]); body.addProperty("wings", parts[1]); body.addProperty("aura", parts[2]); body.addProperty("pet", parts[3]);
             Path cape = CapeManager.currentFile();
             if (cape != null && Files.exists(cape) && Files.size(cape) < 400_000) body.addProperty("cape", Base64.getEncoder().encodeToString(Files.readAllBytes(cape)));
             HttpResponse<String> r = HTTP.send(HttpRequest.newBuilder(URI.create(base() + "/api/cosmetics")).timeout(Duration.ofSeconds(20))
@@ -197,10 +197,10 @@ public final class CosmeticsApi {
             for (String id : ids) {
                 UUID u = UUID.fromString(id);
                 // not an Orbit player (yet): ask again in a minute — they may have just started their game
-                if (!o.has(id)) { REMOTE.put(u, new Remote(null, null, null, null, now - 240_000)); continue; }
+                if (!o.has(id)) { REMOTE.put(u, new Remote(null, null, null, null, null, now - 240_000)); continue; }
                 JsonObject c = o.getAsJsonObject(id);
                 String cape = c.has("cape") && !c.get("cape").isJsonNull() ? c.get("cape").getAsString() : null;
-                REMOTE.put(u, new Remote(str(c, "hat"), str(c, "wings"), str(c, "aura"), cape, now));
+                REMOTE.put(u, new Remote(str(c, "hat"), str(c, "wings"), str(c, "aura"), str(c, "pet"), cape, now));
                 OrbitUsers.add(u); // they use Orbit: badge on their name tag
             }
         } catch (Exception e) { OrbitClient.LOG.debug("Cosmetics fetch failed: {}", e.toString()); retrySoon(ids); }
@@ -208,7 +208,7 @@ public final class CosmeticsApi {
     /** server unreachable (e.g. a free host waking up): try these players again in ~20 s */
     private static void retrySoon(List<String> ids) {
         long now = System.currentTimeMillis();
-        for (String id : ids) REMOTE.put(UUID.fromString(id), new Remote(null, null, null, null, now - 280_000));
+        for (String id : ids) REMOTE.put(UUID.fromString(id), new Remote(null, null, null, null, null, now - 280_000));
     }
     private static String str(JsonObject o, String k) { return o.has(k) && !o.get(k).isJsonNull() ? o.get(k).getAsString() : "None"; }
 
