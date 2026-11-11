@@ -58,7 +58,6 @@ public final class ModuleManager {
         add(new PvpModules.HitDelay(), Items.CLOCK, Category.COMBAT);
         add(new PvpModules.PearlTracker(), Items.ENDER_PEARL, Category.COMBAT);
         add(new PvpModules.WTapCounter(), Items.FEATHER, Category.COMBAT);
-        add(new AutoClicker(), Items.STONE_BUTTON, Category.COMBAT);
         add(new ClipsModule(), Items.RECOVERY_COMPASS, Category.PLAYER);
         add(new PvpModules.FightStats(), Items.WRITABLE_BOOK, Category.COMBAT);
         add(new PvpModules.FightTimeline(), Items.RECOVERY_COMPASS, Category.COMBAT);

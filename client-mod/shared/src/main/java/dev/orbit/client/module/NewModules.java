@@ -316,6 +316,8 @@ public final class NewModules {
         final Setting.Slider delay = add(new Setting.Slider("delay", "Reconnect after", 5, 1, 30, 1, "s"));
         final Setting.Bool auto = add(new Setting.Bool("auto", "Reconnect automatically", true));
         private static net.minecraft.client.network.ServerInfo last;
+        /** tests: pretend we were just on this server */
+        public static void testLast(String name, String address) { last = new net.minecraft.client.network.ServerInfo(name, address, net.minecraft.client.network.ServerInfo.ServerType.OTHER); }
         public AutoReconnect() { super("autoreconnect", "Auto Reconnect", "Rejoin the server after a disconnect", Category.PLAYER, true); }
 
         /** called once from OrbitClient */
@@ -328,11 +330,15 @@ public final class NewModules {
                 if (!(screen instanceof net.minecraft.client.gui.screen.DisconnectedScreen) || !isEnabled() || last == null) return;
                 final long[] deadline = {auto.on() ? System.currentTimeMillis() + delay.i() * 1000L : Long.MAX_VALUE};
                 var target = last;
+                // right under the screen's own "Back to Server List" button, same width
+                int bx = w / 2 - 100, bw = 200, by = h / 2 + 30;
+                for (var wd : net.fabricmc.fabric.api.client.screen.v1.Screens.getButtons(screen))
+                    if (wd.visible && wd.getY() + wd.getHeight() + 4 > by - 30 && wd.getY() < h - 30) { bx = wd.getX(); bw = wd.getWidth(); by = Math.max(by, wd.getY() + wd.getHeight() + 6); }
                 var button = net.minecraft.client.gui.widget.ButtonWidget.builder(net.minecraft.text.Text.literal("Reconnect"), b -> join(client, target))
-                        .dimensions(w / 2 - 100, h - 52, 200, 20).build();
+                        .dimensions(bx, by, bw, 20).build();
                 net.fabricmc.fabric.api.client.screen.v1.Screens.getButtons(screen).add(button);
                 var cancel = net.minecraft.client.gui.widget.ButtonWidget.builder(net.minecraft.text.Text.literal("Cancel auto reconnect"), b -> { deadline[0] = Long.MAX_VALUE; b.visible = false; })
-                        .dimensions(w / 2 - 100, h - 28, 200, 20).build();
+                        .dimensions(bx, by + 24, bw, 20).build();
                 cancel.visible = auto.on();
                 net.fabricmc.fabric.api.client.screen.v1.Screens.getButtons(screen).add(cancel);
                 net.fabricmc.fabric.api.client.screen.v1.ScreenEvents.afterTick(screen).register(s -> {

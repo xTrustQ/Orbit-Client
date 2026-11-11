@@ -125,61 +125,6 @@
   ]
  },
  {
-  "id": "autoclicker",
-  "name": "Auto Clicker",
-  "desc": "Keeps clicking while you hold a mouse button — check the server rules first",
-  "category": "COMBAT",
-  "on": false,
-  "toggle": true,
-  "settings": 6,
-  "opts": [
-   {
-    "type": "bool",
-    "id": "left",
-    "name": "Left click (attack)",
-    "value": true
-   },
-   {
-    "type": "slider",
-    "id": "leftcps",
-    "name": "Left CPS",
-    "value": 12,
-    "min": 1,
-    "max": 20,
-    "step": 1,
-    "unit": " CPS"
-   },
-   {
-    "type": "bool",
-    "id": "right",
-    "name": "Right click (use / place)",
-    "value": false
-   },
-   {
-    "type": "slider",
-    "id": "rightcps",
-    "name": "Right CPS",
-    "value": 12,
-    "min": 1,
-    "max": 20,
-    "step": 1,
-    "unit": " CPS"
-   },
-   {
-    "type": "bool",
-    "id": "mine",
-    "name": "Mine blocks normally when aiming at one",
-    "value": true
-   },
-   {
-    "type": "bool",
-    "id": "vary",
-    "name": "Slightly uneven timing (feels like a real hand)",
-    "value": true
-   }
-  ]
- },
- {
   "id": "combo",
   "name": "Combo Counter",
   "desc": "Counts your hits in a row before you get hit",

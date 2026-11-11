@@ -1322,7 +1322,7 @@ public final class OrbitTitleScreen extends OrbitBaseScreen {
         if (clips.isEmpty()) {
             int cy = (top + height) / 2 - 20;
             disc(c, width / 2f, cy, 18, withAlpha(acc, 50));
-            for (int i = 0; i < 9; i++) c.fill(width / 2 - 4 + i, cy - 8 + i / 2, width / 2 - 3 + i, cy + 8 - i / 2, 0xFFFFFFFF); // play triangle
+            for (int i = 0; i < 14; i++) { int half = Math.round(8 - i * 8 / 14f); if (half > 0) c.fill(width / 2 - 5 + i, cy - half, width / 2 - 4 + i, cy + half, 0xFFFFFFFF); } // play triangle, pointing right
             centered(c, "No clips yet", width / 2f, cy + 28, TEXT, false);
             centered(c, on ? "Press " + key + " while playing — the last seconds are saved here" : "Orbit menu (Right Shift) → Player → Clips, then press " + key + " in-game", width / 2f, cy + 40, FAINT, false);
         } else {

@@ -27,6 +27,7 @@ public class OrbitVisualTest implements FabricClientGameTest {
         if ("cosmetics".equals(System.getenv("ORBIT_TEST_ONLY"))) { cosmeticsOnly(ctx); return; }
         if ("menuscale".equals(System.getenv("ORBIT_TEST_ONLY"))) { menuScaleOnly(ctx); return; }
         if ("death".equals(System.getenv("ORBIT_TEST_ONLY"))) { deathOnly(ctx); return; }
+        if ("fixes".equals(System.getenv("ORBIT_TEST_ONLY"))) { fixesOnly(ctx); return; }
 
         ctx.waitTicks(16);
         ctx.takeScreenshot("00-intro-a");
@@ -481,6 +482,26 @@ public class OrbitVisualTest implements FabricClientGameTest {
             ctx.setScreen(() -> null);
             OrbitTitleScreen.allowVanillaOnce = true; // the harness requires ending on vanilla's title screen
         }
+    }
+
+    /** quick run (ORBIT_TEST_ONLY=fixes): disconnect screen with Auto Reconnect, empty Clips gallery, no Auto Clicker */
+    private static void fixesOnly(ClientGameTestContext ctx) {
+        ctx.waitTicks(90);
+        ctx.runOnClient(c -> {
+            OrbitClient.LOG.info("[TEST] autoclicker module present: {}", OrbitClient.modules().get("autoclicker") != null);
+            var ar = OrbitClient.modules().get("autoreconnect"); if (ar != null) ar.setEnabled(true);
+            NewModules.AutoReconnect.testLast("Test Server", "play.example.net");
+        });
+        ctx.setScreen(() -> new net.minecraft.client.gui.screen.DisconnectedScreen(new OrbitTitleScreen(), net.minecraft.text.Text.literal("Failed to connect to the server"),
+                net.minecraft.text.Text.literal("Failed to log in: Invalid session (Try restarting your game and the launcher)")));
+        ctx.waitTicks(20);
+        ctx.takeScreenshot("f-disconnect");
+        ctx.setScreen(() -> OrbitTitleScreen.onTab("clips"));
+        ctx.waitTicks(20);
+        ctx.takeScreenshot("f-clips-empty");
+        ctx.runOnClient(c -> OrbitTitleScreen.allowVanillaOnce = true);
+        ctx.setScreen(net.minecraft.client.gui.screen.TitleScreen::new);
+        ctx.waitTicks(5);
     }
 
     /** quick run (ORBIT_TEST_ONLY=death): the cartoon death animations on zombies, several frames each */

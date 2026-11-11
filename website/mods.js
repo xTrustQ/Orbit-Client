@@ -1,7 +1,7 @@
 // Mod browser: categories on the left (with counts), a searchable list on the right. Data: modules.json,
 // generated from the mod's source code (tools/gen-modules.js).
 const CATS = [['ALL', 'All mods'], ['COMBAT', 'Combat'], ['HUD', 'HUD'], ['RENDER', 'Render'], ['PLAYER', 'Player'], ['CLIENT', 'Settings']];
-const NEW = new Set(['clips', 'autoclicker', 'killeffects', 'damagenumbers', 'hitcolors', 'trajectories']); // recently added
+const NEW = new Set(['clips', 'killeffects', 'damagenumbers', 'hitcolors', 'trajectories']); // recently added
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 let mods = [], cat = new URLSearchParams(location.search).get('cat')?.toUpperCase() || 'ALL', query = '';
 
