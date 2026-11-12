@@ -1822,11 +1822,11 @@
  {
   "id": "tiertags",
   "name": "Tier Tags",
-  "desc": "PvP tiers next to names — MCTiers, PvPTiers and SubTiers, pick what to show",
+  "desc": "PvP tiers next to names — MCTiers, PvPTiers and SubTiers, in front of or behind the name",
   "category": "COMBAT",
   "on": true,
   "toggle": true,
-  "settings": 9,
+  "settings": 13,
   "opts": [
    {
     "type": "bool",
@@ -1835,16 +1835,46 @@
     "value": true
    },
    {
-    "type": "bool",
-    "id": "pvptiers",
-    "name": "PvPTiers (pvptiers.com)",
-    "value": false
+    "type": "mode",
+    "id": "mcSide",
+    "name": "MCTiers position",
+    "options": [
+     "In front of the name",
+     "Behind the name"
+    ],
+    "value": "In front of the name"
    },
    {
     "type": "bool",
     "id": "subtiers",
     "name": "SubTiers (subtiers.net)",
     "value": true
+   },
+   {
+    "type": "mode",
+    "id": "subSide",
+    "name": "SubTiers position",
+    "options": [
+     "In front of the name",
+     "Behind the name"
+    ],
+    "value": "In front of the name"
+   },
+   {
+    "type": "bool",
+    "id": "pvptiers",
+    "name": "PvPTiers (pvptiers.com)",
+    "value": false
+   },
+   {
+    "type": "mode",
+    "id": "pvpSide",
+    "name": "PvPTiers position",
+    "options": [
+     "In front of the name",
+     "Behind the name"
+    ],
+    "value": "In front of the name"
    },
    {
     "type": "mode",
@@ -1864,10 +1894,22 @@
     "value": "Best"
    },
    {
+    "type": "mode",
+    "id": "modeStyle",
+    "name": "Gamemode shown as",
+    "options": [
+     "Icon",
+     "Icon + name",
+     "Name",
+     "Hidden"
+    ],
+    "value": "Icon"
+   },
+   {
     "type": "bool",
-    "id": "showMode",
-    "name": "Show the gamemode name",
-    "value": true
+    "id": "region",
+    "name": "Show region (EU, NA…)",
+    "value": false
    },
    {
     "type": "bool",

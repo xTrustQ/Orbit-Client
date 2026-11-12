@@ -30,7 +30,8 @@ public final class TierTags {
 
     /** one ranking: gamemode, tier 1..5, high (HT) or low (LT), retired */
     public record Rank(String mode, int tier, boolean high, boolean retired) {}
-    private record Entry(List<Rank> ranks, long fetched) {}
+    private record Profile(List<Rank> ranks, String region) {}
+    private record Entry(Profile profile, long fetched) { List<Rank> ranks() { return profile == null ? null : profile.ranks(); } }
 
     private enum Source {
         MCTIERS("https://mctiers.io/api/search_profile/", 'M', 0x4DD88A),
@@ -67,25 +68,50 @@ public final class TierTags {
         if (name == null || name.isEmpty()) return text;
         var mc = MinecraftClient.getInstance();
         if (!m.self.on() && mc.player != null && mc.player.getUuid().equals(id)) return text;
-        List<Source> sources = new ArrayList<>();
-        if (m.mctiers.on()) sources.add(Source.MCTIERS);
-        if (m.pvptiers.on()) sources.add(Source.PVPTIERS);
-        if (m.subtiers.on()) sources.add(Source.SUBTIERS);
-        if (sources.isEmpty()) return text;
-        MutableText out = null;
-        for (Source s : sources) {
-            Rank r = pick(s, ranks(s, name), m);
+        // each list goes in front of or behind the name: "⚔ LT3 | Name | 🛏 HT2"
+        MutableText front = Text.empty(), back = Text.empty();
+        boolean any = false;
+        Object[][] lists = {{Source.MCTIERS, m.mctiers, m.mcSide}, {Source.PVPTIERS, m.pvptiers, m.pvpSide}, {Source.SUBTIERS, m.subtiers, m.subSide}};
+        for (Object[] l : lists) {
+            Source s = (Source) l[0];
+            if (!((dev.orbit.client.module.setting.Setting.Bool) l[1]).on()) continue;
+            Entry e = entry(s, name);
+            Rank r = pick(s, e == null ? null : e.ranks(), m);
             if (r == null) continue;
-            MutableText part = Text.empty();
-            if (sources.size() > 1) part.append(Text.literal(String.valueOf(s.letter)).setStyle(Style.EMPTY.withColor(TextColor.fromRgb(s.color)).withBold(true))).append(" ");
-            String tag = (r.retired() ? "R" : "") + (r.high() ? "HT" : "LT") + r.tier();
-            part.append(Text.literal(tag).setStyle(Style.EMPTY.withColor(TextColor.fromRgb(color(r))).withBold(r.tier() <= 2 && !r.retired())));
-            if (m.showMode.on()) part.append(Text.literal(" " + label(r.mode())).setStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAAB4C0))));
-            if (out == null) out = Text.empty(); else out.append(Text.literal(" · ").setStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x5A6470))));
-            out.append(part);
+            any = true;
+            MutableText tag = tag(m, r, m.region.on() && e.profile() != null ? e.profile().region() : null);
+            if (m.front((dev.orbit.client.module.setting.Setting.Mode) l[2])) front.append(tag).append(BAR);
+            else back.append(BAR).append(tag);
         }
-        if (out == null) return text;
-        return Text.empty().append(text).append(Text.literal("  ")).append(out);
+        if (!any) return text;
+        return Text.empty().append(front).append(text).append(back);
+    }
+
+    private static final Text BAR = Text.literal(" | ").setStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x7A8590)));
+    /** gamemode icon (a real item picture via a small font) + tier, e.g. "⚔ LT3" */
+    private static MutableText tag(TierTagsModule m, Rank r, String region) {
+        MutableText t = Text.empty();
+        String style = m.modeStyle.get();
+        char icon = icon(r.mode());
+        boolean wantIcon = style.startsWith("Icon"), wantName = style.toLowerCase(Locale.ROOT).contains("name") || (wantIcon && icon == 0);
+        if (wantIcon && icon != 0) t.append(Text.literal(String.valueOf(icon)).setStyle(ICONS)).append(" ");
+        String tier = (r.retired() ? "R" : "") + (r.high() ? "HT" : "LT") + r.tier();
+        t.append(Text.literal(tier).setStyle(Style.EMPTY.withColor(TextColor.fromRgb(color(r))).withBold(r.tier() <= 2 && !r.retired())));
+        if (wantName && !style.equals("Hidden")) t.append(Text.literal(" " + label(r.mode())).setStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAAB4C0))));
+        if (region != null && !region.isBlank() && !region.contains("?"))
+            t.append(BAR).append(Text.literal(region).setStyle(Style.EMPTY.withColor(TextColor.fromRgb(region.equals("EU") ? 0x6FD8A0 : region.equals("NA") ? 0xFF6B6B : 0x9CC8FF))));
+        return t;
+    }
+    private static final Style ICONS = dev.orbit.client.compat.Compat.font(dev.orbit.client.compat.Compat.id("tiers")).withColor(0xFFFFFF);
+    /** the icon character for a gamemode (see assets/orbit/font/tiers.json), 0 = none */
+    private static char icon(String mode) {
+        return switch (mode.toLowerCase(Locale.ROOT)) {
+            case "sword" -> ''; case "axe" -> ''; case "uhc" -> ''; case "vanilla", "crystal", "og_vanilla" -> '';
+            case "pot" -> ''; case "neth_pot", "nethop", "neth_op" -> ''; case "smp" -> ''; case "mace" -> '';
+            case "minecart" -> ''; case "bow" -> ''; case "trident" -> ''; case "elytra" -> ''; case "speed" -> '';
+            case "manhunt" -> ''; case "creeper" -> ''; case "dia_smp", "diamond_smp" -> ''; case "wind_charge" -> ''; case "dia_crystal" -> '';
+            default -> 0;
+        };
     }
 
     /** the ranking to show for one source: a chosen gamemode, or the best tier overall */
@@ -123,27 +149,28 @@ public final class TierTags {
     }
 
     // ------------------------------------------------------------------ lookups
-    private static List<Rank> ranks(Source s, String name) {
+    private static Entry entry(Source s, String name) {
         String key = s.name() + ":" + name.toLowerCase(Locale.ROOT);
         Entry e = CACHE.get(key);
         long now = System.currentTimeMillis();
-        if ((e == null || now - e.fetched() > (e.ranks() == null ? RETRY : TTL)) && PENDING.size() < 40 && PENDING.add(key)) {
+        if ((e == null || now - e.fetched() > (e.profile() == null ? RETRY : TTL)) && PENDING.size() < 40 && PENDING.add(key)) {
             IO.execute(() -> {
                 try { CACHE.put(key, new Entry(fetch(s, name), System.currentTimeMillis())); }
                 catch (Exception ex) { CACHE.put(key, new Entry(null, System.currentTimeMillis())); }
                 finally { PENDING.remove(key); try { Thread.sleep(120); } catch (InterruptedException ignored) { } }
             });
         }
-        return e == null ? null : e.ranks();
+        return e;
     }
 
-    private static List<Rank> fetch(Source s, String name) throws Exception {
+    private static Profile fetch(Source s, String name) throws Exception {
         HttpResponse<String> r = HTTP.send(HttpRequest.newBuilder(URI.create(s.url + URLEncoder.encode(name, StandardCharsets.UTF_8)))
                 .timeout(Duration.ofSeconds(10)).header("User-Agent", "Orbit-Client").GET().build(), HttpResponse.BodyHandlers.ofString());
-        if (r.statusCode() == 404) return List.of();       // not ranked there
+        if (r.statusCode() == 404) return new Profile(List.of(), null);       // not ranked there
         if (r.statusCode() != 200) throw new IllegalStateException("HTTP " + r.statusCode());
         JsonObject o = JsonParser.parseString(r.body()).getAsJsonObject();
-        if (!o.has("rankings") || !o.get("rankings").isJsonObject()) return List.of();
+        String region = o.has("region") && !o.get("region").isJsonNull() ? o.get("region").getAsString() : null;
+        if (!o.has("rankings") || !o.get("rankings").isJsonObject()) return new Profile(List.of(), region);
         List<Rank> out = new ArrayList<>();
         for (var en : o.getAsJsonObject("rankings").entrySet()) {
             if (!en.getValue().isJsonObject()) continue;
@@ -154,7 +181,7 @@ public final class TierTags {
             boolean retired = v.has("retired") && !v.get("retired").isJsonNull() && v.get("retired").getAsBoolean();
             if (tier >= 1 && tier <= 5) out.add(new Rank(en.getKey(), tier, high, retired));
         }
-        return out;
+        return new Profile(out, region);
     }
 
     /** for tests: what we know about a name right now */

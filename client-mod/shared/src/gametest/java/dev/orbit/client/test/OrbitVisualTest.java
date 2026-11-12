@@ -28,6 +28,7 @@ public class OrbitVisualTest implements FabricClientGameTest {
         if ("menuscale".equals(System.getenv("ORBIT_TEST_ONLY"))) { menuScaleOnly(ctx); return; }
         if ("death".equals(System.getenv("ORBIT_TEST_ONLY"))) { deathOnly(ctx); return; }
         if ("fixes".equals(System.getenv("ORBIT_TEST_ONLY"))) { fixesOnly(ctx); return; }
+        if ("tiersky".equals(System.getenv("ORBIT_TEST_ONLY"))) { tierSkyOnly(ctx); return; }
 
         ctx.waitTicks(16);
         ctx.takeScreenshot("00-intro-a");
@@ -481,6 +482,41 @@ public class OrbitVisualTest implements FabricClientGameTest {
             ctx.takeScreenshot("13-hud-editor");
             ctx.setScreen(() -> null);
             OrbitTitleScreen.allowVanillaOnce = true; // the harness requires ending on vanilla's title screen
+        }
+    }
+
+    /** quick run (ORBIT_TEST_ONLY=tiersky): tier tags written into chat (icons visible), the Dynamic sky at noon / sunset / midnight */
+    private static void tierSkyOnly(ClientGameTestContext ctx) {
+        ctx.waitTicks(40);
+        try (TestSingleplayerContext sp = ctx.worldBuilder().create()) {
+            sp.getClientWorld().waitForChunksRender();
+            sp.getServer().runCommand("weather clear");
+            java.util.UUID fake = java.util.UUID.randomUUID();
+            String[] names = {"TrustQ", "Swight", "ItzRealMe"};
+            ctx.runOnClient(c -> { for (String n : names) dev.orbit.client.pvp.TierTags.nameTag(fake, n, net.minecraft.text.Text.literal(n)); });
+            ctx.waitTicks(100);
+            String[][] looks = {{"Icon", "false"}, {"Icon + name", "true"}};
+            for (String[] lk : looks) ctx.runOnClient(c -> {
+                var m = (dev.orbit.client.module.TierTagsModule) OrbitClient.modules().get("tiertags");
+                m.modeStyle.set(lk[0]); m.region.set(lk[1].equals("true"));
+                for (String n : names) {
+                    var t = dev.orbit.client.pvp.TierTags.nameTag(fake, n, net.minecraft.text.Text.literal(n).formatted(net.minecraft.util.Formatting.WHITE));
+                    c.inGameHud.getChatHud().addMessage(t);
+                    OrbitClient.LOG.info("[TEST] tag {} -> '{}'", n, t.getString());
+                }
+            });
+            ctx.setScreen(() -> dev.orbit.client.compat.Compat.chat(""));
+            ctx.waitTicks(10);
+            ctx.takeScreenshot("t-tiers-chat");
+            ctx.setScreen(() -> null);
+            ctx.runOnClient(c -> { var s = OrbitClient.modules().sky(); s.preset.set(dev.orbit.client.sky.SkyPreset.DYNAMIC.title); s.setEnabled(true); c.player.setPitch(-25); });
+            for (String[] tm : new String[][]{{"6000", "noon"}, {"12600", "sunset"}, {"18000", "midnight"}}) {
+                sp.getServer().runCommand("time set " + tm[0]);
+                ctx.waitTicks(60);
+                ctx.takeScreenshot("t-sky-" + tm[1]);
+            }
+            ctx.runOnClient(c -> OrbitClient.modules().sky().setEnabled(false));
+            OrbitTitleScreen.allowVanillaOnce = true;
         }
     }
 

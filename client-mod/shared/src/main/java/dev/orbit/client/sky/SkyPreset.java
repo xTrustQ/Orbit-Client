@@ -114,16 +114,37 @@ public enum SkyPreset {
             return rgb(c);
         }
         @Override int horizon() { return 0x12041F; }
+    },
+    /** Golden Hour while the sun is up, Aurora at night, fading between them at dusk and dawn */
+    DYNAMIC("Dynamic (day / night)") {
+        @Override int color(double x, double y, double z) { return colorAt(x, y, z, night); }
+        @Override int colorAt(double x, double y, double z, double n) {
+            if (n <= 0.001) return GOLDEN_HOUR.color(x, y, z);
+            if (n >= 0.999) return AURORA.color(x, y, z);
+            int a = GOLDEN_HOUR.color(x, y, z), b = AURORA.color(x, y, z);
+            return lerpRgb(a, b, n);
+        }
+        @Override int horizon() { return lerpRgb(GOLDEN_HOUR.horizon(), AURORA.horizon(), night) & 0xFFFFFF; }
     };
+
+    /** how much it is night right now (0 = day, 1 = night) — set by the sky renderer for the Dynamic sky */
+    public static volatile double night;
+    public boolean dynamic() { return this == DYNAMIC; }
 
     public final String title;
     SkyPreset(String title) { this.title = title; }
 
     /** ARGB colour for a normalised direction. */
     abstract int color(double x, double y, double z);
+    /** the colour for a given amount of night (only the Dynamic sky changes with it) */
+    int colorAt(double x, double y, double z, double night) { return color(x, y, z); }
     /** Colour used to tint the fog so the horizon blends with the sky. */
     abstract int horizon();
     public int horizonColor() { return horizon(); }
+    static int lerpRgb(int a, int b, double t) {
+        int r = (int) (((a >> 16) & 255) + (((b >> 16) & 255) - ((a >> 16) & 255)) * t), g = (int) (((a >> 8) & 255) + (((b >> 8) & 255) - ((a >> 8) & 255)) * t), bl = (int) ((a & 255) + ((b & 255) - (a & 255)) * t);
+        return (a & 0xFF000000) | (r << 16) | (g << 8) | bl;
+    }
 
     public static SkyPreset byTitle(String t) { for (SkyPreset p : values()) if (p.title.equals(t)) return p; return AURORA; }
 

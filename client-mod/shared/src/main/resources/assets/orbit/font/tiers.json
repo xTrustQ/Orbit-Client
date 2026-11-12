@@ -1,0 +1,20 @@
+{"providers":[
+ {"type":"bitmap","file":"minecraft:item/diamond_sword.png","ascent":7,"height":8,"chars":[""]},
+ {"type":"bitmap","file":"minecraft:item/diamond_axe.png","ascent":7,"height":8,"chars":[""]},
+ {"type":"bitmap","file":"minecraft:item/golden_apple.png","ascent":7,"height":8,"chars":[""]},
+ {"type":"bitmap","file":"minecraft:item/end_crystal.png","ascent":7,"height":8,"chars":[""]},
+ {"type":"bitmap","file":"minecraft:item/splash_potion.png","ascent":7,"height":8,"chars":[""]},
+ {"type":"bitmap","file":"minecraft:item/netherite_chestplate.png","ascent":7,"height":8,"chars":[""]},
+ {"type":"bitmap","file":"minecraft:item/ender_pearl.png","ascent":7,"height":8,"chars":[""]},
+ {"type":"bitmap","file":"minecraft:item/mace.png","ascent":7,"height":8,"chars":[""]},
+ {"type":"bitmap","file":"minecraft:item/minecart.png","ascent":7,"height":8,"chars":[""]},
+ {"type":"bitmap","file":"minecraft:item/bow.png","ascent":7,"height":8,"chars":[""]},
+ {"type":"bitmap","file":"minecraft:item/trident.png","ascent":7,"height":8,"chars":[""]},
+ {"type":"bitmap","file":"minecraft:item/elytra.png","ascent":7,"height":8,"chars":[""]},
+ {"type":"bitmap","file":"minecraft:item/sugar.png","ascent":7,"height":8,"chars":[""]},
+ {"type":"bitmap","file":"minecraft:item/compass_00.png","ascent":7,"height":8,"chars":[""]},
+ {"type":"bitmap","file":"minecraft:item/gunpowder.png","ascent":7,"height":8,"chars":[""]},
+ {"type":"bitmap","file":"minecraft:item/diamond_boots.png","ascent":7,"height":8,"chars":[""]},
+ {"type":"bitmap","file":"minecraft:item/wind_charge.png","ascent":7,"height":8,"chars":[""]},
+ {"type":"bitmap","file":"minecraft:item/totem_of_undying.png","ascent":7,"height":8,"chars":[""]}
+]}

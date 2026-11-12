@@ -32,7 +32,10 @@ public final class SkyRenderer {
     private static final int RES = 256;
     private static final Identifier[] FACES = new Identifier[6];
     private static SkyPreset baked, baking;
+    /** Dynamic sky: the amount of night (in 1/24 steps) of the textures we have / are making */
+    private static int bakedStep = -1, bakingStep = -1;
     private static boolean ready;
+    private static final int STEPS = 24;
     private static GpuBuffer cube;
 
     static { for (int i = 0; i < 6; i++) FACES[i] = Compat.id("sky/face" + i); }
@@ -59,8 +62,19 @@ public final class SkyRenderer {
     }
 
     public static void ensure(SkyPreset preset) {
-        if (preset == baked || preset == baking) return;
+        // the Dynamic sky follows the time of day: re-bake whenever the day/night mix moves on a step
+        int step = -1;
+        if (preset.dynamic()) {
+            double n = 1 - dayFactor();
+            SkyPreset.night = n;
+            step = (int) Math.round(n * STEPS);
+        }
+        if ((preset == baked && step == bakedStep) || (preset == baking && step == bakingStep)) return;
+        if (baking != null) return; // one bake at a time; the next tick picks up the newest step
         baking = preset;
+        bakingStep = step;
+        final double night = step < 0 ? 0 : step / (double) STEPS;
+        final int myStep = step;
         CompletableFuture.supplyAsync(() -> {
             int[][] px = new int[6][RES * RES];
             for (int f = 0; f < 6; f++)
@@ -68,21 +82,23 @@ public final class SkyRenderer {
                     for (int x = 0; x < RES; x++) {
                         double[] d = dir(f, (x + 0.5) / RES, (y + 0.5) / RES);
                         double l = Math.sqrt(d[0] * d[0] + d[1] * d[1] + d[2] * d[2]);
-                        px[f][y * RES + x] = preset.color(d[0] / l, d[1] / l, d[2] / l);
+                        px[f][y * RES + x] = preset.colorAt(d[0] / l, d[1] / l, d[2] / l, night);
                     }
             return px;
         }).thenAccept(px -> MinecraftClient.getInstance().execute(() -> {
-            if (baking != preset) return;
+            if (baking != preset || bakingStep != myStep) return;
+            bakedStep = myStep;
             var tm = MinecraftClient.getInstance().getTextureManager();
             for (int f = 0; f < 6; f++) {
                 NativeImage img = new NativeImage(RES, RES, false);
                 for (int i = 0; i < px[f].length; i++) img.setColorArgb(i % RES, i / RES, px[f][i]);
                 tm.registerTexture(FACES[f], Compat.texture("orbit-sky-" + f, img, true));
             }
+            boolean first = baked != preset;
             baked = preset;
             baking = null;
             ready = true;
-            OrbitClient.LOG.info("Sky '{}' ready", preset.title);
+            if (first) OrbitClient.LOG.info("Sky '{}' ready", preset.title);
         })).exceptionally(t -> { OrbitClient.LOG.error("Sky bake failed", t); baking = null; return null; });
     }
 
@@ -121,7 +137,7 @@ public final class SkyRenderer {
     public static void render() {
         MinecraftClient mc = MinecraftClient.getInstance();
         float b = mod().brightness.f() / 100f;
-        if (mod().dayCycle.on()) b *= 0.28f + 0.72f * dayFactor();
+        if (mod().dayCycle.on() && !mod().current().dynamic()) b *= 0.28f + 0.72f * dayFactor(); // Dynamic does its own day/night
         if (mc.world != null) b *= 1f - mc.world.getRainGradient(1f) * 0.45f;
 
         var tm = mc.getTextureManager();
