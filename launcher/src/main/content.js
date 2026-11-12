@@ -220,13 +220,13 @@ async function findByFilename(filename, inst) {
   return null;
 }
 
-/** Mods every Orbit profile gets: proximity voice chat and PvP tier tags. */
-const STANDARD_MODS = ['simple-voice-chat', 'tiertagger'];
-async function installStandardMods(instanceId, onProgress) {
+/** Mods every Orbit profile gets: proximity voice chat and Shield Fixes (tier tags are built into Orbit now). */
+const STANDARD_MODS = ['simple-voice-chat', 'complete-shield-fixes'];
+async function installStandardMods(instanceId, onProgress, only = STANDARD_MODS) {
   const inst = instances.get(instanceId);
   if (!['fabric', 'quilt'].includes(inst.loader)) return [];
   const installed = [];
-  for (const slug of STANDARD_MODS) {
+  for (const slug of only) {
     try {
       const p = await fetchJson(`${MR}/project/${slug}`);
       onProgress?.(`Standard mods: ${p.title}`, 0, 0);
@@ -237,6 +237,35 @@ async function installStandardMods(instanceId, onProgress) {
     } catch { /* not available for this version */ }
   }
   return installed;
+}
+
+/**
+ * Older profiles: add standard mods that came out after the profile was made (once — a mod you remove stays
+ * removed), and switch off TierTagger once, because Orbit shows tier tags itself now (no double tags).
+ */
+async function catchUpStandardMods(instanceId, onProgress) {
+  const inst = instances.get(instanceId);
+  if (!['fabric', 'quilt'].includes(inst.loader)) return [];
+  const offered = new Set(inst.standardOffered || []);
+  const done = [];
+  if (!inst.tierTaggerRetired) {
+    const dir = path.join(instances.dirOf(instanceId), 'mods');
+    try { for (const f of fs.readdirSync(dir)) if (/^tiertagger-.*\.jar$/i.test(f)) { fs.renameSync(path.join(dir, f), path.join(dir, f + '.disabled')); done.push('TierTagger switched off (Orbit Tier Tags replaces it)'); } } catch { /* no mods folder yet */ }
+    inst.tierTaggerRetired = true;
+  }
+  const have = instances.contents(instanceId, 'mod').map((c) => (c.projectId || '') + ' ' + (c.file || '')).join('\n').toLowerCase();
+  const missing = STANDARD_MODS.filter((s) => !offered.has(s));
+  for (const slug of missing) offered.add(slug);
+  inst.standardOffered = [...offered];
+  instances.save(inst);
+  const toInstall = [];
+  for (const slug of missing) {
+    let id = slug;
+    try { id = (await fetchJson(`${MR}/project/${slug}`)).id || slug; } catch { /* offline */ }
+    if (!have.includes(id.toLowerCase()) && !have.includes(slug.replace(/^complete-/, '').replace(/-/g, ''))) toInstall.push(slug);
+  }
+  if (toInstall.length) done.push(...await installStandardMods(instanceId, onProgress, toInstall));
+  return done;
 }
 
 // ------------------------------------------------------------------ modpacks
@@ -307,4 +336,4 @@ async function installModpack({ source, projectId, meta = {}, gameVersion }, onP
   }
 }
 
-module.exports = { search, categories, install, repairMods, installPerformancePack, installStandardMods, installModpack, PERFORMANCE_PACK, STANDARD_MODS };
+module.exports = { search, categories, install, repairMods, installPerformancePack, installStandardMods, catchUpStandardMods, installModpack, PERFORMANCE_PACK, STANDARD_MODS };

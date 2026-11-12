@@ -13,7 +13,7 @@ const users = new Map(); // uuid -> Set<socket> (everyone connected, also on the
 
 // one port for everything: the cosmetics API (HTTP) and the live sync (WebSocket)
 const server = http.createServer((req, res) => api.handle(req, res));
-const wss = new WebSocketServer({ server, maxPayload: 16384 }); // hello carries the friend list
+const wss = new WebSocketServer({ server, maxPayload: 65536 }); // hello carries the friend list and the stats backup
 server.listen(PORT);
 // for the website: how many Orbit players are online right now (and how many of them are in a game)
 let peak = 0;
@@ -38,10 +38,19 @@ async function track(ws) {
   if (ws.where && !ws.playStart) { ws.playStart = now; profiles.startSession(p); }
   else if (!ws.where && ws.playStart) { profiles.addPlaytime(p, now - ws.playStart); ws.playStart = null; }
 }
-setInterval(() => { // long sessions: add playtime every minute so a crash doesn't lose it
+setInterval(() => { // long sessions: add playtime every minute so a crash doesn't lose it, and refresh the player's backup
   const now = Date.now();
-  for (const ws of wss.clients) if (ws.profile && ws.playStart) { profiles.addPlaytime(ws.profile, now - ws.playStart); ws.playStart = now; }
+  for (const ws of wss.clients) {
+    if (ws.profile && ws.playStart) { profiles.addPlaytime(ws.profile, now - ws.playStart); ws.playStart = now; }
+    if (ws.profile) sendBackup(ws);
+  }
 }, 60_000);
+/** the player's own signed stats, kept by their game (restores them if this server's storage is wiped) */
+function sendBackup(ws) {
+  if (!ws.profile || ws.readyState !== 1) return;
+  const b = profiles.backup(ws.profile);
+  ws.send(JSON.stringify({ type: 'profile-backup', uuid: ws.profile.uuid, data: b.data, sig: b.sig }));
+}
 
 /** does this player have `friendUuid` in their friend list (on any of their connections)? */
 const lists = (uuid, friendUuid) => [...(users.get(uuid) || [])].some((s) => s.friends?.has(friendUuid));
@@ -94,9 +103,12 @@ wss.on('connection', (ws) => {
           if (t && t.uuid === ws.uuid.toLowerCase()) ws.profile = await profiles.get(t.uuid, ws.name);
         }
         if (ws.profile) {
+          // our storage was wiped? the game's signed copy brings the stats back
+          if (m.backup && profiles.restore(ws.profile, m.backup)) console.log('restored stats from backup for', ws.profile.name);
           if (ws.profile.public !== wantPublic) { ws.profile.public = wantPublic; profiles.touch(ws.profile.uuid); }
           if (ws.friends) profiles.setFriends(ws.profile, ws.friends.size);
           await track(ws);
+          sendBackup(ws);
         }
       })().catch(() => {});
       if (!users.has(ws.uuid)) users.set(ws.uuid, new Set());

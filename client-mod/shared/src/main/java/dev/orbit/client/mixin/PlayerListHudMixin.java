@@ -16,5 +16,7 @@ public abstract class PlayerListHudMixin {
     private void orbit$badge(PlayerListEntry entry, CallbackInfoReturnable<Text> cir) {
         if (entry != null && entry.getProfile() != null && OrbitUsers.badgesOn() && OrbitUsers.isOrbit(entry.getProfile().id()))
             cir.setReturnValue(OrbitUsers.withBadge(cir.getReturnValue()));
+        if (entry != null && entry.getProfile() != null) // Tier Tags
+            cir.setReturnValue(dev.orbit.client.pvp.TierTags.tabList(entry.getProfile().id(), entry.getProfile().name(), cir.getReturnValue()));
     }
 }

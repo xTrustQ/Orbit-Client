@@ -70,7 +70,7 @@ function skinDirector(v) {
 
 const LOG = [
   { t: 'Warp drive', s: 'FPS pack auto-installs Sodium, Lithium & more', orb: 'radial-gradient(circle at 30% 30%,#fff,#4cc9ff 40%,#1d4ed8)', go: 'profiles' },
-  { t: 'Comms online', s: 'Simple Voice Chat & TierTagger come standard', orb: 'radial-gradient(circle at 30% 30%,#fff,#34f5a5 40%,#047857)', go: 'profiles' },
+  { t: 'Comms online', s: 'Voice Chat, Shield Fixes & tier tags come standard', orb: 'radial-gradient(circle at 30% 30%,#fff,#34f5a5 40%,#047857)', go: 'profiles' },
   { t: 'In-game Locker', s: 'Switch accounts, skins & capes from the title screen', orb: 'radial-gradient(circle at 30% 30%,#fff,#ff6fd8 40%,#7e22ce)', go: 'skins' },
   { t: 'Sky lyrics', s: 'Spotify lyrics pinned in the sky, karaoke style', orb: 'radial-gradient(circle at 30% 30%,#fff,#ffb347 40%,#b91c1c)', go: 'settings' },
 ];

@@ -34,7 +34,7 @@ async function lookup(name) {
   let r;
   try { r = await api(`/api/player/${encodeURIComponent(name)}`); }
   catch { show(`<div class="notice">Couldn’t reach the Orbit server. Try again in a moment.</div>`); return; }
-  if (r.status === 404) { show(`<div class="notice"><img src="${head(name, 48)}" alt="" width="48" height="48"><div><b>${esc(name)}</b> hasn’t played with Orbit yet<span>Profiles appear after someone plays with Orbit signed in with Microsoft.</span></div></div>`); return; }
+  if (r.status === 404) { show(`<div class="notice"><img src="${head(name, 48)}" alt="" width="48" height="48"><div><b>${esc(name)}</b> has no Orbit stats yet<span>Stats appear when ${esc(name)} plays with Orbit signed in with Microsoft. If they played before, their stats come back the next time they open Orbit.</span></div></div>`); return; }
   if (!r.ok) { show(`<div class="notice">The Orbit server answered with an error (${r.status}). Try again later.</div>`); return; }
   const p = await r.json();
   if (p.private) { show(`<div class="notice"><img src="${head(p.name, 48)}" alt="" width="48" height="48"><div><b>${esc(p.name)}</b>’s profile is private<span>They turned off their public profile in Orbit.</span></div></div>`); return; }

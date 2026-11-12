@@ -499,6 +499,18 @@ public class OrbitVisualTest implements FabricClientGameTest {
         ctx.setScreen(() -> OrbitTitleScreen.onTab("clips"));
         ctx.waitTicks(20);
         ctx.takeScreenshot("f-clips-empty");
+        // Tier Tags: look up real names, then print the decorated name tag text
+        java.util.UUID fake = java.util.UUID.randomUUID();
+        String[] names = {"TrustQ", "Swight", "ItzRealMe"};
+        ctx.runOnClient(c -> { for (String n : names) dev.orbit.client.pvp.TierTags.nameTag(fake, n, net.minecraft.text.Text.literal(n)); });
+        ctx.waitTicks(120);
+        for (String set : new String[]{"default", "all", "sword-only"}) {
+            ctx.runOnClient(c -> {
+                var m = (dev.orbit.client.module.TierTagsModule) OrbitClient.modules().get("tiertags");
+                m.pvptiers.set(set.equals("all")); m.mode.set(set.equals("sword-only") ? "Sword" : "Best");
+                for (String n : names) OrbitClient.LOG.info("[TEST] tiers {} {} -> '{}'", set, n, dev.orbit.client.pvp.TierTags.nameTag(fake, n, net.minecraft.text.Text.literal(n)).getString());
+            });
+        }
         ctx.runOnClient(c -> OrbitTitleScreen.allowVanillaOnce = true);
         ctx.setScreen(net.minecraft.client.gui.screen.TitleScreen::new);
         ctx.waitTicks(5);

@@ -50,6 +50,12 @@ async function doLaunch(instanceId, emit) {
   }
   const custom = await instances.ensureLoaderProfile(inst);
   instances.syncOrbitMod(inst);
+  if (settings.get('standardMods') !== false) {
+    try {
+      const added = await content.catchUpStandardMods(inst.id, progress);
+      if (added.length) emit('game:log', { instanceId, line: '[Orbit] Standard mods: ' + added.join(', ') });
+    } catch (e) { emit('game:log', { instanceId, line: '[Orbit] Standard mods skipped: ' + e.message }); }
+  }
   try { await require('./store').catalogue(); } catch { /* keeps owner unlocks in store.json current for the game */ }
   try {
     const fixed = await content.repairMods(inst.id, progress);

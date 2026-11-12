@@ -36,6 +36,50 @@ async function get(uuid, name) {
 }
 function touch(uuid) { dirty.add(uuid); }
 
+// ------------------------------------------------------------------ signed backups kept by the players
+// Free hosting can wipe our files. Each signed-in player gets a copy of their own stats, signed with a key only the
+// server knows (Render's service id, stable across restarts, or ORBIT_PROFILE_KEY); after a wipe the game sends it
+// back and we restore it. The signature means nobody can hand us made-up numbers.
+const crypto = require('crypto');
+const KEY = process.env.ORBIT_PROFILE_KEY || process.env.RENDER_SERVICE_ID || crypto.randomBytes(32).toString('hex');
+const KEPT = ['uuid', 'name', 'firstSeen', 'lastSeen', 'playMs', 'sessions', 'days', 'daysPlayed', 'curStreak', 'bestStreak', 'lastDay',
+  'kills', 'deaths', 'hits', 'misses', 'wtaps', 'dealt', 'taken', 'bestCombo'];
+const sign = (data) => crypto.createHmac('sha256', 'orbit-profile|' + KEY).update(data).digest('hex');
+function backup(p) {
+  const o = {};
+  for (const k of KEPT) o[k] = p[k];
+  const data = JSON.stringify(o);
+  return { data, sig: sign(data) };
+}
+/** merge a backup the game sent us; true if it restored anything */
+function restore(p, b) {
+  if (!b || typeof b.data !== 'string' || typeof b.sig !== 'string' || b.data.length > 20000) return false;
+  const want = sign(b.data);
+  if (b.sig.length !== want.length || !crypto.timingSafeEqual(Buffer.from(b.sig), Buffer.from(want))) return false;
+  let o;
+  try { o = JSON.parse(b.data); } catch { return false; }
+  // only after a wipe: our copy then starts later than the player really did. (Once merged, firstSeen matches,
+  // so the same backup can never be added twice.)
+  if (!o || o.uuid !== p.uuid || !(o.firstSeen < p.firstSeen)) return false;
+  // what we have now = everything since the wipe; the backup = everything before it -> add them up
+  const days = { ...(o.days || {}) };
+  let newDays = 0;
+  for (const [d, ms] of Object.entries(p.days || {})) { if (!days[d]) newDays++; days[d] = (days[d] || 0) + ms; }
+  let cur = p.curStreak, last = p.lastDay;
+  if (!p.lastDay) { cur = o.curStreak || 0; last = o.lastDay || null; }
+  else if (o.lastDay === p.lastDay) cur = o.curStreak || 0;                                         // same day on both sides
+  else if (o.lastDay && day(Date.parse(p.lastDay) - 86400_000) === o.lastDay) cur = (o.curStreak || 0) + 1; // the streak goes on
+  Object.assign(p, {
+    firstSeen: o.firstSeen, playMs: (o.playMs || 0) + p.playMs, sessions: (o.sessions || 0) + p.sessions,
+    days, daysPlayed: (o.daysPlayed || 0) + newDays, curStreak: cur, lastDay: last,
+    bestStreak: Math.max(o.bestStreak || 0, p.bestStreak, cur),
+  });
+  for (const k of ['kills', 'deaths', 'hits', 'misses', 'wtaps', 'dealt', 'taken']) p[k] = (p[k] || 0) + (o[k] || 0);
+  p.bestCombo = Math.max(p.bestCombo || 0, o.bestCombo || 0);
+  touch(p.uuid);
+  return true;
+}
+
 function badges(p) {
   const b = [];
   if (p.name && DEVELOPERS.includes(p.name.toLowerCase())) b.push('developer');
@@ -134,4 +178,4 @@ async function lookup(name) {
   return get(uuid);
 }
 
-module.exports = { get, online, startSession, addPlaytime, addStats, setFriends, flush, lookup, leaderboard, loadBoard, touch, badges, lastDays };
+module.exports = { get, online, startSession, addPlaytime, addStats, setFriends, flush, lookup, leaderboard, loadBoard, touch, badges, lastDays, backup, restore };

@@ -1820,6 +1820,82 @@
   ]
  },
  {
+  "id": "tiertags",
+  "name": "Tier Tags",
+  "desc": "PvP tiers next to names — MCTiers, PvPTiers and SubTiers, pick what to show",
+  "category": "COMBAT",
+  "on": true,
+  "toggle": true,
+  "settings": 9,
+  "opts": [
+   {
+    "type": "bool",
+    "id": "mctiers",
+    "name": "MCTiers (mctiers.io)",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "pvptiers",
+    "name": "PvPTiers (pvptiers.com)",
+    "value": false
+   },
+   {
+    "type": "bool",
+    "id": "subtiers",
+    "name": "SubTiers (subtiers.net)",
+    "value": true
+   },
+   {
+    "type": "mode",
+    "id": "mode",
+    "name": "Gamemode (MCTiers / PvPTiers)",
+    "options": [
+     "Best",
+     "Sword",
+     "Axe",
+     "UHC",
+     "Crystal",
+     "Pot",
+     "NethOP",
+     "SMP",
+     "Mace"
+    ],
+    "value": "Best"
+   },
+   {
+    "type": "bool",
+    "id": "showMode",
+    "name": "Show the gamemode name",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "nametags",
+    "name": "On name tags",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "tablist",
+    "name": "In the Tab list",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "retired",
+    "name": "Show retired tiers",
+    "value": true
+   },
+   {
+    "type": "bool",
+    "id": "self",
+    "name": "Show my own tier",
+    "value": true
+   }
+  ]
+ },
+ {
   "id": "totems",
   "name": "Totem Counter",
   "desc": "How many Totems of Undying you carry",

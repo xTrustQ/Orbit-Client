@@ -36,5 +36,7 @@ public abstract class TntLabelMixin {
         if (entity instanceof net.minecraft.entity.player.PlayerEntity p && cir.getReturnValue() != null
                 && dev.orbit.client.cosmetics.OrbitUsers.badgesOn() && dev.orbit.client.cosmetics.OrbitUsers.isOrbit(p.getUuid()))
             cir.setReturnValue(dev.orbit.client.cosmetics.OrbitUsers.withBadge(cir.getReturnValue()));
+        if (entity instanceof net.minecraft.entity.player.PlayerEntity p && cir.getReturnValue() != null) // Tier Tags
+            cir.setReturnValue(dev.orbit.client.pvp.TierTags.nameTag(p.getUuid(), p.getGameProfile().name(), cir.getReturnValue()));
     }
 }

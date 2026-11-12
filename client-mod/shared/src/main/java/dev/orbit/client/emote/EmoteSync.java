@@ -115,7 +115,27 @@ public final class EmoteSync {
         String token = dev.orbit.client.cosmetics.CosmeticsApi.cachedBearer();
         if (token != null) o.addProperty("token", token);
         o.addProperty("profile", OrbitClient.modules().ui().publicProfile.on());
+        // the server's signed copy of your stats: lets it restore them if its own storage was wiped
+        if (token != null) { JsonObject b = loadBackup(id); if (b != null) o.add("backup", b); }
         send(o);
+    }
+
+    // ------------------------------------------------------------------ stats backup (signed by the Orbit server)
+    private static final java.nio.file.Path BACKUP = net.fabricmc.loader.api.FabricLoader.getInstance().getConfigDir().resolve("orbit-profile-backup.json");
+    private static JsonObject loadBackup(UUID id) {
+        try {
+            if (!java.nio.file.Files.exists(BACKUP)) return null;
+            JsonObject all = JsonParser.parseString(java.nio.file.Files.readString(BACKUP)).getAsJsonObject();
+            String k = id.toString().toLowerCase();
+            return all.has(k) && all.get(k).isJsonObject() ? all.getAsJsonObject(k) : null;
+        } catch (Exception e) { return null; }
+    }
+    private static synchronized void saveBackup(String uuid, JsonObject backup) {
+        try {
+            JsonObject all = java.nio.file.Files.exists(BACKUP) ? JsonParser.parseString(java.nio.file.Files.readString(BACKUP)).getAsJsonObject() : new JsonObject();
+            all.add(uuid.toLowerCase(), backup);
+            java.nio.file.Files.writeString(BACKUP, all.toString());
+        } catch (Exception e) { OrbitClient.LOG.debug("Profile backup not saved: {}", e.toString()); }
     }
 
     /** PvP numbers since the last report (for the player profile) */
@@ -184,6 +204,15 @@ public final class EmoteSync {
                     if (o.has("status") && o.get("status").isJsonObject())
                         for (var e : o.getAsJsonObject("status").entrySet()) where.put(e.getKey(), e.getValue().getAsString());
                     mc.execute(() -> Friends.onOnline(ids, where));
+                    return;
+                }
+                if ("profile-backup".equals(type)) { // signed copy of my stats from the server: keep it on disk
+                    if (o.has("uuid") && o.has("data") && o.has("sig")) {
+                        JsonObject b = new JsonObject();
+                        b.add("data", o.get("data")); b.add("sig", o.get("sig"));
+                        String u = o.get("uuid").getAsString();
+                        Thread.ofVirtual().start(() -> saveBackup(u, b));
+                    }
                     return;
                 }
                 if ("invite-failed".equals(type)) { mc.execute(Friends::onInviteFailed); return; }

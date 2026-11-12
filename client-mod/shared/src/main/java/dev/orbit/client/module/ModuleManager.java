@@ -54,6 +54,7 @@ public final class ModuleManager {
         add(new NewModules.WeatherChanger(), Items.WATER_BUCKET, Category.RENDER);
         add(new PvpModules.KillEffectsModule(), Items.NETHER_STAR, Category.COMBAT);
         add(new PvpModules.TargetHud(), Items.PLAYER_HEAD, Category.COMBAT);
+        add(new TierTagsModule(), Items.DIAMOND_SWORD, Category.COMBAT);
         add(new PvpModules.ComboCounter(), Items.BLAZE_POWDER, Category.COMBAT);
         add(new PvpModules.HitDelay(), Items.CLOCK, Category.COMBAT);
         add(new PvpModules.PearlTracker(), Items.ENDER_PEARL, Category.COMBAT);
