@@ -38,6 +38,24 @@ document.getElementById('year').textContent = new Date().getFullYear();
 // highlight the current page in the menu
 document.querySelectorAll('.links a').forEach((a) => { if (a.getAttribute('href') === location.pathname.split('/').pop()) a.classList.add('here'); });
 const ORBIT_SERVER = 'https://orbit-server-nyn5.onrender.com';
+
+// Download buttons: right after a new release is published, GitHub is still building its files for a few minutes,
+// so "latest/download" would 404. Point every Download button at the newest release that already has the installer.
+(async () => {
+  const links = [...document.querySelectorAll('a[href*="/releases/latest/download/"]')];
+  if (!links.length) return;
+  try {
+    const r = await fetch('https://api.github.com/repos/xTrustQ/Orbit-Client/releases?per_page=6');
+    if (!r.ok) return;
+    const rel = (await r.json()).find((x) => !x.draft && !x.prerelease && x.assets.some((a) => a.name === 'Orbit-Setup.exe'));
+    if (!rel) return;
+    for (const a of links) {
+      const file = a.href.split('/').pop();
+      const asset = rel.assets.find((x) => x.name === file);
+      if (asset) a.href = asset.browser_download_url;
+    }
+  } catch { /* keep the plain link */ }
+})();
 const fmt = (n) => new Intl.NumberFormat('en').format(n);
 const countUp = (el, to) => {
   const start = performance.now(), from = 0, dur = 900;
