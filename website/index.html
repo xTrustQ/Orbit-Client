@@ -50,52 +50,86 @@
     </div>
   </section>
 
-  <section class="live reveal" aria-label="Live statistics">
-    <div class="stat"><span class="dot"></span><b id="st-online">—</b><span>online now</span></div>
-    <div class="stat"><b id="st-ingame">—</b><span>in a game</span></div>
-    <div class="stat"><b id="st-downloads">—</b><span>downloads</span></div>
-  </section>
-
-  <section class="strip reveal" aria-label="Highlights">
-    <div><b>60+</b><span>built-in mods</span></div>
-    <div><b>1 click</b><span>Fabric &amp; FPS boost</span></div>
-    <div><b>Shared</b><span>cosmetics &amp; capes</span></div>
-    <div><b>Auto</b><span>updates</span></div>
-  </section>
-
-  <section id="features" class="features">
-    <h2 class="reveal">Everything in one place</h2>
-    <p class="section-sub reveal">No mod hunting, no setup guides. Start Orbit, press Launch, play.</p>
-    <div class="grid">
-      <article class="card reveal"><div class="ic">🚀</div><h3>A launcher that does the work</h3><p>Profiles, the right Java and Fabric are set up automatically. New profiles get Sodium, Lithium, FerriteCore, EntityCulling and more for higher FPS.</p></article>
-      <article class="card reveal"><div class="ic">🧩</div><h3>Mods from Modrinth &amp; CurseForge</h3><p>Search and install mods, resource packs, shaders and modpacks right in the launcher. Already installed? Orbit tells you.</p></article>
-      <article class="card reveal"><div class="ic">🛰️</div><h3>60+ Orbit mods in-game</h3><p>Zoom, Freelook, Motion Blur, Crosshair Painter, Sky Changer, Item Physics, Hitboxes, Waypoints and more — open the menu with Right Shift.</p></article>
-      <article class="card reveal"><div class="ic">⚔️</div><h3>PvP tools</h3><p>Target HUD, combo counter, reach display, damage numbers, pearl tracker, projectile predictor, fight stats, kill effects and custom hit colours.</p></article>
-      <article class="card reveal"><div class="ic">👑</div><h3>Cosmetics everyone sees</h3><p>60+ hats, wings, auras and pets — a fox on your shoulder or a baby dragon flying next to you — plus Orbit capes. Other Orbit players see what you wear.</p></article>
-      <article class="card reveal"><div class="ic">💬</div><h3>Friends &amp; chat</h3><p>Add friends by name and chat with them from the main menu, see who's online, and switch accounts without restarting the game.</p></article>
-      <article class="card reveal"><div class="ic">🎨</div><h3>A clean new look</h3><p>A redesigned main menu, pause menu and options with live space backgrounds, accent colours and a drag-and-drop HUD designer.</p></article>
-      <article class="card reveal"><div class="ic">🎵</div><h3>Spotify &amp; Discord</h3><p>Synced Spotify lyrics in the sky, a now-playing widget with controls, and "Playing Orbit Client" on your Discord profile.</p></article>
-      <article class="card reveal"><div class="ic">🔄</div><h3>Always up to date</h3><p>New versions download in the background and install themselves when you close the launcher. Nothing to do.</p></article>
+  <section class="band reveal" aria-label="Highlights">
+    <div class="band-live">
+      <div class="stat"><span class="dot"></span><b id="st-online">—</b><span>online now</span></div>
+      <div class="stat"><b id="st-ingame">—</b><span>in a game</span></div>
+      <div class="stat"><b id="st-downloads">—</b><span>downloads</span></div>
+    </div>
+    <div class="band-facts">
+      <div><b>65</b><span>built-in mods</span></div>
+      <div><b>60+</b><span>cosmetics &amp; pets</span></div>
+      <div><b>1 click</b><span>Fabric &amp; FPS boost</span></div>
+      <div><b>Auto</b><span>updates</span></div>
     </div>
   </section>
 
-  <section id="try" class="try">
-    <h2 class="reveal">Try the Orbit menu</h2>
-    <p class="section-sub reveal">This is the menu you get in the game with Right Shift — click around: switch tabs, turn mods on, right-click one for its settings.</p>
-    <div id="orbit-menu" class="orbit-menu reveal" tabindex="-1"></div>
-    <p class="try-note reveal">Just a preview — it doesn’t change anything in your game. <a class="link" href="mods.html">See the full list of mods →</a></p>
+  <!-- features: a bento grid with a heading row beside it -->
+  <section id="features" class="features">
+    <div class="split-head reveal">
+      <div><p class="eyebrow">Features</p><h2>Everything in one place</h2></div>
+      <p>No mod hunting, no setup guides. Start Orbit, press Launch, play — the launcher, the mods and the look of the whole game come in one download.</p>
+    </div>
+    <div class="bento">
+      <article class="tile t-big reveal">
+        <div class="tile-text"><span class="ic">🛰️</span><h3>65 Orbit mods in-game</h3><p>Zoom, Freelook, Motion Blur, Crosshair Painter, Sky Changer, Item Physics, Hitboxes, Waypoints, Clips and more. Right Shift opens them all.</p>
+          <a class="tile-link" href="#try">Try the menu here →</a></div>
+        <img src="img/mods.png" alt="The Orbit mods menu" loading="lazy" width="854" height="480">
+      </article>
+      <article class="tile t-wide t-cos reveal">
+        <div class="tile-text"><span class="ic">👑</span><h3>Cosmetics everyone sees</h3><p>Hats, wings, auras and pets — a fox on your shoulder, a baby dragon next to you. Other Orbit players see it too.</p></div>
+        <img src="img/cosmetics.png" alt="Orbit cosmetics" loading="lazy" width="854" height="480">
+      </article>
+      <article class="tile reveal"><span class="ic">🚀</span><h3>A launcher that does the work</h3><p>The right Java, Fabric and an FPS pack — set up for you.</p></article>
+      <article class="tile reveal"><span class="ic">🧩</span><h3>Modrinth &amp; CurseForge</h3><p>Mods, packs and shaders, installed in one click.</p></article>
+      <article class="tile t-wide t-pvp reveal">
+        <div class="tile-text"><span class="ic">⚔️</span><h3>Built for PvP</h3><p>Tier tags from MCTiers and SubTiers, target HUD, combo counter, reach, damage numbers, pearl tracker and fight stats.</p></div>
+        <div class="tag-demo" aria-hidden="true">
+          <span><i class="ti">🗡</i><b class="t4">HT4</b><em>|</em>TrustQ</span>
+          <span><i class="ti">💎</i><b class="t2">LT2</b><em>|</em>Steve<em>|</em><b class="t3">HT3</b> Bed</span>
+          <span><i class="ti">🍎</i><b class="t1">HT1</b><em>|</em>Notch</span>
+        </div>
+      </article>
+      <article class="tile reveal"><span class="ic">💬</span><h3>Friends &amp; chat</h3><p>See who's online, chat and join their server.</p></article>
+      <article class="tile reveal"><span class="ic">🎬</span><h3>Clips</h3><p>Press F8 to save the last seconds as a video.</p></article>
+      <article class="tile t-wide t-sky reveal" style="--bg: url(img/sky.png)">
+        <div class="tile-text"><span class="ic">🎨</span><h3>A clean new look</h3><p>New main menu, pause menu and options, 9 skies — one follows day and night — and a drag-and-drop HUD designer.</p></div>
+      </article>
+      <article class="tile reveal"><span class="ic">🎵</span><h3>Spotify &amp; Discord</h3><p>Synced lyrics in the sky and "Playing Orbit" on Discord.</p></article>
+      <article class="tile reveal"><span class="ic">🔄</span><h3>Always up to date</h3><p>Updates install themselves. Nothing to do.</p></article>
+    </div>
   </section>
 
-  <section id="screens" class="screens">
-    <h2 class="reveal">Take a look</h2>
-    <div class="tabs reveal" role="tablist">
-      <button class="tab active" data-shot="menu">Main menu</button>
-      <button class="tab" data-shot="pause">Pause menu</button>
-      <button class="tab" data-shot="mods">Orbit mods</button>
-      <button class="tab" data-shot="friends">Friends</button>
-      <button class="tab" data-shot="locker">Locker</button>
-      <button class="tab" data-shot="sky">Sky changer</button>
-      <button class="tab" data-shot="launcher-mods">Mod browser</button>
+  <!-- the clickable menu, with text beside it -->
+  <section id="try" class="split try-split">
+    <div class="split-text reveal">
+      <p class="eyebrow">Try it</p>
+      <h2>The real Orbit menu, right here</h2>
+      <p>This is what Right Shift opens in the game. Go ahead and click around.</p>
+      <ul class="checks">
+        <li><b>Click</b> a mod to turn it on or off</li>
+        <li><b>Right-click</b> (or tap •••) for its settings</li>
+        <li><b>Search</b> or switch tabs at the top</li>
+      </ul>
+      <p class="fine">Just a preview — it doesn’t change your game. <a class="link" href="mods.html">All mods →</a></p>
+    </div>
+    <div id="orbit-menu" class="orbit-menu reveal" tabindex="-1"></div>
+  </section>
+
+  <!-- screenshots: tabs down the side, picture beside them -->
+  <section id="screens" class="split screens-split">
+    <div class="split-text reveal">
+      <p class="eyebrow">Take a look</p>
+      <h2>Every screen, redesigned</h2>
+      <div class="vtabs" role="tablist">
+        <button class="tab active" data-shot="menu">Main menu</button>
+        <button class="tab" data-shot="pause">Pause menu</button>
+        <button class="tab" data-shot="mods">Orbit mods</button>
+        <button class="tab" data-shot="friends">Friends</button>
+        <button class="tab" data-shot="locker">Locker</button>
+        <button class="tab" data-shot="sky">Sky changer</button>
+        <button class="tab" data-shot="launcher-mods">Mod browser</button>
+      </div>
     </div>
     <div class="viewer reveal">
       <img id="shot" src="img/menu.png" alt="Orbit screenshot" width="854" height="480">
@@ -103,28 +137,41 @@
     </div>
   </section>
 
-  <section class="steps">
-    <h2 class="reveal">Up and running in a minute</h2>
-    <ol class="reveal">
-      <li><span>1</span><div><b>Run Orbit-Setup.exe</b><p>It installs in seconds and adds a desktop shortcut.</p></div></li>
-      <li><span>2</span><div><b>Sign in with Microsoft</b><p>Use the account that owns Minecraft: Java Edition.</p></div></li>
-      <li><span>3</span><div><b>Press Launch</b><p>Orbit prepares everything and starts the game.</p></div></li>
-    </ol>
-  </section>
-
-  <section id="faq" class="faq">
-    <h2 class="reveal">FAQ</h2>
-    <details class="reveal"><summary>Is Orbit free?</summary><p>Yes, completely.</p></details>
-    <details class="reveal"><summary>Windows says "Windows protected your PC" — what do I do?</summary><p>Orbit is new and not code-signed yet, so Windows doesn't know it. In Edge, open the download menu (…), choose <b>Keep</b> → <b>Keep anyway</b>. When starting it, click <b>More info</b> → <b>Run anyway</b>. You only need to do this once — updates install by themselves. Only download Orbit from this site or our GitHub.</p></details>
-    <details class="reveal"><summary>Which Minecraft version does Orbit support?</summary><p>The Orbit mods run on Minecraft 1.21.11 with Fabric. The launcher can also start other versions and Forge, Quilt or NeoForge profiles.</p></details>
-    <details class="reveal"><summary>Do I need to own Minecraft?</summary><p>Yes — sign in with the Microsoft account that owns Minecraft: Java Edition.</p></details>
-    <details class="reveal"><summary>Why can't I see my friend's cosmetics?</summary><p>Both of you need Orbit 1.3.4 or newer and a Microsoft account. If nobody was online for a while, give it up to a minute after joining.</p></details>
-    <details class="reveal"><summary>Can I use Orbit on servers?</summary><p>Orbit's mods are visual and quality-of-life features. Every server has its own rules — check them if you're unsure.</p></details>
+  <!-- get started + FAQ next to each other -->
+  <section id="faq" class="duo">
+    <div class="steps reveal">
+      <p class="eyebrow">Get started</p>
+      <h2>Up and running in a minute</h2>
+      <ol>
+        <li><span>1</span><div><b>Run Orbit-Setup.exe</b><p>It installs in seconds and adds a desktop shortcut.</p></div></li>
+        <li><span>2</span><div><b>Sign in with Microsoft</b><p>Use the account that owns Minecraft: Java Edition.</p></div></li>
+        <li><span>3</span><div><b>Press Launch</b><p>Orbit prepares everything and starts the game.</p></div></li>
+      </ol>
+      <a class="btn primary steps-btn" href="https://github.com/xTrustQ/Orbit-Client/releases/latest/download/Orbit-Setup.exe">Download Orbit</a>
+    </div>
+    <div class="faq reveal">
+      <p class="eyebrow">FAQ</p>
+      <h2>Questions</h2>
+      <details><summary>Is Orbit free?</summary><p>Yes, completely.</p></details>
+      <details><summary>Windows says "Windows protected your PC" — what do I do?</summary><p>Orbit is new and not code-signed yet, so Windows doesn't know it. In Edge, open the download menu (…), choose <b>Keep</b> → <b>Keep anyway</b>. When starting it, click <b>More info</b> → <b>Run anyway</b>. You only need to do this once — updates install by themselves. Only download Orbit from this site or our GitHub.</p></details>
+      <details><summary>Which Minecraft version does Orbit support?</summary><p>The Orbit mods run on Minecraft 1.21.11 with Fabric. The launcher can also start other versions and Forge, Quilt or NeoForge profiles.</p></details>
+      <details><summary>Do I need to own Minecraft?</summary><p>Yes — sign in with the Microsoft account that owns Minecraft: Java Edition.</p></details>
+      <details><summary>Why can't I see my friend's cosmetics?</summary><p>Both of you need a recent Orbit and a Microsoft account. If nobody was online for a while, give it up to a minute after joining.</p></details>
+      <details><summary>Can I use Orbit on servers?</summary><p>Orbit's mods are visual and quality-of-life features. Every server has its own rules — check them if you're unsure.</p></details>
+    </div>
   </section>
 
   <section class="final reveal">
-    <h2>Ready for liftoff?</h2>
-    <a class="btn big primary" href="https://github.com/xTrustQ/Orbit-Client/releases/latest/download/Orbit-Setup.exe">Download Orbit</a>
+    <div>
+      <h2>Ready for liftoff?</h2>
+      <p>Free, for Windows. Minecraft 1.21.11 — and updates itself.</p>
+    </div>
+    <div class="final-cta">
+      <a class="btn big primary" href="https://github.com/xTrustQ/Orbit-Client/releases/latest/download/Orbit-Setup.exe">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>
+        Download Orbit</a>
+      <a class="btn big ghost" href="players.html">Find a player</a>
+    </div>
   </section>
 </main>
 
