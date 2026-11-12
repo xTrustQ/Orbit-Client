@@ -29,6 +29,7 @@ public class OrbitVisualTest implements FabricClientGameTest {
         if ("death".equals(System.getenv("ORBIT_TEST_ONLY"))) { deathOnly(ctx); return; }
         if ("fixes".equals(System.getenv("ORBIT_TEST_ONLY"))) { fixesOnly(ctx); return; }
         if ("tiersky".equals(System.getenv("ORBIT_TEST_ONLY"))) { tierSkyOnly(ctx); return; }
+        if ("shots".equals(System.getenv("ORBIT_TEST_ONLY"))) { websiteShots(ctx); return; }
 
         ctx.waitTicks(16);
         ctx.takeScreenshot("00-intro-a");
@@ -482,6 +483,74 @@ public class OrbitVisualTest implements FabricClientGameTest {
             ctx.takeScreenshot("13-hud-editor");
             ctx.setScreen(() -> null);
             OrbitTitleScreen.allowVanillaOnce = true; // the harness requires ending on vanilla's title screen
+        }
+    }
+
+    /** website pictures (ORBIT_TEST_ONLY=shots): 1080p, HUD hidden, a few trees, Golden Hour sky */
+    private static void websiteShots(ClientGameTestContext ctx) {
+        ctx.waitTicks(40);
+        try (TestSingleplayerContext sp = ctx.worldBuilder().create()) {
+            sp.getClientWorld().waitForChunksRender();
+            for (String c : new String[]{"time set 1000", "weather clear", "gamerule doDaylightCycle false",
+                    "execute as @p at @s run place feature minecraft:fancy_oak ^6 ^ ^11", "execute as @p at @s run place feature minecraft:fancy_oak ^-7 ^ ^13",
+                    "execute as @p at @s run place feature minecraft:birch ^2 ^ ^16", "execute as @p at @s run place feature minecraft:oak ^-12 ^ ^8",
+                    "execute as @p at @s run place feature minecraft:flower_plain ^ ^ ^6", "execute as @p at @s run place feature minecraft:flower_plain ^-3 ^ ^9",
+                    "execute as @p at @s run place feature minecraft:patch_grass_plain ^2 ^ ^5", "execute as @p at @s run place feature minecraft:patch_grass_plain ^-2 ^ ^3"})
+                sp.getServer().runCommand(c);
+            ctx.runOnClient(c -> {
+                c.getWindow().setWindowedSize(1920, 1080);
+                c.options.getGuiScale().setValue(3);
+                c.onResolutionChanged();
+                c.options.hudHidden = true;
+                var m = OrbitClient.modules();
+                for (var h : m.hud()) h.setEnabled(false);
+                var s = m.sky(); s.preset.set(dev.orbit.client.sky.SkyPreset.GOLDEN_HOUR.title); s.setEnabled(true);
+                c.player.setPitch(4);
+            });
+            sp.getClientWorld().waitForChunksRender();
+            ctx.waitTicks(60);
+            // 1) cosmetics: crown, angel wings, stardust aura, baby dragon — front (trees behind the player), then a 3/4 view
+            ctx.runOnClient(c -> {
+                var cm = (NewModules.Cosmetics) OrbitClient.modules().get("cosmetics");
+                cm.setEnabled(true); cm.hat.set("Crown"); cm.wings.set("Angel"); cm.aura.set("Stardust"); cm.pet.set("Baby Dragon");
+                c.player.setYaw(c.player.getYaw() + 180); c.player.setBodyYaw(c.player.getYaw()); c.player.setHeadYaw(c.player.getYaw());
+                c.options.setPerspective(Perspective.THIRD_PERSON_FRONT); c.player.setPitch(6);
+            });
+            ctx.waitTicks(30);
+            ctx.takeScreenshot("w-cos-front");
+            ctx.runOnClient(c -> c.options.setPerspective(Perspective.THIRD_PERSON_BACK));
+            ctx.getInput().holdKey(OrbitClient.freelookKey);
+            ctx.waitTicks(3);
+            ctx.runOnClient(c -> OrbitClient.modules().freelook().turn(-620, 40));
+            ctx.waitTicks(15);
+            ctx.takeScreenshot("w-cos-side");
+            ctx.runOnClient(c -> OrbitClient.modules().freelook().turn(-260, 0));
+            ctx.waitTicks(15);
+            ctx.takeScreenshot("w-cos-side2");
+            ctx.getInput().releaseKey(OrbitClient.freelookKey);
+            ctx.runOnClient(c -> { var cm = (NewModules.Cosmetics) OrbitClient.modules().get("cosmetics"); cm.pet.set("Fox"); cm.wings.set("Butterfly"); cm.hat.set("Witch Hat"); cm.aura.set("Petals"); c.options.setPerspective(Perspective.THIRD_PERSON_FRONT); c.player.setPitch(6); });
+            ctx.waitTicks(25);
+            ctx.takeScreenshot("w-cos-front-fox");
+            ctx.runOnClient(c -> { var cm = (NewModules.Cosmetics) OrbitClient.modules().get("cosmetics"); cm.pet.set("Parrot"); cm.wings.set("Phoenix"); cm.hat.set("Party Hat"); cm.aura.set("Fireflies"); });
+            ctx.waitTicks(25);
+            ctx.takeScreenshot("w-cos-front-parrot");
+            // 2) the Orbit menu over the world (Render tab, a few mods on)
+            ctx.runOnClient(c -> {
+                var cm = (NewModules.Cosmetics) OrbitClient.modules().get("cosmetics"); cm.pet.set("None"); cm.wings.set("None"); cm.hat.set("None"); cm.aura.set("None");
+                c.options.setPerspective(Perspective.FIRST_PERSON); c.player.setPitch(2);
+                var m = OrbitClient.modules();
+                for (String id : new String[]{"fullbright", "nofog", "itemphysics", "deathanim", "time"}) { var md = m.get(id); if (md != null) md.setEnabled(true); }
+            });
+            ctx.waitTicks(10);
+            ctx.setScreen(() -> new OrbitScreen(null).tab(Module.Category.RENDER));
+            ctx.waitTicks(30);
+            ctx.takeScreenshot("w-menu-render");
+            ctx.setScreen(() -> new OrbitScreen(null).tab(Module.Category.COMBAT));
+            ctx.waitTicks(30);
+            ctx.takeScreenshot("w-menu-combat");
+            ctx.setScreen(() -> null);
+            ctx.runOnClient(c -> { c.options.hudHidden = false; c.options.getGuiScale().setValue(0); c.getWindow().setWindowedSize(854, 480); c.onResolutionChanged(); OrbitClient.modules().sky().setEnabled(false); });
+            OrbitTitleScreen.allowVanillaOnce = true;
         }
     }
 

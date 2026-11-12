@@ -80,7 +80,7 @@ const caption = document.getElementById('caption');
 document.querySelectorAll('.tab').forEach((b) => b.addEventListener('click', () => {
   document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', t === b));
   shot.classList.add('fade');
-  setTimeout(() => { shot.src = `img/${b.dataset.shot}.png`; caption.textContent = captions[b.dataset.shot]; }, 180);
+  setTimeout(() => { shot.src = `img/${b.dataset.shot}.png?v=2`; caption.textContent = captions[b.dataset.shot]; }, 180);
 }));
 shot.addEventListener('load', () => shot.classList.remove('fade'));
 
